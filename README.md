@@ -2,7 +2,7 @@
 
 **BrickStock** es una aplicación multiplataforma (móvil y web) diseñada para gestionar carteras de inversión de sets de Lego. Permite a los usuarios consultar el catálogo oficial, gestionar sus colecciones y analizar el valor de mercado de sus activos.
 
-Este proyecto es parte del **Trabajo de Fin de Grado (TFG)** del ciclo de Desarrollo de Aplicaciones Multiplataforma (DAM).
+Este proyecto es parte del **Trabajo de Fin de Grado (TFG)** del ciclo de Desarrollo de Aplicaciones Multiplataforma (DAM) de Jhon Mario Agudelo y Óscar Arantegui.
 
 ## 🚀 Stack Tecnológico
 

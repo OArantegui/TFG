@@ -1,21 +1,17 @@
-# --- GENERAL ---
 .DS_Store
 .vscode/
 .idea/
 *.log
 
-# --- SECRETOS (¡JAMÁS SUBIR ESTO!) ---
 .env
 .env.local
 brickstock_backend/.env
 
-# --- NODE.JS (Backend) ---
 node_modules/
 npm-debug.log
 yarn-error.log
 brickstock_backend/node_modules/
 
-# --- FLUTTER / DART (Mobile) ---
 # Archivos generados y dependencias
 .dart_tool/
 .flutter-plugins
@@ -43,7 +39,7 @@ ios/Flutter/flutter_assets/
 ios/Pods/
 ios/.symlinks/
 
-# Brickstock específico (por si acaso)
+# Brickstock específico
 brickstock/build/
 brickstock/.dart_tool/
 brickstock/ios/Pods/

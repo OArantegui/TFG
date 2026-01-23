@@ -69,5 +69,5 @@ Para ejecutar este proyecto localmente, necesitas tener instalado:
 * Si usas **Web o iOS Simulator**, se conectará a `localhost:3000`.
 
 ---
-*Autor: [Tu Nombre]*
-*DAM 2 - Curso 2025/2026*
+*Autores: Jhon Mario Agudelo, Óscar Arantegui*
+*IES Pablo Serrano, DAM 2 - Curso 2025/2026*

@@ -1,0 +1,49 @@
+# --- GENERAL ---
+.DS_Store
+.vscode/
+.idea/
+*.log
+
+# --- SECRETOS (¡JAMÁS SUBIR ESTO!) ---
+.env
+.env.local
+brickstock_backend/.env
+
+# --- NODE.JS (Backend) ---
+node_modules/
+npm-debug.log
+yarn-error.log
+brickstock_backend/node_modules/
+
+# --- FLUTTER / DART (Mobile) ---
+# Archivos generados y dependencias
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Android
+android/**/*.gradle
+android/**/gradlew
+android/**/gradlew.bat
+android/local.properties
+android/**/generated/
+android/**/gradle-wrapper.jar
+
+# iOS
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Pods/
+ios/.symlinks/
+
+# Brickstock específico (por si acaso)
+brickstock/build/
+brickstock/.dart_tool/
+brickstock/ios/Pods/

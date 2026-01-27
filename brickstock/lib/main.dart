@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/explore_screen.dart';
+import 'screens/home_screens.dart';
 
 void main() {
   runApp(const BrickStockApp());
@@ -14,14 +15,14 @@ class BrickStockApp extends StatelessWidget {
       title: 'BrickStock',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
-        // Estilo "Anti-Diseño" limpio y profesional
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          elevation: 2,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blueGrey,
+          brightness: Brightness.dark,
         ),
+
+        appBarTheme: const AppBarTheme(centerTitle: true, elevation: 2),
       ),
-      home: const ExploreScreen(),
+      home: const HomeScreen(),
     );
   }
 }

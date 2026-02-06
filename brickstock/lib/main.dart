@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/explore_screen.dart';
-import 'screens/home_screens.dart';
+import 'screens/main_layout.dart';
 
 void main() {
   runApp(const BrickStockApp());
@@ -22,7 +21,7 @@ class BrickStockApp extends StatelessWidget {
 
         appBarTheme: const AppBarTheme(centerTitle: true, elevation: 2),
       ),
-      home: const HomeScreen(),
+      home: const MainLayout(),
     );
   }
 }

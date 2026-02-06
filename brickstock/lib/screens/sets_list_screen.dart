@@ -5,6 +5,7 @@ import 'package:transparent_image/transparent_image.dart';
 import '../models/lego_theme.dart';
 import '../models/lego_set.dart';
 import '../services/api_service.dart';
+import 'set_details_screen.dart';
 
 class SetsListScreen extends StatefulWidget {
   final LegoTheme theme;
@@ -48,8 +49,8 @@ class _SetsListScreenState extends State<SetsListScreen> {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
-          }else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-             return const Center(child: Text('No hay sets en esta colección'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No hay sets en esta colección'));
           }
 
           final sets = snapshot.data!;
@@ -65,7 +66,9 @@ class _SetsListScreenState extends State<SetsListScreen> {
                   width: 80,
                   height: 80,
                   child: CachedNetworkImage(
-                    imageUrl: _getImageUrl(set.imgUrl), // <--- Aquí usamos la función mágica
+                    imageUrl: _getImageUrl(
+                      set.imgUrl,
+                    ), // <--- Aquí usamos la función mágica
                     memCacheWidth: 200, // Optimización de memoria
                     placeholder: (context, url) => const Center(
                       child: CircularProgressIndicator(strokeWidth: 2),
@@ -79,11 +82,18 @@ class _SetsListScreenState extends State<SetsListScreen> {
                   set.name,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: Text('#${set.setNum} | ${set.year} | ${set.numParts} piezas'),
+                subtitle: Text(
+                  '#${set.setNum} | ${set.year} | ${set.numParts} piezas',
+                ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
-                  // TODO: Ir al detalle del set
-                  print("Click en set: ${set.setNum}");
+                  // Navegación estándar de Flutter (Push)
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SetDetailsScreen(legoSet: set),
+                    ),
+                  );
                 },
               );
             },

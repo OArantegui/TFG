@@ -1,5 +1,6 @@
 import 'dart:io'; // Para detectar plataforma
-import 'dart:math'; // <--- NECESARIO PARA RANDOM
+import 'dart:math'; // Para Random
+import 'package:cached_network_image/cached_network_image.dart'; // <--- NUEVO: Para caché y mejor rendimiento
 import 'package:flutter/foundation.dart'; // Para kIsWeb
 import 'package:flutter/material.dart';
 import '../models/lego_set.dart';
@@ -21,34 +22,48 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
   List<Map<String, dynamic>> _mockPrices = [];
 
   // Lista de imágenes
-  final List<String> _extraImages = [
-    // Como fallback usaremos imágenes de ejemplo si no hay más
-    'https://images.brickset.com/sets/additional/75192-1/75192_alt1.jpg',
-    'https://images.brickset.com/sets/additional/75192-1/75192_alt2.jpg',
-  ];
+  final List<String> _extraImages = [];
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
 
-    // 1. GESTIÓN DE IMÁGENES
-    // Aseguramos que la imagen principal sea la primera
-    if (!_extraImages.contains(widget.legoSet.imgUrl)) {
-      _extraImages.insert(0, widget.legoSet.imgUrl);
+    // --- GENERACIÓN DINÁMICA DE IMÁGENES ---
+    // 1. Añadimos SIEMPRE la imagen principal de Rebrickable (esa nunca falla)
+    _extraImages.add(widget.legoSet.imgUrl);
+
+    // 2. "Adivinamos" 3 imágenes extra usando el patrón de Brickset
+    // Ejemplo: Si el set es "75192-1", buscamos "75192_alt1.jpg"
+    final setNumBase = widget.legoSet.setNum.split('-')[0]; // Quitamos el "-1"
+
+    // Generamos URLs para alt1, alt2 y alt3
+    for (var i = 1; i <= 3; i++) {
+      String altUrl =
+          'https://images.brickset.com/sets/additional/${widget.legoSet.setNum}/${setNumBase}_alt$i.jpg';
+      _extraImages.add(altUrl);
     }
 
     // 2. GENERACIÓN DE PRECIOS SIMULADOS
     _generateSimulatedPrices();
   }
 
+  // --- FUNCIÓN MÁGICA PARA IMÁGENES (Proxy para Web) ---
+  String _getImageUrl(String originalUrl) {
+    if (kIsWeb) {
+      // Si estamos en Web, usamos el Proxy del Backend para saltar el bloqueo CORS
+      final encodedUrl = Uri.encodeComponent(originalUrl);
+      return 'http://localhost:3000/api/lego/image-proxy?url=$encodedUrl';
+    }
+    // Si estamos en Móvil, pedimos la imagen directa (más rápido)
+    return originalUrl;
+  }
+
   void _generateSimulatedPrices() {
     // REGLA DE ORO: Precio estimado ~ 0.10€ por pieza
-    // Si el set tiene 0 piezas (error de API), asumimos 100 piezas por defecto
     int parts = widget.legoSet.numParts > 0 ? widget.legoSet.numParts : 100;
     double basePrice = parts * 0.10;
 
-    // Lista de tiendas disponibles
     final List<String> stores = [
       'Lego Store',
       'Amazon',
@@ -59,29 +74,20 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
     ];
 
     final random = Random();
-
-    // Generamos precios para 4 tiendas aleatorias de la lista
-    // Barajamos la lista de tiendas para que no siempre salgan las mismas
     stores.shuffle();
     final selectedStores = stores.take(4).toList();
 
     _mockPrices = selectedStores.map((storeName) {
-      // Factor de variación: entre 0.85 (-15%) y 1.15 (+15%)
-      double variation = 0.85 + random.nextDouble() * 0.30;
+      double variation = 0.85 + random.nextDouble() * 0.30; // +/- 15%
 
-      // Casos especiales para darle realismo:
-      // - eBay suele ser más caro por especulación (+20% extra a veces)
       if (storeName.contains('eBay')) variation += 0.2;
-      // - Amazon suele ajustar más el precio
       if (storeName.contains('Amazon')) variation -= 0.05;
 
       double finalPrice = basePrice * variation;
 
       return {
         'store': storeName,
-        'price': double.parse(
-          finalPrice.toStringAsFixed(2),
-        ), // Redondear a 2 decimales
+        'price': double.parse(finalPrice.toStringAsFixed(2)),
         'url':
             'https://www.google.com/search?q=lego+${widget.legoSet.setNum}+${storeName.replaceAll(' ', '+')}',
       };
@@ -147,10 +153,10 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Detectamos si necesitamos flechas (Web/Escritorio)
     final bool showArrows =
         kIsWeb || Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 
-    // Calcular mínimo para destacar
     double minPrice = double.infinity;
     if (_mockPrices.isNotEmpty) {
       minPrice = _mockPrices.map((e) => e['price'] as double).reduce(min);
@@ -162,7 +168,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- CARRUSEL ---
+            // --- CARRUSEL DE IMÁGENES MEJORADO ---
             SizedBox(
               height: 300,
               child: Stack(
@@ -174,14 +180,42 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                     onPageChanged: (index) =>
                         setState(() => _currentImageIndex = index),
                     itemBuilder: (ctx, index) {
-                      return Image.network(
-                        _extraImages[index],
+                      return CachedNetworkImage(
+                        imageUrl: _getImageUrl(
+                          _extraImages[index],
+                        ), // <--- ¡Vital usar el Proxy aquí!
                         fit: BoxFit.contain,
-                        errorBuilder: (ctx, _, __) =>
-                            const Icon(Icons.broken_image, size: 100),
+                        placeholder: (context, url) =>
+                            const Center(child: CircularProgressIndicator()),
+                        // Si la imagen "adivinada" no existe (404), mostramos un aviso elegante
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey[200],
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.image_not_supported,
+                                size: 40,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                index == 0
+                                    ? "Imagen no disponible"
+                                    : "Vista extra no disponible",
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       );
                     },
                   ),
+
+                  // Flechas de navegación (Solo Web/Desktop)
                   if (showArrows && _currentImageIndex > 0)
                     Positioned(
                       left: 10,
@@ -205,7 +239,8 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                         ),
                       ),
                     ),
-                  // Dots indicator
+
+                  // Indicador de puntos (Dots)
                   Positioned(
                     bottom: 10,
                     child: Row(
@@ -228,7 +263,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
               ),
             ),
 
-            // --- INFO DEL SET ---
+            // --- INFO Y PRECIOS ---
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -249,7 +284,6 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                   const SizedBox(height: 20),
                   const Divider(),
 
-                  // --- COMPARADOR ---
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -266,13 +300,16 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Lista de precios generada
+                  // Tabla de precios
                   ..._mockPrices.map((priceData) {
                     final bool isCheapest = priceData['price'] == minPrice;
                     return Card(
                       elevation: isCheapest ? 4 : 1,
+                      // Pequeño ajuste visual para modo oscuro/claro
                       color: isCheapest
-                          ? const Color.fromARGB(255, 35, 37, 35)
+                          ? (Theme.of(context).brightness == Brightness.dark
+                                ? Colors.green.shade900.withOpacity(0.3)
+                                : Colors.green.shade50)
                           : null,
                       margin: const EdgeInsets.symmetric(vertical: 4),
                       child: ListTile(
@@ -291,9 +328,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                             fontWeight: isCheapest
                                 ? FontWeight.bold
                                 : FontWeight.normal,
-                            color: isCheapest
-                                ? Colors.green.shade800
-                                : Colors.black,
+                            color: isCheapest ? Colors.green : null,
                           ),
                         ),
                         subtitle: isCheapest
@@ -317,7 +352,6 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
 
                   const SizedBox(height: 20),
 
-                  // --- BOTÓN NOTIFICAR ---
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(

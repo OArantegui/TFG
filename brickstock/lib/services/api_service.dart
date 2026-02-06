@@ -13,7 +13,7 @@ class ApiService {
     return 'http://localhost:3000/api/lego'; // iOS
   }
 
-  // NOTA: Ya no necesitamos _apiKey aquí. ¡Seguridad mejorada!
+  // Ya no necesitamos _apiKey aquí
 
   Future<List<LegoTheme>> getThemes() async {
     // Fíjate que la ruta ahora coincide con tu backend: /themes
@@ -23,7 +23,7 @@ class ApiService {
       final data = json.decode(response.body);
       // Rebrickable devuelve { count: ..., results: [...] }
       // Tu backend está devolviendo exactamente lo que da Rebrickable, así que accedemos a 'results'
-      final List results = data['results']; 
+      final List results = data['results'];
       return results.map((e) => LegoTheme.fromJson(e)).toList();
     } else {
       throw Exception('Fallo al cargar temas desde el Backend');
@@ -41,5 +41,27 @@ class ApiService {
     } else {
       throw Exception('Fallo al cargar sets desde el Backend');
     }
+  }
+
+  // Obtener la imagen de portada de un tema (lazy loading)
+  Future<String?> getThemeCover(int themeId) async {
+    try {
+      // Ajusta la URL a tu IP local o localhost según corresponda
+      final uri = Uri.parse('$_baseUrl/themes/$themeId/cover');
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['url']; // Puede ser null
+      }
+    } catch (e) {
+      debugPrint('Error fetching theme cover: $e');
+    }
+    return null;
+  }
+
+  String getProxyUrl(String originalUrl) {
+    // Uri.encodeComponent es vital para que la URL original no rompa la petición
+    return '$_baseUrl/image-proxy?url=${Uri.encodeComponent(originalUrl)}';
   }
 }

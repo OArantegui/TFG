@@ -57,8 +57,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
 class _ThemeCard extends StatelessWidget {
   final LegoTheme theme;
+  final ApiService apiService = ApiService();
 
-  const _ThemeCard({required this.theme});
+  _ThemeCard({required this.theme});
 
   @override
   Widget build(BuildContext context) {
@@ -66,34 +67,88 @@ class _ThemeCard extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => SetsListScreen(theme: theme),
-          ),
+          MaterialPageRoute(builder: (context) => SetsListScreen(theme: theme)),
         );
       },
       child: Card(
-        clipBehavior: Clip.antiAlias, // Recorta la imagen a los bordes
+        clipBehavior: Clip.antiAlias,
         elevation: 4,
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // 1. Imagen de fondo (Genérica porque la API no da una)
-            Image.network(
-              'https://images.unsplash.com/photo-1585366119957-e9730b6d0f60?w=400&q=80', // Foto de legos genérica
-              fit: BoxFit.cover,
-              color: Colors.black.withOpacity(0.4), // Oscurecer para leer texto
-              colorBlendMode: BlendMode.darken,
+            FutureBuilder<String?>(
+              future: apiService.getThemeCover(theme.id),
+              builder: (context, snapshot) {
+                //  DEBUG: Mira tu consola ("Run" en VSCode).
+                // Si ves "URL nula" o error aquí, es que el backend falla.
+                if (snapshot.connectionState == ConnectionState.done) {
+                  debugPrint(
+                    'Tema: ${theme.name} (ID: ${theme.id}) -> URL: ${snapshot.data}',
+                  );
+                }
+
+                // Variable mutale: Empezamos con la genérica
+                String? imageUrl = snapshot.data;
+
+                // 1. Definimos la Genérica
+                Widget imageWidget = Image.network(
+                  'https://images.unsplash.com/photo-1585366119957-e9730b6d0f60?w=400&q=80',
+                  key: const ValueKey(
+                    'generic_image',
+                  ), // CLAVE: Ayuda a Flutter a distinguir
+                  fit: BoxFit.cover,
+                  color: Colors.black.withOpacity(0.4),
+                  colorBlendMode: BlendMode.darken,
+                );
+
+                // 2. Condición de "Pisado"
+                if (snapshot.hasData &&
+                    imageUrl != null &&
+                    imageUrl.isNotEmpty) {
+                  // CAMBIO CLAVE: Usamos el proxy en lugar de la URL directa
+                  final proxyUrl = apiService.getProxyUrl(imageUrl);
+
+                  imageWidget = Image.network(
+                    proxyUrl, // <--- Aquí usamos la URL del proxy
+                    key: ValueKey(
+                      imageUrl,
+                    ), // La key sigue siendo la original para detectar cambios
+                    fit: BoxFit.cover,
+                    color: Colors.black.withOpacity(0.4),
+                    colorBlendMode: BlendMode.darken,
+                    errorBuilder: (context, error, stackTrace) {
+                      debugPrint('❌ Error cargando imagen desde proxy: $error');
+                      // Fallback a la genérica
+                      return Image.network(
+                        'https://images.unsplash.com/photo-1585366119957-e9730b6d0f60?w=400&q=80',
+                        fit: BoxFit.cover,
+                        color: Colors.black.withOpacity(0.4),
+                        colorBlendMode: BlendMode.darken,
+                      );
+                    },
+                  );
+                }
+
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 500),
+                  child: imageWidget,
+                );
+              },
             ),
-            // 2. Texto encima
+
+            // Texto encima (Nombre del tema)
             Center(
-              child: Text(
-                theme.name,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  shadows: [Shadow(blurRadius: 4, color: Colors.black)],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  theme.name,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    shadows: [Shadow(blurRadius: 4, color: Colors.black)],
+                  ),
                 ),
               ),
             ),

@@ -1,9 +1,12 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart'; // <--- IMPORTANTE: Para caché e imágenes en web
-import 'package:flutter/foundation.dart'; // <--- IMPORTANTE: Para kIsWeb
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import '../services/api_service.dart';
 import '../models/lego_set.dart';
-import 'set_details_screen.dart'; // Para poder navegar al detalle si quieres
+import '../models/lego_theme.dart';
+import 'set_details_screen.dart';
+import 'sets_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,13 +17,76 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ApiService apiService = ApiService();
-  late Future<List<LegoSet>> futureFeaturedSets;
+
+  // Controlador para las flechas de navegación
+  final ScrollController _scrollController = ScrollController();
+
+  Future<List<LegoSet>>? futureFeaturedSets;
+
+  // Si es null, significa que estamos en modo "Mix Aleatorio"
+  LegoTheme? featuredTheme;
 
   @override
   void initState() {
     super.initState();
-    // TRUCO: Para la portada, cargamos un tema popular fijo (158 = Star Wars)
-    futureFeaturedSets = apiService.getSetsByTheme(158);
+    _loadMixedFeaturedSets();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // --- NUEVA LÓGICA: CARGAR MIX DE DIFERENTES CATÁLOGOS ---
+  Future<void> _loadMixedFeaturedSets() async {
+    try {
+      // 1. Obtenemos todos los temas disponibles
+      final themes = await apiService.getThemes();
+
+      if (themes.isNotEmpty) {
+        // 2. Barajamos y cogemos 10 temas distintos
+        // (Cogemos 12 por seguridad, por si alguno viniera vacío)
+        themes.shuffle();
+        final selectedThemes = themes.take(12).toList();
+
+        // 3. Preparamos una lista de "Futuros" para pedirlos todos a la vez (paralelo)
+        // Esto es mucho más rápido que pedir uno a uno.
+        final futures = selectedThemes.map(
+          (t) => apiService.getSetsByTheme(t.id),
+        );
+
+        // 4. Esperamos a que lleguen todos los datos
+        final results = await Future.wait(futures);
+
+        // 5. Construimos la lista final cogiendo el PRIMER set de cada tema
+        final List<LegoSet> mixedList = [];
+        for (var setList in results) {
+          if (setList.isNotEmpty) {
+            mixedList.add(setList.first);
+          }
+        }
+
+        // 6. Actualizamos la pantalla (limitamos a 10 para que quede redondo)
+        setState(() {
+          featuredTheme = null; // null indica que es un Mix
+          futureFeaturedSets = Future.value(mixedList.take(10).toList());
+        });
+      }
+    } catch (e) {
+      debugPrint('Error cargando mix aleatorio: $e');
+    }
+  }
+
+  // Función para mover el scroll con las flechas
+  void _scrollList(double offset) {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.offset + offset,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   @override
@@ -30,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. TÍTULO DEL DASHBOARD
+          // 1. HEADER
           const Text(
             'PANEL DE CONTROL',
             style: TextStyle(
@@ -53,60 +119,109 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(height: 30),
 
-          // 2. SECCIÓN DE DESTACADOS
+          // 2. TÍTULO Y CONTROLES
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'DESTACADOS (Star Wars)',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orange,
+              Expanded(
+                child: Text(
+                  // Si featuredTheme es null, mostramos título genérico
+                  featuredTheme != null
+                      ? 'DESTACADOS (${featuredTheme!.name})'
+                      : 'DESTACADOS',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              TextButton(
-                onPressed: () {},
-                child: const Text(
-                  'Ver todos',
-                  style: TextStyle(color: Colors.grey),
+
+              // Flechas de navegación manual
+              IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios,
+                  size: 16,
+                  color: Colors.white70,
                 ),
+                onPressed: () => _scrollList(-220),
+                tooltip: "Anterior",
               ),
+              IconButton(
+                icon: const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: Colors.white70,
+                ),
+                onPressed: () => _scrollList(220),
+                tooltip: "Siguiente",
+              ),
+
+              const SizedBox(width: 8),
+
+              // Botón "Ver todos"
+              // Solo se muestra si hay un tema específico seleccionado.
+              // En el modo Mix lo ocultamos porque no hay "un catálogo" que ver.
+              if (featuredTheme != null)
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            SetsListScreen(theme: featuredTheme!),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Ver todos',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
             ],
           ),
 
           const SizedBox(height: 10),
 
-          // 3. CARRUSEL HORIZONTAL DE SETS
+          // 3. CARRUSEL
           Expanded(
-            child: FutureBuilder<List<LegoSet>>(
-              future: futureFeaturedSets,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
+            child: futureFeaturedSets == null
+                ? const Center(
                     child: CircularProgressIndicator(color: Colors.orange),
-                  );
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No hay sets destacados'));
-                }
+                  )
+                : FutureBuilder<List<LegoSet>>(
+                    future: futureFeaturedSets,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.orange,
+                          ),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(
+                          child: Text('No hay sets destacados'),
+                        );
+                      }
 
-                return ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: snapshot.data!.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(width: 16),
-                  itemBuilder: (context, index) {
-                    final set = snapshot.data![index];
-                    // Pasamos el set al widget de tarjeta
-                    return _FeaturedSetCard(legoSet: set);
-                  },
-                );
-              },
-            ),
+                      return ListView.separated(
+                        controller: _scrollController,
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: snapshot.data!.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(width: 16),
+                        itemBuilder: (context, index) {
+                          return _FeaturedSetCard(
+                            legoSet: snapshot.data![index],
+                          );
+                        },
+                      );
+                    },
+                  ),
           ),
-
           const SizedBox(height: 20),
         ],
       ),
@@ -114,21 +229,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// --- WIDGET TARJETA DE SET (ACTUALIZADO CON LÓGICA DE IMAGEN) ---
+// --- TARJETA DE SET ---
 class _FeaturedSetCard extends StatelessWidget {
   final LegoSet legoSet;
 
   const _FeaturedSetCard({required this.legoSet});
 
-  // --- FUNCIÓN DE "FONTANERÍA" PARA IMÁGENES ---
-  // Esta es la misma lógica que usamos en la lista.
   String _getImageUrl(String originalUrl) {
     if (kIsWeb) {
-      // Si es Web -> Usamos el Proxy del Backend para saltar CORS
       final encodedUrl = Uri.encodeComponent(originalUrl);
       return 'http://localhost:3000/api/lego/image-proxy?url=$encodedUrl';
     }
-    // Si es App -> Directo (más rápido)
     return originalUrl;
   }
 
@@ -136,7 +247,6 @@ class _FeaturedSetCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Hacemos que la tarjeta sea clicable para ir al detalle
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -155,16 +265,14 @@ class _FeaturedSetCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // IMAGEN DEL SET (CON CACHED NETWORK IMAGE)
+            // Imagen
             Expanded(
               flex: 3,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   CachedNetworkImage(
-                    imageUrl: _getImageUrl(
-                      legoSet.imgUrl,
-                    ), // <--- USO DE LA FUNCIÓN
+                    imageUrl: _getImageUrl(legoSet.imgUrl),
                     fit: BoxFit.cover,
                     placeholder: (context, url) => const Center(
                       child: CircularProgressIndicator(
@@ -180,7 +288,6 @@ class _FeaturedSetCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Gradiente para legibilidad
                   Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
@@ -200,7 +307,7 @@ class _FeaturedSetCard extends StatelessWidget {
               ),
             ),
 
-            // TEXTOS
+            // Textos
             Expanded(
               flex: 2,
               child: Padding(
@@ -212,7 +319,6 @@ class _FeaturedSetCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Etiqueta naranja con el número
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 6,
@@ -244,8 +350,6 @@ class _FeaturedSetCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
-                    // Datos técnicos (Año y Piezas)
                     Row(
                       children: [
                         const Icon(

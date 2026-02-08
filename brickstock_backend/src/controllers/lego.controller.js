@@ -48,8 +48,23 @@ const getImageProxy = async (req, res) => {
         res.status(404).send('Imagen no encontrada');
     }
 };
+
+const getThemeCover = async (req, res) => {
+    try {
+        const { themeId } = req.params;
+        const imageUrl = await rebrickableService.getThemeCover(themeId);
+        
+        // Devolvemos un JSON simple
+        res.status(200).json({ url: imageUrl });
+    } catch (error) {
+        // No fallamos estrepitosamente, si hay error devolvemos url null
+        res.status(200).json({ url: null });
+    }
+};
+
 module.exports = {
     getThemes,
     getSets,
-    getImageProxy
+    getImageProxy,
+    getThemeCover
 };

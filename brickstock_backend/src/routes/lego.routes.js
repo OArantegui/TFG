@@ -4,6 +4,7 @@ const legoController = require('../controllers/lego.controller');
 
 // Definimos las rutas: http://localhost:3000/api/lego/...
 router.get('/themes', legoController.getThemes);
+router.get('/themes/:themeId/cover', legoController.getThemeCover);
 router.get('/sets/:themeId', legoController.getSets);
 router.get('/image-proxy', legoController.getImageProxy);
 

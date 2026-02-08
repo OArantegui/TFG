@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart'; //Necesario para las imagenes en memoria
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart'; // Para kIsWeb
-import 'package:transparent_image/transparent_image.dart';
 import '../models/lego_theme.dart';
 import '../models/lego_set.dart';
 import '../services/api_service.dart';
@@ -26,15 +25,19 @@ class _SetsListScreenState extends State<SetsListScreen> {
     futureSets = apiService.getSetsByTheme(widget.theme.id);
   }
 
-  // Se pone dentro de la clase State, pero FUERA del método build.
-  String _getImageUrl(String originalUrl) {
-    if (kIsWeb) {
-      // Si estamos en Web, le pedimos a TU backend que nos descargue la imagen
-      // para evitar el bloqueo de seguridad (CORS) de Rebrickable.
-      final encodedUrl = Uri.encodeComponent(originalUrl);
-      return 'http://localhost:3000/api/lego/image-proxy?url=$encodedUrl';
+  // --- FUNCIÓN CORREGIDA Y REUTILIZADA ---
+  String _getImageUrl(String? originalUrl) {
+    // 1. Si no hay imagen, devolvemos una cadena vacía (lo gestionaremos abajo)
+    if (originalUrl == null || originalUrl.isEmpty) {
+      return '';
     }
-    // Si es Android/iOS, la pedimos directa (es más rápido)
+
+    // 2. Si es Web, usamos la función centralizada del ApiService (IGUAL QUE EN EXPLORE)
+    if (kIsWeb) {
+      return apiService.getProxyUrl(originalUrl);
+    }
+
+    // 3. Si es Móvil, usamos la original
     return originalUrl;
   }
 
@@ -60,23 +63,34 @@ class _SetsListScreenState extends State<SetsListScreen> {
             separatorBuilder: (context, index) => const Divider(),
             itemBuilder: (context, index) {
               final set = sets[index];
+              // Obtenemos la URL correcta (Proxy o Directa)
+              final finalImageUrl = _getImageUrl(set.imgUrl);
+
               return ListTile(
                 contentPadding: const EdgeInsets.all(8),
                 leading: SizedBox(
                   width: 80,
                   height: 80,
-                  child: CachedNetworkImage(
-                    imageUrl: _getImageUrl(
-                      set.imgUrl,
-                    ), // <--- Aquí usamos la función mágica
-                    memCacheWidth: 200, // Optimización de memoria
-                    placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    errorWidget: (context, url, error) =>
-                        const Icon(Icons.broken_image, color: Colors.grey),
-                    fit: BoxFit.contain,
-                  ),
+                  child: finalImageUrl.isEmpty
+                      ? const Icon(
+                          Icons.image_not_supported,
+                          color: Colors.grey,
+                        )
+                      : CachedNetworkImage(
+                          imageUrl: finalImageUrl,
+                          memCacheWidth: 200,
+                          placeholder: (context, url) => const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          errorWidget: (context, url, error) {
+                            // Si falla la carga, mostramos icono roto
+                            return const Icon(
+                              Icons.broken_image,
+                              color: Colors.grey,
+                            );
+                          },
+                          fit: BoxFit.contain,
+                        ),
                 ),
                 title: Text(
                   set.name,
@@ -87,7 +101,6 @@ class _SetsListScreenState extends State<SetsListScreen> {
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
-                  // Navegación estándar de Flutter (Push)
                   Navigator.push(
                     context,
                     MaterialPageRoute(

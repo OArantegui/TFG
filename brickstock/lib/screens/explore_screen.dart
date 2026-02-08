@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart'; // <--- IMPORTANTE: Igual que en Home
+import 'package:flutter/foundation.dart'; // <--- IMPORTANTE: Para kIsWeb
 import '../services/api_service.dart';
 import '../models/lego_theme.dart';
 import 'sets_list_screen.dart';
@@ -14,42 +16,36 @@ class _ExploreScreenState extends State<ExploreScreen> {
   final ApiService apiService = ApiService();
 
   // VARIABLES PARA EL BUSCADOR
-  List<LegoTheme> _allThemes = []; // Lista maestra (todos los datos)
-  List<LegoTheme> _filteredThemes = []; // Lista visible (lo que mostramos)
-  bool _isLoading = true; // Estado de carga
+  List<LegoTheme> _allThemes = [];
+  List<LegoTheme> _filteredThemes = [];
+  bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _loadThemes(); // Carga inicial de datos
+    _loadThemes();
   }
 
-  // Carga los datos de la API una sola vez
   Future<void> _loadThemes() async {
     try {
       final themes = await apiService.getThemes();
       setState(() {
         _allThemes = themes;
-        _filteredThemes = themes; // Al principio se ve todo
+        _filteredThemes = themes;
         _isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
       debugPrint('Error cargando temas: $e');
     }
   }
 
-  // Lógica de filtrado (el cerebro del buscador)
   void _runFilter(String enteredKeyword) {
     List<LegoTheme> results = [];
     if (enteredKeyword.isEmpty) {
-      // Si borran el texto, volvemos a mostrar todo
       results = _allThemes;
     } else {
-      // Filtramos buscando coincidencias (ignorando mayúsculas/minúsculas)
       results = _allThemes
           .where(
             (theme) =>
@@ -57,8 +53,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
           )
           .toList();
     }
-
-    // Actualizamos la pantalla con los resultados
     setState(() {
       _filteredThemes = results;
     });
@@ -67,15 +61,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E), // Fondo oscuro base
+      backgroundColor: const Color(0xFF1E1E1E),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
-        // BARRA DE BÚSQUEDA INTEGRADA EN EL TÍTULO
         title: Container(
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFF2D2D2D), // Gris oscuro (tecla)
+            color: const Color(0xFF2D2D2D),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.white10),
           ),
@@ -98,7 +91,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ? const Center(child: CircularProgressIndicator(color: Colors.orange))
           : Column(
               children: [
-                // Contador de resultados
                 if (!_isLoading)
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -119,8 +111,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       ],
                     ),
                   ),
-
-                // GRID DE TARJETAS
                 Expanded(
                   child: _filteredThemes.isEmpty
                       ? const Center(
@@ -133,8 +123,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           padding: const EdgeInsets.all(16),
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2, // 2 columnas
-                                childAspectRatio: 1.1, // Formato casi cuadrado
+                                crossAxisCount: 2,
+                                childAspectRatio: 1.1,
                                 crossAxisSpacing: 16,
                                 mainAxisSpacing: 16,
                               ),
@@ -151,11 +141,36 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 }
 
-// TARJETA DE TEMA (DISEÑO KEYCHRON)
-class _ThemeCard extends StatelessWidget {
+// --- TARJETA CON LA LÓGICA DE TU COMPAÑERO (CachedNetworkImage + Proxy) ---
+class _ThemeCard extends StatefulWidget {
   final LegoTheme theme;
 
   const _ThemeCard({required this.theme});
+
+  @override
+  State<_ThemeCard> createState() => _ThemeCardState();
+}
+
+class _ThemeCardState extends State<_ThemeCard> {
+  final ApiService apiService = ApiService();
+  late Future<String?> _coverImageFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _coverImageFuture = apiService.getThemeCover(widget.theme.id);
+  }
+
+  // ESTA ES LA FUNCIÓN CLAVE QUE USA TU COMPAÑERO EN LAS OTRAS PANTALLAS
+  String _getImageUrl(String originalUrl) {
+    if (kIsWeb) {
+      // Si es Web -> Usamos el Proxy del Backend para saltar CORS
+      final encodedUrl = Uri.encodeComponent(originalUrl);
+      return 'http://localhost:3000/api/lego/image-proxy?url=$encodedUrl';
+    }
+    // Si es App -> Directo
+    return originalUrl;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +178,9 @@ class _ThemeCard extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => SetsListScreen(theme: theme)),
+          MaterialPageRoute(
+            builder: (context) => SetsListScreen(theme: widget.theme),
+          ),
         );
       },
       child: Container(
@@ -182,16 +199,53 @@ class _ThemeCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
-            // 1. Imagen de fondo oscurecida
+            // 1. IMAGEN DE FONDO (USANDO CachedNetworkImage)
             Positioned.fill(
-              child: Image.network(
-                'https://images.unsplash.com/photo-1585366119957-e9730b6d0f60?w=400&q=80',
-                fit: BoxFit.cover,
-                color: Colors.black.withOpacity(0.5), // Capa oscura
-                colorBlendMode: BlendMode.darken,
+              child: FutureBuilder<String?>(
+                future: _coverImageFuture,
+                builder: (context, snapshot) {
+                  // Si no hay dato o falla, ponemos imagen por defecto
+                  if (!snapshot.hasData || snapshot.data == null) {
+                    return Image.network(
+                      'https://images.unsplash.com/photo-1585366119957-e9730b6d0f60?w=400&q=80',
+                      fit: BoxFit.cover,
+                      color: Colors.black.withOpacity(0.5),
+                      colorBlendMode: BlendMode.darken,
+                    );
+                  }
+
+                  // Si hay dato, aplicamos la lógica de "Otras pantallas"
+                  final rawUrl = snapshot.data!;
+                  final finalUrl = _getImageUrl(
+                    rawUrl,
+                  ); // <--- Lógica del Proxy
+
+                  return CachedNetworkImage(
+                    imageUrl: finalUrl,
+                    fit: BoxFit.cover,
+                    // Aplicamos el efecto oscuro para que se lea el texto
+                    color: Colors.black.withOpacity(0.5),
+                    colorBlendMode: BlendMode.darken,
+                    // Mientras carga...
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.orange,
+                      ),
+                    ),
+                    // Si falla...
+                    errorWidget: (context, url, error) => Image.network(
+                      'https://images.unsplash.com/photo-1585366119957-e9730b6d0f60?w=400&q=80',
+                      fit: BoxFit.cover,
+                      color: Colors.black.withOpacity(0.5),
+                      colorBlendMode: BlendMode.darken,
+                    ),
+                  );
+                },
               ),
             ),
-            // 2. Decoración naranja lateral
+
+            // 2. DECORACIÓN NARANJA
             Positioned(
               left: 0,
               top: 15,
@@ -206,17 +260,16 @@ class _ThemeCard extends StatelessWidget {
                 ),
               ),
             ),
-            // 3. Texto del tema
+
+            // 3. TEXTO DEL TEMA
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 8.0,
-                  ), // Espacio para la barra naranja
+                  padding: const EdgeInsets.only(left: 8.0),
                   child: Text(
-                    theme.name.toUpperCase(),
+                    widget.theme.name.toUpperCase(),
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

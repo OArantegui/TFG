@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart'; // [IMPORTANTE] Para PointerDeviceKind
+import 'package:flutter/gestures.dart'; // Para PointerDeviceKind
 import 'screens/main_layout.dart';
 
 void main() {
@@ -11,7 +11,7 @@ class MyCustomScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => {
     PointerDeviceKind.touch,
-    PointerDeviceKind.mouse, // <--- Esto permite arrastrar con el clic
+    PointerDeviceKind.mouse, // Nos permite arrstrar en Pc
   };
 }
 
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'BrickStock',
-      debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: true,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.orange,
@@ -31,7 +31,6 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      // [IMPORTANTE] Añadimos el comportamiento aquí
       scrollBehavior: MyCustomScrollBehavior(),
       home: const MainLayout(),
     );

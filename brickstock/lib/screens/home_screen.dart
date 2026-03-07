@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
@@ -21,9 +20,11 @@ class _HomeScreenState extends State<HomeScreen> {
   // Controlador para las flechas de navegación
   final ScrollController _scrollController = ScrollController();
 
+  //Future porque tardan los datos en llegar de internet
   Future<List<LegoSet>>? futureFeaturedSets;
 
   // Si es null, significa que estamos en modo "Mix Aleatorio"
+  // HAY QUE DARLE UNA VUELTA A ESTO!!!
   LegoTheme? featuredTheme;
 
   @override
@@ -38,28 +39,26 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // --- NUEVA LÓGICA: CARGAR MIX DE DIFERENTES CATÁLOGOS ---
+  // Cagamos distintos sets de distintos temas
   Future<void> _loadMixedFeaturedSets() async {
     try {
-      // 1. Obtenemos todos los temas disponibles
+      // Pedimos todos los temas a la API
       final themes = await apiService.getThemes();
 
       if (themes.isNotEmpty) {
-        // 2. Barajamos y cogemos 10 temas distintos
-        // (Cogemos 12 por seguridad, por si alguno viniera vacío)
+        // Cada vez que entramos a themes mezclamos para que salga aleatorio
         themes.shuffle();
+        // Cogemos 12 aunque vayamos a mostrar 10 ( por si hay algun fallo )
         final selectedThemes = themes.take(12).toList();
 
-        // 3. Preparamos una lista de "Futuros" para pedirlos todos a la vez (paralelo)
-        // Esto es mucho más rápido que pedir uno a uno.
+        // Aqui preparamos una lista (futures) para hacer una sola petición por cada tema seleccionado
         final futures = selectedThemes.map(
           (t) => apiService.getSetsByTheme(t.id),
         );
-
-        // 4. Esperamos a que lleguen todos los datos
+        // La peticion se hace aqui
         final results = await Future.wait(futures);
 
-        // 5. Construimos la lista final cogiendo el PRIMER set de cada tema
+        // Recorremos los resultados y solo cogemos el primer set de cada tema
         final List<LegoSet> mixedList = [];
         for (var setList in results) {
           if (setList.isNotEmpty) {
@@ -67,9 +66,9 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         }
 
-        // 6. Actualizamos la pantalla (limitamos a 10 para que quede redondo)
+        // Actualizamos la pantalla (limitado a 10)
         setState(() {
-          featuredTheme = null; // null indica que es un Mix
+          featuredTheme = null; // !!! DARLE UNA VUELTA A ESTO !!! 
           futureFeaturedSets = Future.value(mixedList.take(10).toList());
         });
       }
@@ -82,9 +81,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void _scrollList(double offset) {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        _scrollController.offset + offset,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+        _scrollController.offset + offset, // Posicion actual + offset (220px en este caso)
+        duration: const Duration(milliseconds: 300), // Duracion de la animacion
+        curve: Curves.easeOut, // Animacion de rapida a lenta
       );
     }
   }
@@ -229,12 +228,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// --- TARJETA DE SET ---
+// TARJETA DE SET
 class _FeaturedSetCard extends StatelessWidget {
   final LegoSet legoSet;
 
   const _FeaturedSetCard({required this.legoSet});
 
+  //Funcion necesaria para cargar las imagenes, usando proxy en Web para evitar CORS y la URL original en Móvil
   String _getImageUrl(String originalUrl) {
     if (kIsWeb) {
       final encodedUrl = Uri.encodeComponent(originalUrl);
@@ -246,7 +246,7 @@ class _FeaturedSetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
+      onTap: () { // al hacer click, nos movemos a la pantalla Details 
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -268,7 +268,7 @@ class _FeaturedSetCard extends StatelessWidget {
             // Imagen
             Expanded(
               flex: 3,
-              child: Stack(
+              child: Stack( //Stack nos permite poner cosas encima de otras
                 fit: StackFit.expand,
                 children: [
                   CachedNetworkImage(

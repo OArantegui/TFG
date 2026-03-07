@@ -10,22 +10,22 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
-  // Índice para controlar qué pestaña está activa (0 = Home, 1 = Explorar...)
+  // Variable para saber que pantalla está activa --> 0 = Home
   int _selectedIndex = 0;
 
-  // Lista de pantallas que vamos a mostrar
+  // Lista de pantallas
   final List<Widget> _screens = [
-    const HomeScreen(), // Índice 0: Tu Dashboard
-    const ExploreScreen(), // Índice 1: El Catálogo
+    const HomeScreen(), // [0] -> Home
+    const ExploreScreen(), // [1] -> Explorar
     const Center(
       child: Text(
         'Ajustes (Próximamente)',
         style: TextStyle(color: Colors.white),
       ),
-    ), // Índice 2
+    ), // [2] -> Ajustes
   ];
 
-  // Función para cambiar de pestaña al pulsar un botón
+  // Si pulsamos el boton, cambiamos la variable que nos dice que pantalla mostrar
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -36,20 +36,22 @@ class _MainLayoutState extends State<MainLayout> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // DETECCIÓN DE DISPOSITIVO:
-        // Si mide menos de 640 píxeles de ancho, asumimos que es un MÓVIL.
+        // Si mide menos de 640 píxeles de ancho -> MÓVIL.
         bool isMobile = constraints.maxWidth < 640;
 
+        // Scaffold es la estructura básica de una pantalla en Flutter/Kotlin
         return Scaffold(
-          // Si NO es móvil (es PC), mostramos un Row con barra lateral (Rail).
-          // Si ES móvil, no mostramos nada a los lados (null).
+          // Si NO es móvil -> PC, barra lateral
+          // Si ES móvil -> Movil, barra inferior
           body: Row(
             children: [
               if (!isMobile) ...[
                 NavigationRail(
-                  backgroundColor: const Color(0xFF1E1E1E), // Gris muy oscuro
-                  selectedIndex: _selectedIndex,
-                  onDestinationSelected: _onItemTapped,
+                  backgroundColor: const Color(0xFF1E1E1E),
+                  selectedIndex:
+                      _selectedIndex, // Nos indica que icone está seleccionado (para pintarlo)
+                  onDestinationSelected:
+                      _onItemTapped, // Llama a la funcion que cambia la pantalla
                   labelType: NavigationRailLabelType.all,
                   selectedLabelTextStyle: const TextStyle(color: Colors.orange),
                   unselectedLabelTextStyle: const TextStyle(color: Colors.grey),
@@ -74,7 +76,7 @@ class _MainLayoutState extends State<MainLayout> {
                     ),
                   ],
                 ),
-                // Línea divisoria vertical estética
+                // Línea para separar
                 const VerticalDivider(
                   thickness: 1,
                   width: 1,
@@ -83,19 +85,16 @@ class _MainLayoutState extends State<MainLayout> {
               ],
 
               // EL CONTENIDO PRINCIPAL
-              // Expanded hace que la pantalla ocupe todo el espacio sobrante
+              // En lo que sobra mustra la pantalla dependiendo de la variable _selectedIndex
               Expanded(child: _screens[_selectedIndex]),
             ],
           ),
 
-          // BARRA INFERIOR (Solo visible en MÓVIL)
+          // BARRA INFERIOR -> Movil
           bottomNavigationBar: isMobile
               ? NavigationBar(
-                  // Estilo Keychron para la barra
                   backgroundColor: const Color(0xFF1E1E1E),
-                  indicatorColor: Colors.orange.withOpacity(
-                    0.2,
-                  ), // Burbuja naranja suave
+                  indicatorColor: Colors.orange.withOpacity(0.2),
                   selectedIndex: _selectedIndex,
                   onDestinationSelected: _onItemTapped,
                   destinations: const [

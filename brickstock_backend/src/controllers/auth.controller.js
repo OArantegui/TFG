@@ -50,4 +50,44 @@ const register = async (req, res) => {
     }
 };
 
-module.exports = { register };
+const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // 1. Buscar si existe un usuario con ese email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        // 2. Comprobar si la contraseña es correcta (bcrypt compara la normal con la encriptada)
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+        if (!isPasswordCorrect) {
+            return res.status(400).json({ message: 'Contraseña incorrecta' });
+        }
+
+        // 3. Si todo está bien, crear el pase VIP (Token JWT)
+        const token = jwt.sign(
+            { id: user._id }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: '30d' }
+        );
+
+        // 4. Enviar los datos al móvil
+        res.status(200).json({
+            message: 'Login exitoso',
+            token: token,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error en el servidor al iniciar sesión' });
+    }
+};
+
+module.exports = { register, login };

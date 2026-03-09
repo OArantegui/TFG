@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart'; // Para PointerDeviceKind
-import 'screens/main_layout.dart';
+import 'screens/login_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       scrollBehavior: MyCustomScrollBehavior(),
-      home: const MainLayout(),
+      home: const LoginScreen(),
     );
   }
 }

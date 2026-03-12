@@ -16,43 +16,81 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoading = false;
 
-  // Función que se ejecuta al pulsar el botón
+  // --- FUNCIÓN DE LOGIN ---
   void _hacerLogin() async {
-    // 1. Ocultar el teclado y mostrar el icono de carga
     FocusScope.of(context).unfocus();
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
-    // 2. Llamar a tu servidor Node.js
-    final result = await _authService.login(
+    final bool isSuccess = await _authService.login(
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
 
     if (!mounted) return;
+    setState(() => _isLoading = false);
 
-    // 3. Quitar el icono de carga
-    setState(() {
-      _isLoading = false;
-    });
-
-    // 4. Comprobar el resultado
-    if (result['success']) {
-      // Si va bien, mostramos un mensaje verde y vamos a la pantalla principal
+    if (isSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('¡Bienvenido!'), backgroundColor: Colors.green),
+        const SnackBar(
+          content: Text('¡Bienvenido a BrickStock!'),
+          backgroundColor: Colors.green,
+        ),
       );
-
-      // Navegar a la pantalla principal (Home) y no dejar que el usuario vuelva atrás al login
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainLayout()),
       );
     } else {
-      // Si falla (ej: mala contraseña), mostramos el error de tu backend en rojo
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message']), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text('Error al entrar. Revisa el email y contraseña.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  // --- FUNCIÓN DE REGISTRO (¡NUEVA!) ---
+  void _hacerRegistro() async {
+    FocusScope.of(context).unfocus();
+
+    // Validación básica en el frontend
+    if (_emailController.text.isEmpty || _passwordController.text.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Introduce un email válido y una contraseña de min. 6 caracteres',
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final bool isSuccess = await _authService.register(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (isSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('¡Registro exitoso! Ya puedes iniciar sesión.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      // Opcional: Podrías hacer que inicie sesión automáticamente aquí
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error al registrar. ¿Quizás el correo ya existe?'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -60,17 +98,16 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Iniciar Sesión')),
+      appBar: AppBar(title: const Text('BrickStock - Acceso')),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Icon(Icons.lock_person, size: 80, color: Colors.orange),
+            const Icon(Icons.lock_person, size: 80, color: Colors.blueGrey),
             const SizedBox(height: 30),
 
-            // Campo de Email
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
@@ -82,10 +119,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 15),
 
-            // Campo de Contraseña
             TextField(
               controller: _passwordController,
-              obscureText: true, // Oculta el texto con asteriscos
+              obscureText: true,
               decoration: const InputDecoration(
                 labelText: 'Contraseña',
                 border: OutlineInputBorder(),
@@ -94,16 +130,31 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 30),
 
-            // Botón de Login (Muestra un cargador si está pensando)
-            ElevatedButton(
-              onPressed: _isLoading ? null : _hacerLogin,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 15),
+            if (_isLoading)
+              const Center(child: CircularProgressIndicator())
+            else ...[
+              // Botón de Entrar
+              ElevatedButton(
+                onPressed: _hacerLogin,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                ),
+                child: const Text('Entrar', style: TextStyle(fontSize: 18)),
               ),
-              child: _isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Entrar', style: TextStyle(fontSize: 18)),
-            ),
+              const SizedBox(height: 10),
+
+              // Botón de Registrarse
+              OutlinedButton(
+                onPressed: _hacerRegistro,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                ),
+                child: const Text(
+                  'Crear nueva cuenta',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+            ],
           ],
         ),
       ),

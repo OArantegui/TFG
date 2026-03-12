@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart'; // <--- NUEVO: 
 import 'package:flutter/foundation.dart'; // Para kIsWeb
 import 'package:flutter/material.dart';
 import '../models/lego_set.dart';
+import '../services/api_service.dart';
 
 class SetDetailsScreen extends StatefulWidget {
   final LegoSet legoSet;
@@ -377,12 +378,44 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
+        // 1. TFG: Ponemos la función como 'async' porque la llamada a la red tarda tiempo
+        onPressed: () async {
+          // 2. Mostramos al usuario que estamos trabajando en ello (Feedback visual nativo)
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${widget.legoSet.name} añadido a tu colección'),
-            ),
+            const SnackBar(content: Text('Guardando en MongoDB... ⏳')),
           );
+
+          // 3. TFG: Cogemos el precio más bajo simulado para guardarlo como precio de compra.
+          // Si por lo que sea no hay precios (infinito), le ponemos 0.0
+          double priceToSave = minPrice == double.infinity ? 0.0 : minPrice;
+
+          // 4. ¡LA LLAMADA REAL AL BACKEND!
+          bool success = await ApiService().addToCollection(
+            widget.legoSet.setNum,
+            priceToSave,
+          );
+
+          // 5. Ocultamos el mensaje de "Guardando..."
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+          // 6. Mostramos el resultado real según lo que nos haya devuelto Node.js
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  '¡${widget.legoSet.name} añadido a tu colección! 🚀',
+                ),
+                backgroundColor: Colors.green, // Verde para el éxito
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Error al guardar. ¿Has iniciado sesión?'),
+                backgroundColor: Colors.red, // Rojo para el error
+              ),
+            );
+          }
         },
         icon: const Icon(Icons.add),
         label: const Text('Añadir a Colección'),

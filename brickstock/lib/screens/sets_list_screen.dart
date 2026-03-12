@@ -25,7 +25,7 @@ class _SetsListScreenState extends State<SetsListScreen> {
     futureSets = apiService.getSetsByTheme(widget.theme.id);
   }
 
-  // --- FUNCIÓN CORREGIDA Y REUTILIZADA ---
+  // --- REUTILIZADA ---
   String _getImageUrl(String? originalUrl) {
     // 1. Si no hay imagen, devolvemos una cadena vacía (lo gestionaremos abajo)
     if (originalUrl == null || originalUrl.isEmpty) {

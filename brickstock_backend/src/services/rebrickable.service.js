@@ -62,8 +62,29 @@ const getThemeCover = async (themeId) => {
         return null; 
     }
 };
+const getSetByNum = async (setNum) => {
+    try {
+        const response = await apiClient.get(`/sets/${setNum}/`);
+        const setData = response.data;
+
+        // Mapeamos el JSON de Rebrickable a NUESTRO formato de MongoDB (SetCache)
+        return {
+            _id: setData.set_num,            
+            name: setData.name,
+            themeId: setData.theme_id,
+            year: setData.year,
+            imageUrl: setData.set_img_url,   
+            pieces: setData.num_parts,
+            lastApiSync: new Date()
+        };
+    } catch (error) {
+        console.error(`Error en Rebrickable Service (getSetByNum - ${setNum}):`, error.message);
+        throw error; // Lanzamos el error para que el Controlador (ej. collection.controller) lo maneje
+    }
+};
 module.exports = {
     getThemes,
     getSetsByTheme,
-    getThemeCover
+    getThemeCover,
+    getSetByNum
 };

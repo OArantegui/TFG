@@ -1,41 +1,50 @@
 import 'dart:convert';
-import 'dart:io'; // Necesario para detectar la plataforma
-import 'package:flutter/foundation.dart'; // Para kIsWeb
+// ¡ELIMINADO import 'dart:io'; para no romper Flutter Web!
+import 'package:flutter/foundation.dart'; // Necesario para kReleaseMode
 import 'package:http/http.dart' as http;
 import '../models/lego_theme.dart';
 import '../models/lego_set.dart';
 import 'auth_service.dart';
 
 class ApiService {
-  // Determinamos la URL base según dónde estemos corriendo
-  String get _baseUrl {
-    if (kIsWeb) {
-      return 'http://localhost:3000/api';
+  // 1. Definimos las URLs de los entornos
+  // Para Android Emulator deberás usar 'http://10.0.2.2:3000/api' cuando desarrolles en local
+  static const String _localUrl = 'http://localhost:3000/api';
+
+  // TODO: Pon aquí tu URL pública de Render cuando la tengas
+  static const String _productionUrl =
+      'https://brickstock-o9l6.onrender.com/api';
+
+  // 2. Getter estático que decide qué URL usar
+  static String get baseUrl {
+    if (kReleaseMode) {
+      // Si compilamos para Producción (GitHub Pages), usa la de Render
+      return _productionUrl;
     }
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2:3000/api';
-    }
-    return 'http://localhost:3000/api';
+    // Si estamos en Debug (Desarrollo), usa Localhost
+    return _localUrl;
   }
 
   Future<List<LegoTheme>> getThemes() async {
-    // TFG: Añadimos "/lego" a la ruta para que coincida con el app.js del backend
-    final response = await http.get(Uri.parse('$_baseUrl/lego/themes'));
+    // Usamos ApiService.baseUrl directamente para evitar problemas de scope
+    final response = await http.get(
+      Uri.parse('${ApiService.baseUrl}/lego/themes'),
+    );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final List results = data['results'];
       return results.map((e) => LegoTheme.fromJson(e)).toList();
     } else {
-      // Un chivato útil por si sigue fallando
       debugPrint("Error Backend: ${response.statusCode} - ${response.body}");
       throw Exception('Fallo al cargar temas desde el Backend');
     }
   }
 
   Future<List<LegoSet>> getSetsByTheme(int themeId) async {
-    // TFG: Añadimos "/lego" a la ruta
-    final response = await http.get(Uri.parse('$_baseUrl/lego/sets/$themeId'));
+    final response = await http.get(
+      Uri.parse('${ApiService.baseUrl}/lego/sets/$themeId'),
+    );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -46,16 +55,14 @@ class ApiService {
     }
   }
 
-  // Obtener la imagen de portada de un tema (lazy loading)
   Future<String?> getThemeCover(int themeId) async {
     try {
-      // TFG: Añadimos "/lego" a la ruta
-      final uri = Uri.parse('$_baseUrl/lego/themes/$themeId/cover');
+      final uri = Uri.parse('${ApiService.baseUrl}/lego/themes/$themeId/cover');
       final response = await http.get(uri);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['url']; // Puede ser null
+        return data['url'];
       }
     } catch (e) {
       debugPrint('Error fetching theme cover: $e');
@@ -64,18 +71,15 @@ class ApiService {
   }
 
   String getProxyUrl(String originalUrl) {
-    // TFG: Añadimos "/lego" a la ruta
-    return '$_baseUrl/lego/image-proxy?url=${Uri.encodeComponent(originalUrl)}';
+    return '${ApiService.baseUrl}/lego/image-proxy?url=${Uri.encodeComponent(originalUrl)}';
   }
 
-  // Función para añadir a la colección
   Future<bool> addToCollection(String setNum, double purchasePrice) async {
     final token = await AuthService().getToken();
 
     if (token == null) throw Exception("Usuario no autenticado");
 
-    // TFG: Esta la dejamos IGUAL, porque app.js dice: app.use('/api/collection', ...)
-    final url = Uri.parse('$_baseUrl/collection');
+    final url = Uri.parse('${ApiService.baseUrl}/collection');
 
     try {
       final response = await http.post(
@@ -87,19 +91,19 @@ class ApiService {
         body: jsonEncode({
           'setNum': setNum,
           'purchasePrice': purchasePrice,
-          'quantity': 1, // Por defecto 1
+          'quantity': 1,
           'condition': 'NISB',
         }),
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        return true; // Se guardó en MongoDB 🎉
+        return true;
       } else {
-        print("Error del server: ${response.body}");
+        debugPrint("Error del server: ${response.body}");
         return false;
       }
     } catch (e) {
-      print("Error de red: $e");
+      debugPrint("Error de red: $e");
       return false;
     }
   }

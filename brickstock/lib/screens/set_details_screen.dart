@@ -49,14 +49,11 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
     _generateSimulatedPrices();
   }
 
-  // --- FUNCIÓN MÁGICA PARA IMÁGENES (Proxy para Web) ---
+  // Función refactorizada aplicando DRY
   String _getImageUrl(String originalUrl) {
     if (kIsWeb) {
-      // Si estamos en Web, usamos el Proxy del Backend para saltar el bloqueo CORS
-      final encodedUrl = Uri.encodeComponent(originalUrl);
-      return 'http://localhost:3000/api/lego/image-proxy?url=$encodedUrl';
+      return ApiService().getProxyUrl(originalUrl);
     }
-    // Si estamos en Móvil, pedimos la imagen directa (más rápido)
     return originalUrl;
   }
 

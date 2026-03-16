@@ -68,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         // Actualizamos la pantalla (limitado a 10)
         setState(() {
-          featuredTheme = null; // !!! DARLE UNA VUELTA A ESTO !!! 
+          featuredTheme = null; // !!! DARLE UNA VUELTA A ESTO !!!
           futureFeaturedSets = Future.value(mixedList.take(10).toList());
         });
       }
@@ -81,7 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _scrollList(double offset) {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        _scrollController.offset + offset, // Posicion actual + offset (220px en este caso)
+        _scrollController.offset +
+            offset, // Posicion actual + offset (220px en este caso)
         duration: const Duration(milliseconds: 300), // Duracion de la animacion
         curve: Curves.easeOut, // Animacion de rapida a lenta
       );
@@ -234,11 +235,11 @@ class _FeaturedSetCard extends StatelessWidget {
 
   const _FeaturedSetCard({required this.legoSet});
 
-  //Funcion necesaria para cargar las imagenes, usando proxy en Web para evitar CORS y la URL original en Móvil
+  // Función refactorizada aplicando DRY
   String _getImageUrl(String originalUrl) {
     if (kIsWeb) {
-      final encodedUrl = Uri.encodeComponent(originalUrl);
-      return 'http://localhost:3000/api/lego/image-proxy?url=$encodedUrl';
+      // Usamos el servicio centralizado que sabe si estamos en Local o Producción
+      return ApiService().getProxyUrl(originalUrl);
     }
     return originalUrl;
   }
@@ -246,7 +247,8 @@ class _FeaturedSetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () { // al hacer click, nos movemos a la pantalla Details 
+      onTap: () {
+        // al hacer click, nos movemos a la pantalla Details
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -268,7 +270,8 @@ class _FeaturedSetCard extends StatelessWidget {
             // Imagen
             Expanded(
               flex: 3,
-              child: Stack( //Stack nos permite poner cosas encima de otras
+              child: Stack(
+                //Stack nos permite poner cosas encima de otras
                 fit: StackFit.expand,
                 children: [
                   CachedNetworkImage(

@@ -161,14 +161,12 @@ class _ThemeCardState extends State<_ThemeCard> {
     _coverImageFuture = apiService.getThemeCover(widget.theme.id);
   }
 
-  // ESTA ES LA FUNCIÓN CLAVE QUE USA TU COMPAÑERO EN LAS OTRAS PANTALLAS
+  // Función refactorizada aplicando DRY
   String _getImageUrl(String originalUrl) {
     if (kIsWeb) {
-      // Si es Web -> Usamos el Proxy del Backend para saltar CORS
-      final encodedUrl = Uri.encodeComponent(originalUrl);
-      return 'http://localhost:3000/api/lego/image-proxy?url=$encodedUrl';
+      // Usamos la instancia apiService que ya tienes creada arriba en la clase
+      return apiService.getProxyUrl(originalUrl);
     }
-    // Si es App -> Directo
     return originalUrl;
   }
 

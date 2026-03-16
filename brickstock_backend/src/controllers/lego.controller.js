@@ -31,17 +31,25 @@ const getImageProxy = async (req, res) => {
     }
 
     try {
-        // El backend pide la imagen a Rebrickable (sin CORS de por medio)
         const response = await axios({
             url: url,
             method: 'GET',
-            responseType: 'stream' // Importante: la bajamos como flujo de datos
+            responseType: 'stream',
+            // 1. CAMUFLAJE: Engañamos a Rebrickable para que crea que somos Google Chrome
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+                'Accept-Encoding': 'gzip, deflate, br'
+            }
         });
 
-        // Copiamos las cabeceras de tipo de imagen (jpg/png)
+        // 2. CABECERAS PARA FLUTTER WEB (CanvasKit)
+        // Forzamos que cualquier navegador acepte esta imagen sin rechistar
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
         res.setHeader('Content-Type', response.headers['content-type']);
         
-        // "Enchufamos" la descarga directamente a la respuesta del cliente
+        // 3. Pasamos el flujo de datos al cliente
         response.data.pipe(res);
     } catch (error) {
         console.error("Error proxy imagen:", error.message);

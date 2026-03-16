@@ -8,8 +8,26 @@ const wishlistRoutes = require('./routes/wishlist.routes'); // Cuando la crees
 
 const app = express();
 
-// Middlewares
-app.use(cors()); // Permite conexiones externas
+// === CONFIGURACIÓN CORS ACTUALIZADA ===
+// Permitimos localhost (para desarrollo) y tu dominio de GitHub Pages (para producción)
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://oarantegui.github.io' // ¡Pon aquí la URL base de tu frontend sin la barra final!
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permitir peticiones sin origen (como Postman o llamadas móviles directas)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      var msg = 'La política CORS para este sitio no permite el acceso desde el Origen especificado.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
+}));
 app.use(express.json()); // Permite recibir JSON
 // Montar las rutas en un prefijo base
 app.use('/api/collection', collectionRoutes);

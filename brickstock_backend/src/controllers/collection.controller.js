@@ -1,5 +1,5 @@
 const Collection = require('../models/collection.model');
-
+const rebrickableService = require('../services/rebrickable.service');
 
 // POST: Añadir un nuevo set a la cartera
 exports.addSetToCollection = async (req, res) => {

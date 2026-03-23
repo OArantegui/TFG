@@ -42,13 +42,56 @@ exports.addSetToCollection = async (req, res) => {
 // GET: Obtener toda la cartera del usuario
 exports.getUserCollection = async (req, res) => {
     try {
-        // Aquí haremos el Portfolio.find({ userId: req.user._id })
-        res.status(200).json({ message: "Endpoint para ver cartera listo" });
+        // 1. Buscamos la colección del usuario en MongoDB
+        const collection = await Collection.find({ userId: req.user.id });
+
+        // 2. Enriquecemos cada item con datos de Rebrickable (Patrón BFF)
+        const enrichedCollection = await Promise.all(collection.map(async (item) => {
+            let setDetails = {};
+            try {
+                // Llamamos a nuestra caché/servicio de Rebrickable.
+                setDetails = await rebrickableService.getSetByNum(item.setNum); 
+            } catch (err) {
+                console.error(`Error obteniendo detalles del set ${item.setNum}`);
+            }
+
+            return {
+                id: item._id, // El ID de Mongo para poder borrarlo luego
+                setNum: item.setNum,
+                quantity: item.quantity,
+                purchasePrice: item.purchasePrice,
+                // Si tienes lógica de precio actual ponla, sino simulamos el purchasePrice para el ROI
+                currentPrice: item.purchasePrice * 1.05, 
+                name: setDetails.name || 'Set Desconocido',
+                imgUrl: setDetails.set_img_url || 'https://via.placeholder.com/150',
+                numParts: setDetails.num_parts || 0
+            };
+        }));
+
+        res.status(200).json({ success: true, data: enrichedCollection });
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener la cartera', error: error.message });
+        res.status(500).json({ success: false, message: 'Error al obtener la cartera', error: error.message });
+    }
+};
+
+// DELETE: Borrar set de la colección
+exports.deleteCollectionItem = async (req, res) => {
+    try {
+        // Buscamos por ID de la colección Y por userId por seguridad (evita que un usuario borre items de otro)
+        const deletedItem = await Collection.findOneAndDelete({ 
+            _id: req.params.id, 
+            userId: req.user.id 
+        });
+
+        if (!deletedItem) {
+            return res.status(404).json({ success: false, message: 'Set no encontrado en tu colección' });
+        }
+
+        res.status(200).json({ success: true, message: 'Set borrado de la colección' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error al borrar', error: error.message });
     }
 };
 
 // PUT y DELETE (Modificar cantidad o vender/borrar)
 exports.updateCollectionItem = async (req, res) => { res.status(200).send("Actualizar set"); };
-exports.deleteCollectionItem = async (req, res) => { res.status(200).send("Borrar set"); };

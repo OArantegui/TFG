@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'explore_screen.dart';
+import 'collection_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -14,17 +15,22 @@ class _MainLayoutState extends State<MainLayout> {
   int _selectedIndex = 0;
 
   // Lista de pantallas
+  // final List<Widget> _screens = [
+  //   const HomeScreen(), // [0] -> Home
+  //   const ExploreScreen(), // [1] -> Explorar
+  //   const Center(
+  //     child: Text(
+  //       'Ajustes (Próximamente)',
+  //       style: TextStyle(color: Colors.white),
+  //     ),
+  //   ), // [2] -> Ajustes
+  // ];
   final List<Widget> _screens = [
-    const HomeScreen(), // [0] -> Home
-    const ExploreScreen(), // [1] -> Explorar
-    const Center(
-      child: Text(
-        'Ajustes (Próximamente)',
-        style: TextStyle(color: Colors.white),
-      ),
-    ), // [2] -> Ajustes
+    const HomeScreen(), // Índice 0: Inicio
+    const CollectionScreen(), // Índice 1: NUEVA - Colección
+    const ExploreScreen(), // Índice 2: Catálogo (Antiguo Explore)
+    const Center(child: Text('Ajustes')), // Índice 3: Ajustes provisional
   ];
-
   // Si pulsamos el boton, cambiamos la variable que nos dice que pantalla mostrar
   void _onItemTapped(int index) {
     setState(() {
@@ -64,6 +70,12 @@ class _MainLayoutState extends State<MainLayout> {
                       selectedIcon: Icon(Icons.dashboard),
                       label: Text('Inicio'),
                     ),
+                    // NUEVO ICONO COLECCIÓN (PC)
+                    NavigationRailDestination(
+                      icon: Icon(Icons.shelves), // Icono de estantería
+                      selectedIcon: Icon(Icons.shelves),
+                      label: Text('Colección'),
+                    ),
                     NavigationRailDestination(
                       icon: Icon(Icons.search_outlined),
                       selectedIcon: Icon(Icons.search),
@@ -102,6 +114,12 @@ class _MainLayoutState extends State<MainLayout> {
                       icon: Icon(Icons.dashboard_outlined, color: Colors.grey),
                       selectedIcon: Icon(Icons.dashboard, color: Colors.orange),
                       label: 'Inicio',
+                    ),
+                    // NUEVO ICONO COLECCIÓN (Móvil)
+                    NavigationDestination(
+                      icon: Icon(Icons.shelves, color: Colors.grey),
+                      selectedIcon: Icon(Icons.shelves, color: Colors.orange),
+                      label: 'Colección',
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.search_outlined, color: Colors.grey),

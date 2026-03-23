@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart'; // Necesario para kReleaseMode
 import 'package:http/http.dart' as http;
 import '../models/lego_theme.dart';
 import '../models/lego_set.dart';
+import '../models/collection_item.dart';
 import 'auth_service.dart';
 
 class ApiService {
@@ -106,5 +107,36 @@ class ApiService {
       debugPrint("Error de red: $e");
       return false;
     }
+  }
+
+  Future<List<CollectionItem>> getUserCollection() async {
+    final token = await AuthService().getToken();
+    if (token == null) throw Exception("Usuario no autenticado");
+
+    final response = await http.get(
+      Uri.parse('${ApiService.baseUrl}/collection'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final List results =
+          data['data']; // 'data' es la key que hemos usado en Node
+      return results.map((e) => CollectionItem.fromJson(e)).toList();
+    } else {
+      throw Exception('Fallo al cargar la colección');
+    }
+  }
+
+  Future<bool> deleteFromCollection(String collectionId) async {
+    final token = await AuthService().getToken();
+    if (token == null) return false;
+
+    final response = await http.delete(
+      Uri.parse('${ApiService.baseUrl}/collection/$collectionId'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    return response.statusCode == 200;
   }
 }

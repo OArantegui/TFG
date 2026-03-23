@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Descargar el código
-        uses: actions/checkout@v4 # <-- Actualizado a v4 para evitar el warning de Node 20
+        uses: actions/checkout@v4
 
       - name: Configurar Flutter
         uses: subosito/flutter-action@v2
@@ -28,11 +28,10 @@ jobs:
 
       - name: Compilar para Web
         working-directory: ./brickstock
-        # RECUERDA: Mantén aquí el nombre exacto de tu repo como lo tenías
-        run: flutter build web --base-href "/NOMBRE_DE_TU_REPO/"
+        run: flutter build web --base-href "/TFG/"
 
       - name: Desplegar en gh-pages
-        uses: peaceiris/actions-gh-pages@v4 # <-- Actualizado a v4
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./brickstock/build/web

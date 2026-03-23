@@ -71,8 +71,12 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
       'Toys "R" Us',
     ];
 
-    final random = Random();
-    stores.shuffle();
+    // Generamos un número entero único basado en el código del set (ej. "42115-1")
+    final int seed = widget.legoSet.setNum.hashCode;
+    final random = Random(seed); // Le pasamos la semilla al generador
+
+    // Usamos nuestro random "trucado" para mezclar las tiendas
+    stores.shuffle(random);
     final selectedStores = stores.take(4).toList();
 
     _mockPrices = selectedStores.map((storeName) {

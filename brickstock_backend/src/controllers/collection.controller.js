@@ -56,15 +56,15 @@ exports.getUserCollection = async (req, res) => {
             }
 
             return {
-                id: item._id, // El ID de Mongo para poder borrarlo luego
+                id: item._id, 
                 setNum: item.setNum,
                 quantity: item.quantity,
                 purchasePrice: item.purchasePrice,
-                // Si tienes lógica de precio actual ponla, sino simulamos el purchasePrice para el ROI
                 currentPrice: item.purchasePrice * 1.05, 
                 name: setDetails.name || 'Set Desconocido',
-                imgUrl: setDetails.set_img_url || 'https://via.placeholder.com/150',
-                numParts: setDetails.num_parts || 0
+                
+                imgUrl: setDetails.imageUrl || 'https://via.placeholder.com/150',
+                numParts: setDetails.pieces || 0
             };
         }));
 

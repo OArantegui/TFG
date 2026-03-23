@@ -60,7 +60,7 @@ exports.getUserCollection = async (req, res) => {
                 setNum: item.setNum,
                 quantity: item.quantity,
                 purchasePrice: item.purchasePrice,
-                currentPrice: item.purchasePrice * 1.05, 
+                currentPrice: item.purchasePrice, 
                 name: setDetails.name || 'Set Desconocido',
                 
                 imgUrl: setDetails.imageUrl || 'https://via.placeholder.com/150',

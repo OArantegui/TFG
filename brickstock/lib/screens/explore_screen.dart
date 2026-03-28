@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart'; // <--- IMPORTANTE: Igual que en Home
-import 'package:flutter/foundation.dart'; // <--- IMPORTANTE: Para kIsWeb
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import '../services/api_service.dart';
 import '../models/lego_theme.dart';
 import 'sets_list_screen.dart';
@@ -15,11 +15,12 @@ class ExploreScreen extends StatefulWidget {
 class _ExploreScreenState extends State<ExploreScreen> {
   final ApiService apiService = ApiService();
 
-  // VARIABLES PARA EL BUSCADOR
   List<LegoTheme> _allThemes = [];
   List<LegoTheme> _filteredThemes = [];
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
+
+  String _currentSort = 'name_asc';
 
   @override
   void initState() {
@@ -34,6 +35,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         _allThemes = themes;
         _filteredThemes = themes;
         _isLoading = false;
+        _applySorting();
       });
     } catch (e) {
       setState(() => _isLoading = false);
@@ -44,7 +46,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   void _runFilter(String enteredKeyword) {
     List<LegoTheme> results = [];
     if (enteredKeyword.isEmpty) {
-      results = _allThemes;
+      results = List.from(_allThemes);
     } else {
       results = _allThemes
           .where(
@@ -55,7 +57,100 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }
     setState(() {
       _filteredThemes = results;
+      _applySorting();
     });
+  }
+
+  void _applySorting() {
+    if (_currentSort == 'name_asc') {
+      _filteredThemes.sort((a, b) => a.name.compareTo(b.name));
+    } else if (_currentSort == 'name_desc') {
+      _filteredThemes.sort((a, b) => b.name.compareTo(a.name));
+    } else if (_currentSort == 'id_desc') {
+      _filteredThemes.sort((a, b) => b.id.compareTo(a.id));
+    } else if (_currentSort == 'id_asc') {
+      _filteredThemes.sort((a, b) => a.id.compareTo(b.id));
+    }
+  }
+
+  void _showSortBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 15),
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                ),
+              ),
+              const Text(
+                'Ordenar colecciones por',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              _buildSortOption(
+                'Nombre (A - Z)',
+                'name_asc',
+                Icons.sort_by_alpha,
+              ),
+              _buildSortOption(
+                'Nombre (Z - A)',
+                'name_desc',
+                Icons.sort_by_alpha,
+              ),
+              _buildSortOption('Más recientes', 'id_desc', Icons.new_releases),
+              _buildSortOption('Más clásicas', 'id_asc', Icons.history),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSortOption(String title, String sortValue, IconData icon) {
+    final bool isSelected = _currentSort == sortValue;
+    return ListTile(
+      leading: Icon(icon, color: isSelected ? Colors.orange : Colors.grey),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isSelected ? Colors.orange : Colors.white70,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      trailing: isSelected
+          ? const Icon(Icons.check, color: Colors.orange)
+          : null,
+      onTap: () {
+        setState(() {
+          _currentSort = sortValue;
+          _applySorting();
+        });
+        Navigator.pop(context);
+      },
+    );
   }
 
   @override
@@ -65,24 +160,76 @@ class _ExploreScreenState extends State<ExploreScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
-        title: Container(
-          height: 40,
-          decoration: BoxDecoration(
-            color: const Color(0xFF2D2D2D),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white10),
-          ),
-          child: TextField(
-            controller: _searchController,
-            onChanged: (value) => _runFilter(value),
-            style: const TextStyle(color: Colors.white),
-            cursorColor: Colors.orange,
-            decoration: const InputDecoration(
-              hintText: 'Buscar colección (ej. Star Wars)...',
-              hintStyle: TextStyle(color: Colors.grey),
-              prefixIcon: Icon(Icons.search, color: Colors.orange),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        title: const Text(
+          'Catálogos',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60.0),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2D2D2D),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) => _runFilter(value),
+                      style: const TextStyle(color: Colors.white),
+                      cursorColor: Colors.orange,
+                      decoration: InputDecoration(
+                        hintText: 'Buscar colección (ej. Star Wars)...',
+                        hintStyle: const TextStyle(color: Colors.grey),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Colors.orange,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 12,
+                        ),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.clear,
+                                  color: Colors.grey,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _runFilter('');
+                                },
+                              )
+                            : null,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  height: 45,
+                  width: 45,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2D2D2D),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.tune, color: Colors.orange),
+                    onPressed: _showSortBottomSheet,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -131,7 +278,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                           itemCount: _filteredThemes.length,
                           itemBuilder: (context, index) {
                             final theme = _filteredThemes[index];
-                            return _ThemeCard(theme: theme);
+                            return _ThemeCard(
+                              // AQUI ESTÁ LA CLAVE MÁGICA PARA LAS IMÁGENES
+                              key: ValueKey(theme.id),
+                              theme: theme,
+                            );
                           },
                         ),
                 ),
@@ -141,11 +292,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 }
 
-// --- TARJETA CON LA LÓGICA DE TU COMPAÑERO (CachedNetworkImage + Proxy) ---
 class _ThemeCard extends StatefulWidget {
   final LegoTheme theme;
 
-  const _ThemeCard({required this.theme});
+  // AQUI TAMBIÉN HEMOS AÑADIDO super.key
+  const _ThemeCard({super.key, required this.theme});
 
   @override
   State<_ThemeCard> createState() => _ThemeCardState();
@@ -161,10 +312,8 @@ class _ThemeCardState extends State<_ThemeCard> {
     _coverImageFuture = apiService.getThemeCover(widget.theme.id);
   }
 
-  // Función refactorizada aplicando DRY
   String _getImageUrl(String originalUrl) {
     if (kIsWeb) {
-      // Usamos la instancia apiService que ya tienes creada arriba en la clase
       return apiService.getProxyUrl(originalUrl);
     }
     return originalUrl;
@@ -197,12 +346,10 @@ class _ThemeCardState extends State<_ThemeCard> {
         clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
-            // 1. IMAGEN DE FONDO (USANDO CachedNetworkImage)
             Positioned.fill(
               child: FutureBuilder<String?>(
                 future: _coverImageFuture,
                 builder: (context, snapshot) {
-                  // Si no hay dato o falla, ponemos imagen por defecto
                   if (!snapshot.hasData || snapshot.data == null) {
                     return Image.network(
                       'https://images.unsplash.com/photo-1585366119957-e9730b6d0f60?w=400&q=80',
@@ -212,26 +359,20 @@ class _ThemeCardState extends State<_ThemeCard> {
                     );
                   }
 
-                  // Si hay dato, aplicamos la lógica de "Otras pantallas"
                   final rawUrl = snapshot.data!;
-                  final finalUrl = _getImageUrl(
-                    rawUrl,
-                  ); // <--- Lógica del Proxy
+                  final finalUrl = _getImageUrl(rawUrl);
 
                   return CachedNetworkImage(
                     imageUrl: finalUrl,
                     fit: BoxFit.cover,
-                    // Aplicamos el efecto oscuro para que se lea el texto
                     color: Colors.black.withOpacity(0.5),
                     colorBlendMode: BlendMode.darken,
-                    // Mientras carga...
                     placeholder: (context, url) => const Center(
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         color: Colors.orange,
                       ),
                     ),
-                    // Si falla...
                     errorWidget: (context, url, error) => Image.network(
                       'https://images.unsplash.com/photo-1585366119957-e9730b6d0f60?w=400&q=80',
                       fit: BoxFit.cover,
@@ -242,8 +383,6 @@ class _ThemeCardState extends State<_ThemeCard> {
                 },
               ),
             ),
-
-            // 2. DECORACIÓN NARANJA
             Positioned(
               left: 0,
               top: 15,
@@ -258,8 +397,6 @@ class _ThemeCardState extends State<_ThemeCard> {
                 ),
               ),
             ),
-
-            // 3. TEXTO DEL TEMA
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: Align(

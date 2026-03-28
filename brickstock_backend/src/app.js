@@ -19,6 +19,13 @@ app.use(cors({
   origin: function (origin, callback) {
     // Permitir peticiones sin origen (como Postman o llamadas móviles directas)
     if (!origin) return callback(null, true);
+    // BORRAR EN SU MOMENTO
+    // 2. Permitir cualquier petición desde localhost, 127.0.0.1 o el emulador de Android (10.0.2.2)
+    if (origin.startsWith('http://localhost') || 
+        origin.startsWith('http://127.0.0.1') || 
+        origin.startsWith('http://10.0.2.2')) {
+      return callback(null, true);
+    }
     
     if (allowedOrigins.indexOf(origin) === -1) {
       var msg = 'La política CORS para este sitio no permite el acceso desde el Origen especificado.';

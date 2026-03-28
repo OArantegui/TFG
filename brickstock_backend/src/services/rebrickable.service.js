@@ -18,9 +18,18 @@ const apiClient = axios.create({
 
 const getThemes = async () => {
     try {
+        const popularThemeIds = [158, 1, 435, 246, 252, 690, 608, 576, 721, 672, 53];
         // Pedimos 50 temas
-        const response = await apiClient.get('/themes/?page_size=50');
-        return response.data;
+        const themePromises = popularThemeIds.map(id => apiClient.get(`/themes/${id}/`));
+        const responses = await Promise.all(themePromises);
+
+        const themesData = responses.map(response => response.data);
+        return {
+                count: themesData.length,
+                next: null,
+                previous: null,
+                results: themesData
+        };
     } catch (error) {
         console.error("Error en Rebrickable Service (getThemes):", error.message);
         throw error;
@@ -29,13 +38,14 @@ const getThemes = async () => {
 
 const getSetsByTheme = async (themeId) => {
     try {
-        const response = await apiClient.get(`/sets/?theme_id=${themeId}&page_size=20`);
+        const response = await apiClient.get(`/sets/?theme_id=${themeId}&page_size=20&ordering=-year`);
         return response.data;
     } catch (error) {
         console.error("Error en Rebrickable Service (getSetsByTheme):", error.message);
         throw error;
     }
 };
+
 const getThemeCover = async (themeId) => {
     // 1. Si ya tenemos la imagen en caché, la devolvemos directo (Ahorro de API)
     if (themeImagesCache[themeId]) {
@@ -62,6 +72,7 @@ const getThemeCover = async (themeId) => {
         return null; 
     }
 };
+
 const getSetByNum = async (setNum) => {
     try {
         const response = await apiClient.get(`/sets/${setNum}/`);
@@ -82,6 +93,7 @@ const getSetByNum = async (setNum) => {
         throw error; // Lanzamos el error para que el Controlador (ej. collection.controller) lo maneje
     }
 };
+
 module.exports = {
     getThemes,
     getSetsByTheme,

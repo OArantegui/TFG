@@ -36,10 +36,19 @@ const getThemes = async () => {
     }
 };
 
-const getSetsByTheme = async (themeId) => {
+//Obtener sets de un tema
+// Añadimos 'page' y 'search' con valores por defecto
+const getSetsByTheme = async (themeId, page = 1, search = '') => {
     try {
-        const response = await apiClient.get(`/sets/?theme_id=${themeId}&page_size=20&ordering=-year`);
-        return response.data;
+        let url = `/sets/?theme_id=${themeId}&page_size=20&ordering=-year&page=${page}`;
+        
+        // Si el usuario ha escrito algo en el buscador, lo añadimos a la URL
+        if (search && search.trim() !== '') {
+            url += `&search=${encodeURIComponent(search)}`;
+        }
+
+        const response = await apiClient.get(url);
+        return response.data; 
     } catch (error) {
         console.error("Error en Rebrickable Service (getSetsByTheme):", error.message);
         throw error;

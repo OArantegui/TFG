@@ -11,18 +11,25 @@ const getThemes = async (req, res) => {
     }
 };
 
+//Obtener sets
 const getSets = async (req, res) => {
     try {
-        const { themeId } = req.params; // Obtenemos el ID de la URL
+        const { themeId } = req.params; 
+        // Extraemos 'page' y 'search' de la query (?page=2&search=X-Wing)
+        const { page, search } = req.query; 
+
         if (!themeId) {
             return res.status(400).json({ message: 'Falta el parámetro themeId' });
         }
-        const data = await rebrickableService.getSetsByTheme(themeId);
+        
+        // Le pasamos todo al servicio
+        const data = await rebrickableService.getSetsByTheme(themeId, page, search);
         res.status(200).json(data);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener sets', error: error.message });
     }
 };
+
 const getImageProxy = async (req, res) => {
     const { url } = req.query; // Recibimos la URL real como parámetro
     

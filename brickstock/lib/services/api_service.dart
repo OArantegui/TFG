@@ -10,7 +10,8 @@ import 'auth_service.dart';
 class ApiService {
   // 1. Definimos las URLs de los entornos
   // Para Android Emulator deberás usar 'http://10.0.2.2:3000/api' cuando desarrolles en local
-  static const String _localUrl = 'http://localhost:3000/api';
+  //static const String _localUrl = 'http://localhost:3000/api';
+  static const String _localUrl = 'http://10.44.44.99:3000/api';
 
   // TODO: Pon aquí tu URL pública de Render cuando la tengas
   static const String _productionUrl =
@@ -42,15 +43,27 @@ class ApiService {
     }
   }
 
-  Future<List<LegoSet>> getSetsByTheme(int themeId) async {
-    final response = await http.get(
-      Uri.parse('${ApiService.baseUrl}/lego/sets/$themeId'),
+  // Modificamos para aceptar page y search, y devolvemos un Map
+  Future<Map<String, dynamic>> getSetsByTheme(
+    int themeId, {
+    int page = 1,
+    String search = '',
+  }) async {
+    final uri = Uri.parse(
+      '${ApiService.baseUrl}/lego/sets/$themeId?page=$page&search=$search',
     );
+    final response = await http.get(uri);
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final List results = data['results'];
-      return results.map((e) => LegoSet.fromJson(e)).toList();
+
+      return {
+        'sets': results.map((e) => LegoSet.fromJson(e)).toList(),
+        'hasMore':
+            data['next'] !=
+            null, // Rebrickable devuelve 'next' con una URL si hay más páginas
+      };
     } else {
       throw Exception('Fallo al cargar sets desde el Backend');
     }

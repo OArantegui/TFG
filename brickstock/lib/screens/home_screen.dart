@@ -40,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Cagamos distintos sets de distintos temas
+  // Cargamos distintos sets de distintos temas
   Future<void> _loadMixedFeaturedSets() async {
     try {
       // Pedimos todos los temas a la API
@@ -48,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (themes.isNotEmpty) {
         // Cada vez que entramos a themes mezclamos para que salga aleatorio
         themes.shuffle();
-        // Cogemos 12 aunque vayamos a mostrar 10 ( por si hay algun fallo )
+        // Cogemos 12 aunque vayamos a mostrar 10 (por si hay algun fallo)
         final selectedThemes = themes.take(12).toList();
 
         // Aqui preparamos una lista (futures) para hacer una sola petición por cada tema seleccionado
@@ -58,10 +59,14 @@ class _HomeScreenState extends State<HomeScreen> {
         // La peticion se hace aqui
         final results = await Future.wait(futures);
 
-        // Recorremos los resultados y solo cogemos el primer set de cada tema
+        // Recorremos los resultados (que AHORA son Mapas)
         final List<LegoSet> mixedList = [];
-        for (var setList in results) {
+        for (var resultMap in results) {
+          // Extraemos la lista de sets usando la clave 'sets'
+          final List<LegoSet> setList = resultMap['sets'] as List<LegoSet>;
+
           if (setList.isNotEmpty) {
+            // Ahora sí podemos usar .first
             mixedList.add(setList.first);
           }
         }

@@ -17,97 +17,140 @@ class SetsListScreen extends StatefulWidget {
 
 class _SetsListScreenState extends State<SetsListScreen> {
   final ApiService apiService = ApiService();
-
-  List<LegoSet> _allSets = [];
-  List<LegoSet> _filteredSets = [];
-  bool _isLoading = true;
-  String? _errorMessage;
+  final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
-  // VARIABLE PARA EL ESTADO DE ORDENACIÓN
-  String _currentSort = 'name_asc';
+  List<LegoSet> _sets = [];
+  bool _isLoading = true; // Para la carga inicial
+  bool _isLoadingMore = false; // Para cuando hacemos scroll
+  bool _hasMore = true; // ¿Quedan más páginas por cargar?
+  int _currentPage = 1;
+  String _currentSearch = '';
+  String? _errorMessage;
+  String _currentSort = 'year_desc'; // Orden por defecto real de Rebrickable
 
   @override
   void initState() {
     super.initState();
     _loadSets();
+
+    // Listener para el scroll infinito
+    _scrollController.addListener(() {
+      // Si llegamos casi al final de la lista, cargamos más
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        _loadMoreSets();
+      }
+    });
   }
 
-  Future<void> _loadSets() async {
-    try {
-      final sets = await apiService.getSetsByTheme(widget.theme.id);
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Carga inicial o nueva búsqueda
+  Future<void> _loadSets({bool resetPage = false}) async {
+    if (resetPage) {
       setState(() {
-        _allSets = sets;
-        _filteredSets = sets;
+        _currentPage = 1;
+        _sets.clear();
+        _isLoading = true;
+        _hasMore = true;
+        _errorMessage = null;
+      });
+    }
+
+    try {
+      final response = await apiService.getSetsByTheme(
+        widget.theme.id,
+        page: _currentPage,
+        search: _currentSearch,
+      );
+
+      setState(() {
+        _sets.addAll(response['sets'] as List<LegoSet>);
+        _hasMore = response['hasMore'] as bool;
         _isLoading = false;
-        _applySorting(); // Aplicar ordenación por defecto al cargar
+        _applySorting(); // Ordenamos lo que tenemos
       });
     } catch (e) {
       setState(() {
         _isLoading = false;
         _errorMessage = e.toString();
       });
-      debugPrint('Error cargando sets: $e');
     }
   }
 
-  // Lógica de búsqueda
-  void _runFilter(String enteredKeyword) {
-    List<LegoSet> results = [];
-    if (enteredKeyword.isEmpty) {
-      results = List.from(_allSets);
-    } else {
-      results = _allSets.where((set) {
-        final nameMatches = set.name.toLowerCase().contains(
-          enteredKeyword.toLowerCase(),
-        );
-        final numberMatches = set.setNum.toLowerCase().contains(
-          enteredKeyword.toLowerCase(),
-        );
-        return nameMatches || numberMatches;
-      }).toList();
-    }
+  // Cargar la siguiente página al hacer scroll
+  Future<void> _loadMoreSets() async {
+    if (_isLoadingMore || !_hasMore) return;
 
     setState(() {
-      _filteredSets = results;
-      _applySorting(); // Volver a ordenar después de filtrar
+      _isLoadingMore = true;
     });
-  }
 
-  // Lógica de ordenación
-  void _applySorting() {
-    if (_currentSort == 'name_asc') {
-      _filteredSets.sort((a, b) => a.name.compareTo(b.name));
-    } else if (_currentSort == 'name_desc') {
-      _filteredSets.sort((a, b) => b.name.compareTo(a.name));
-    } else if (_currentSort == 'year_desc') {
-      _filteredSets.sort((a, b) => b.year.compareTo(a.year));
-    } else if (_currentSort == 'year_asc') {
-      _filteredSets.sort((a, b) => a.year.compareTo(b.year));
-    } else if (_currentSort == 'pieces_desc') {
-      _filteredSets.sort((a, b) => b.numParts.compareTo(a.numParts));
-    } else if (_currentSort == 'pieces_asc') {
-      _filteredSets.sort((a, b) => a.numParts.compareTo(b.numParts));
+    _currentPage++;
+    try {
+      final response = await apiService.getSetsByTheme(
+        widget.theme.id,
+        page: _currentPage,
+        search: _currentSearch,
+      );
+
+      setState(() {
+        _sets.addAll(response['sets'] as List<LegoSet>);
+        _hasMore = response['hasMore'] as bool;
+        _isLoadingMore = false;
+        _applySorting();
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingMore = false;
+        _currentPage--; // Revertimos la página si falla
+      });
     }
   }
 
-  // --- REUTILIZADA ---
+  // Ejecutar búsqueda en el servidor
+  void _runSearch(String keyword) {
+    _currentSearch = keyword;
+    _loadSets(resetPage: true);
+  }
+
+  // --- Mantenemos tu lógica de ordenación local de la lista que ya tenemos cargada ---
+  void _applySorting() {
+    if (_currentSort == 'name_asc') {
+      _sets.sort((a, b) => a.name.compareTo(b.name));
+    } else if (_currentSort == 'name_desc') {
+      _sets.sort((a, b) => b.name.compareTo(a.name));
+    } else if (_currentSort == 'year_desc') {
+      _sets.sort((a, b) => b.year.compareTo(a.year));
+    } else if (_currentSort == 'year_asc') {
+      _sets.sort((a, b) => a.year.compareTo(b.year));
+    } else if (_currentSort == 'pieces_desc') {
+      _sets.sort((a, b) => b.numParts.compareTo(a.numParts));
+    } else if (_currentSort == 'pieces_asc') {
+      _sets.sort((a, b) => a.numParts.compareTo(b.numParts));
+    }
+  }
+
   String _getImageUrl(String? originalUrl) {
     if (originalUrl == null || originalUrl.isEmpty) return '';
     if (kIsWeb) return apiService.getProxyUrl(originalUrl);
     return originalUrl;
   }
 
-  // --- MENÚ INFERIOR DE ORDENACIÓN (ESTÉTICA APP) ---
   void _showSortBottomSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors
-          .transparent, // Transparente para usar nuestro propio diseño curvo
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Color(0xFF1E1E1E), // Fondo oscuro de la app
+            color: Color(0xFF1E1E1E),
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -117,11 +160,11 @@ class _SetsListScreenState extends State<SetsListScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 15),
+                padding: const EdgeInsets.symmetric(vertical: 15),
                 child: Container(
                   width: 40,
                   height: 5,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Colors.white24,
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
@@ -174,7 +217,6 @@ class _SetsListScreenState extends State<SetsListScreen> {
     );
   }
 
-  // Widget personalizado para cada opción del menú
   Widget _buildSortOption(String title, String sortValue, IconData icon) {
     final bool isSelected = _currentSort == sortValue;
     return ListTile(
@@ -194,7 +236,7 @@ class _SetsListScreenState extends State<SetsListScreen> {
           _currentSort = sortValue;
           _applySorting();
         });
-        Navigator.pop(context); // Cerrar el menú
+        Navigator.pop(context);
       },
     );
   }
@@ -220,7 +262,6 @@ class _SetsListScreenState extends State<SetsListScreen> {
             ),
             child: Row(
               children: [
-                // Barra de búsqueda ampliada
                 Expanded(
                   child: Container(
                     height: 45,
@@ -231,7 +272,8 @@ class _SetsListScreenState extends State<SetsListScreen> {
                     ),
                     child: TextField(
                       controller: _searchController,
-                      onChanged: (value) => _runFilter(value),
+                      // CAMBIO CLAVE: Búsqueda al darle a "Enter/Submit"
+                      onSubmitted: (value) => _runSearch(value),
                       style: const TextStyle(color: Colors.white),
                       cursorColor: Colors.orange,
                       decoration: InputDecoration(
@@ -255,7 +297,9 @@ class _SetsListScreenState extends State<SetsListScreen> {
                                 ),
                                 onPressed: () {
                                   _searchController.clear();
-                                  _runFilter('');
+                                  _runSearch(
+                                    '',
+                                  ); // Refresca borrando la búsqueda
                                 },
                               )
                             : null,
@@ -264,7 +308,6 @@ class _SetsListScreenState extends State<SetsListScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Botón de filtros guay
                 Container(
                   height: 45,
                   width: 45,
@@ -301,15 +344,7 @@ class _SetsListScreenState extends State<SetsListScreen> {
         ),
       );
     }
-    if (_allSets.isEmpty) {
-      return const Center(
-        child: Text(
-          'No hay sets en esta colección',
-          style: TextStyle(color: Colors.white54),
-        ),
-      );
-    }
-    if (_filteredSets.isEmpty) {
+    if (_sets.isEmpty) {
       return const Center(
         child: Text(
           'No se encontraron sets',
@@ -319,11 +354,26 @@ class _SetsListScreenState extends State<SetsListScreen> {
     }
 
     return ListView.separated(
-      itemCount: _filteredSets.length,
+      controller: _scrollController, // Añadimos el controlador de scroll aquí
+      itemCount:
+          _sets.length +
+          (_hasMore
+              ? 1
+              : 0), // Añadimos 1 extra si hay más para mostrar el spinner final
       separatorBuilder: (context, index) =>
           const Divider(color: Colors.white10),
       itemBuilder: (context, index) {
-        final set = _filteredSets[index];
+        // Si llegamos al último elemento extra y hay más, pintamos un spinner
+        if (index == _sets.length) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(
+              child: CircularProgressIndicator(color: Colors.orange),
+            ),
+          );
+        }
+
+        final set = _sets[index];
         final finalImageUrl = _getImageUrl(set.imgUrl);
 
         return ListTile(

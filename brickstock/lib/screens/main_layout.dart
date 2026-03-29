@@ -28,9 +28,9 @@ class _MainLayoutState extends State<MainLayout> {
   // ];
   final List<Widget> _screens = [
     const HomeScreen(), // Índice 0: Inicio
+    const ExploreScreen(), // Índice 3: Catálogo
     const CollectionScreen(), // Índice 1: Colección
     const WishlistScreen(), //Indice 2: Lista de deseados
-    const ExploreScreen(), // Índice 3: Catálogo (Antiguo Explore)
     const Center(child: Text('Ajustes')), // Índice 4: Ajustes provisional
   ];
   // Si pulsamos el boton, cambiamos la variable que nos dice que pantalla mostrar
@@ -72,6 +72,11 @@ class _MainLayoutState extends State<MainLayout> {
                       selectedIcon: Icon(Icons.dashboard),
                       label: Text('Inicio'),
                     ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.search_outlined),
+                      selectedIcon: Icon(Icons.search),
+                      label: Text('Catálogo'),
+                    ),
                     // NUEVO ICONO COLECCIÓN (PC)
                     NavigationRailDestination(
                       icon: Icon(Icons.shelves), // Icono de estantería
@@ -82,11 +87,6 @@ class _MainLayoutState extends State<MainLayout> {
                       icon: Icon(Icons.favorite_border),
                       selectedIcon: Icon(Icons.favorite_border),
                       label: Text('Deseados'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.search_outlined),
-                      selectedIcon: Icon(Icons.search),
-                      label: Text('Catálogo'),
                     ),
                     NavigationRailDestination(
                       icon: Icon(Icons.settings_outlined),
@@ -122,6 +122,11 @@ class _MainLayoutState extends State<MainLayout> {
                       selectedIcon: Icon(Icons.dashboard, color: Colors.orange),
                       label: 'Inicio',
                     ),
+                    NavigationDestination(
+                      icon: Icon(Icons.search_outlined, color: Colors.grey),
+                      selectedIcon: Icon(Icons.search, color: Colors.orange),
+                      label: 'Explorar',
+                    ),
                     // NUEVO ICONO COLECCIÓN (Móvil)
                     NavigationDestination(
                       icon: Icon(Icons.shelves, color: Colors.grey),
@@ -135,11 +140,6 @@ class _MainLayoutState extends State<MainLayout> {
                         color: Colors.orange,
                       ),
                       label: 'Deseados',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(Icons.search_outlined, color: Colors.grey),
-                      selectedIcon: Icon(Icons.search, color: Colors.orange),
-                      label: 'Explorar',
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.settings_outlined, color: Colors.grey),

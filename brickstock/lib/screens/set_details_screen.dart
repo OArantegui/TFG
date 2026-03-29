@@ -17,7 +17,6 @@ class SetDetailsScreen extends StatefulWidget {
 
 class _SetDetailsScreenState extends State<SetDetailsScreen> {
   late PageController _pageController;
-  int _currentImageIndex = 0;
 
   // Lista dinámica de precios que generaremos
   List<Map<String, dynamic>> _mockPrices = [];
@@ -28,24 +27,11 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
 
-    // --- GENERACIÓN DINÁMICA DE IMÁGENES ---
-    // 1. Añadimos SIEMPRE la imagen principal de Rebrickable (esa nunca falla)
+    //Generacion imagen
     _extraImages.add(widget.legoSet.imgUrl);
 
-    // 2. "Adivinamos" 3 imágenes extra usando el patrón de Brickset
-    // Ejemplo: Si el set es "75192-1", buscamos "75192_alt1.jpg"
-    final setNumBase = widget.legoSet.setNum.split('-')[0]; // Quitamos el "-1"
-
-    // Generamos URLs para alt1, alt2 y alt3
-    for (var i = 1; i <= 3; i++) {
-      String altUrl =
-          'https://images.brickset.com/sets/additional/${widget.legoSet.setNum}/${setNumBase}_alt$i.jpg';
-      _extraImages.add(altUrl);
-    }
-
-    // 2. GENERACIÓN DE PRECIOS SIMULADOS
+    //Generacion precios
     _generateSimulatedPrices();
   }
 
@@ -102,24 +88,6 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
     super.dispose();
   }
 
-  void _nextImage() {
-    if (_currentImageIndex < _extraImages.length - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  void _prevImage() {
-    if (_currentImageIndex > 0) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
   void _showHistoryChart(BuildContext context) {
     showDialog(
       context: context,
@@ -155,10 +123,6 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Detectamos si necesitamos flechas (Web/Escritorio)
-    final bool showArrows =
-        kIsWeb || Platform.isWindows || Platform.isLinux || Platform.isMacOS;
-
     double minPrice = double.infinity;
     if (_mockPrices.isNotEmpty) {
       minPrice = _mockPrices.map((e) => e['price'] as double).reduce(min);
@@ -170,98 +134,36 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- CARRUSEL DE IMÁGENES MEJORADO ---
+            // --- IMAGEN PRINCIPAL DEL SET ---
             SizedBox(
               height: 300,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  PageView.builder(
-                    controller: _pageController,
-                    itemCount: _extraImages.length,
-                    onPageChanged: (index) =>
-                        setState(() => _currentImageIndex = index),
-                    itemBuilder: (ctx, index) {
-                      return CachedNetworkImage(
-                        imageUrl: _getImageUrl(
-                          _extraImages[index],
-                        ), // <--- ¡Vital usar el Proxy aquí!
-                        fit: BoxFit.contain,
-                        placeholder: (context, url) =>
-                            const Center(child: CircularProgressIndicator()),
-                        // Si la imagen "adivinada" no existe (404), mostramos un aviso elegante
-                        errorWidget: (context, url, error) => Container(
-                          color: Colors.grey[200],
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.image_not_supported,
-                                size: 40,
-                                color: Colors.grey,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                index == 0
-                                    ? "Imagen no disponible"
-                                    : "Vista extra no disponible",
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // Flechas de navegación (Solo Web/Desktop)
-                  if (showArrows && _currentImageIndex > 0)
-                    Positioned(
-                      left: 10,
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios, size: 30),
-                        onPressed: _prevImage,
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.white54,
-                        ),
+              width: double.infinity,
+              child: CachedNetworkImage(
+                imageUrl: _getImageUrl(
+                  widget.legoSet.imgUrl,
+                ), // Usamos tu función con proxy
+                fit: BoxFit.contain,
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(color: Colors.orange),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: const Color(0xFF2A2A2A),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(
+                        Icons.image_not_supported,
+                        size: 50,
+                        color: Colors.grey,
                       ),
-                    ),
-                  if (showArrows &&
-                      _currentImageIndex < _extraImages.length - 1)
-                    Positioned(
-                      right: 10,
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_forward_ios, size: 30),
-                        onPressed: _nextImage,
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.white54,
-                        ),
+                      SizedBox(height: 8),
+                      Text(
+                        "Imagen no disponible",
+                        style: TextStyle(color: Colors.grey),
                       ),
-                    ),
-
-                  // Indicador de puntos (Dots)
-                  Positioned(
-                    bottom: 10,
-                    child: Row(
-                      children: List.generate(_extraImages.length, (index) {
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: _currentImageIndex == index
-                                ? Theme.of(context).primaryColor
-                                : Colors.grey,
-                          ),
-                        );
-                      }),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
 

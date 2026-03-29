@@ -357,14 +357,79 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      icon: const Icon(Icons.notifications_active_outlined),
-                      label: const Text('Notificar bajada de precio'),
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Alerta creada correctamente'),
-                          ),
+                      icon: const Icon(
+                        Icons.favorite_border,
+                        color: Colors.pinkAccent,
+                      ),
+                      label: const Text('Añadir a deseados'),
+                      onPressed: () async {
+                        // Intentamos añadir (modo normal, force: false)
+                        final priceToSave = minPrice == double.infinity
+                            ? 0.0
+                            : minPrice;
+                        final result = await ApiService().addToWishlist(
+                          widget.legoSet.setNum,
+                          priceToSave,
                         );
+
+                        if (result['warning'] == true) {
+                          // SUPERAMOS EL PRESUPUESTO: Mostramos Alerta
+                          if (!mounted) return;
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('⚠️ Límite Excedido'),
+                              content: Text(result['message']),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text('Cancelar'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    Navigator.pop(ctx);
+                                    // Forzamos la inserción (force: true)
+                                    await ApiService().addToWishlist(
+                                      widget.legoSet.setNum,
+                                      priceToSave,
+                                      force: true,
+                                    );
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Añadido ignorando el límite',
+                                          ),
+                                          backgroundColor: Colors.orange,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: const Text(
+                                    'Ignorar y Añadir',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        } else if (result['success'] == true) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('¡Añadido a deseados!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(result['message'] ?? 'Error'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
                       },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.all(16),

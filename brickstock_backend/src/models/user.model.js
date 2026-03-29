@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
     //username: { type: String, required: true, unique: true }, Quitamos el username para que coincida con lo que tenemos en el front
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true }
+    password: { type: String, required: true },
+    wishlistBudget: { type: Number, default: 500 }
 }, {
     timestamps: true // Guarda automáticamente la fecha de creación
 });

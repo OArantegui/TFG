@@ -15,11 +15,6 @@ const wishlistSchema = new mongoose.Schema({
   targetPrice: {
     type: Number,
     min: 0
-  },
-  priority: {
-    type: String,
-    enum: ['Low', 'Medium', 'High'],
-    default: 'Medium'
   }
 }, { 
   timestamps: true 

@@ -139,4 +139,68 @@ class ApiService {
 
     return response.statusCode == 200;
   }
+
+  // AÑADIR A WISHLIST (Devuelve Map para poder leer el 'warning')
+  Future<Map<String, dynamic>> addToWishlist(
+    String setNum,
+    double price, {
+    bool force = false,
+  }) async {
+    final token = await AuthService().getToken();
+    if (token == null) return {'success': false, 'message': 'No autenticado'};
+
+    final response = await http.post(
+      Uri.parse('${ApiService.baseUrl}/wishlist'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({'setNum': setNum, 'price': price, 'force': force}),
+    );
+    return json.decode(response.body);
+  }
+
+  // OBTENER WISHLIST COMPLETA
+  Future<Map<String, dynamic>> getWishlistData() async {
+    final token = await AuthService().getToken();
+    if (token == null) throw Exception("Usuario no autenticado");
+
+    final response = await http.get(
+      Uri.parse('${ApiService.baseUrl}/wishlist'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Fallo al cargar la lista de deseados');
+    }
+  }
+
+  // ACTUALIZAR PRESUPUESTO
+  Future<bool> updateWishlistBudget(double newBudget) async {
+    final token = await AuthService().getToken();
+    if (token == null) return false;
+
+    final response = await http.put(
+      Uri.parse('${ApiService.baseUrl}/wishlist/budget'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({'newBudget': newBudget}),
+    );
+    return response.statusCode == 200;
+  }
+
+  // BORRAR DE WISHLIST (Similar al de Collection)
+  Future<bool> deleteFromWishlist(String id) async {
+    final token = await AuthService().getToken();
+    if (token == null) return false;
+    final response = await http.delete(
+      Uri.parse('${ApiService.baseUrl}/wishlist/$id'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    return response.statusCode == 200;
+  }
 }

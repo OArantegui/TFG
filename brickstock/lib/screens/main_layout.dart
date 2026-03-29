@@ -77,6 +77,11 @@ class _MainLayoutState extends State<MainLayout> {
                       label: Text('Colección'),
                     ),
                     NavigationRailDestination(
+                      icon: Icon(Icons.favorite_border),
+                      selectedIcon: Icon(Icons.favorite_border),
+                      label: Text('Deseados'),
+                    ),
+                    NavigationRailDestination(
                       icon: Icon(Icons.search_outlined),
                       selectedIcon: Icon(Icons.search),
                       label: Text('Catálogo'),
@@ -120,6 +125,14 @@ class _MainLayoutState extends State<MainLayout> {
                       icon: Icon(Icons.shelves, color: Colors.grey),
                       selectedIcon: Icon(Icons.shelves, color: Colors.orange),
                       label: 'Colección',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.favorite_border, color: Colors.grey),
+                      selectedIcon: Icon(
+                        Icons.favorite_border,
+                        color: Colors.orange,
+                      ),
+                      label: 'Deseados',
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.search_outlined, color: Colors.grey),

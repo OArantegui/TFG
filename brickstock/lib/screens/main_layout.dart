@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'explore_screen.dart';
 import 'collection_screen.dart';
+import 'wishlist_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -27,9 +28,10 @@ class _MainLayoutState extends State<MainLayout> {
   // ];
   final List<Widget> _screens = [
     const HomeScreen(), // Índice 0: Inicio
-    const CollectionScreen(), // Índice 1: NUEVA - Colección
-    const ExploreScreen(), // Índice 2: Catálogo (Antiguo Explore)
-    const Center(child: Text('Ajustes')), // Índice 3: Ajustes provisional
+    const CollectionScreen(), // Índice 1: Colección
+    const WishlistScreen(), //Indice 2: Lista de deseados
+    const ExploreScreen(), // Índice 3: Catálogo (Antiguo Explore)
+    const Center(child: Text('Ajustes')), // Índice 4: Ajustes provisional
   ];
   // Si pulsamos el boton, cambiamos la variable que nos dice que pantalla mostrar
   void _onItemTapped(int index) {

@@ -1,8 +1,10 @@
+import 'package:brickstock/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'explore_screen.dart';
 import 'collection_screen.dart';
 import 'wishlist_screen.dart';
+import 'settings_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -31,7 +33,7 @@ class _MainLayoutState extends State<MainLayout> {
     const ExploreScreen(), // Índice 3: Catálogo
     const CollectionScreen(), // Índice 1: Colección
     const WishlistScreen(), //Indice 2: Lista de deseados
-    const Center(child: Text('Ajustes')), // Índice 4: Ajustes provisional
+    const SettingsScreen(), // Índice 4: Ajustes provisional
   ];
   // Si pulsamos el boton, cambiamos la variable que nos dice que pantalla mostrar
   void _onItemTapped(int index) {

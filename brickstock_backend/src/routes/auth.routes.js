@@ -3,7 +3,7 @@ const router = express.Router();
 
 const { register, login, updateUser } = require('../controllers/auth.controller');
 
-const authMiddleware = require('../middlewares/auth.middleware');
+const { verifyJWT } = require('../middlewares/auth.middleware');
 
 // Ruta para registrar un usuario (POST http://localhost:3000/api/auth/register)
 router.post('/register', register);

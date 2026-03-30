@@ -43,9 +43,9 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getSetsByTheme(int themeId, {int page = 1, String search = ''}) async {
-    // Asegúrate de que esta URL coincida con cómo la tienes en tu servidor Node.
-    // Ej: /lego/themes/$themeId/sets 
-    String url = '${ApiService.baseUrl}/lego/themes/$themeId/sets?page=$page';
+    // ¡ATENCIÓN A ESTA LÍNEA! Es la que estaba dando el error 404.
+    String url = '${ApiService.baseUrl}/lego/sets/$themeId?page=$page';
+    
     if (search.isNotEmpty) {
       url += '&search=${Uri.encodeComponent(search)}';
     }
@@ -55,10 +55,8 @@ class ApiService {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       
-      // Rebrickable devuelve la lista en bruto dentro de 'results'
       final List results = data['results'] ?? [];
       
-      // Mapeamos los datos a nuestra clase LegoSet aquí para no romper el HomeScreen
       final List<LegoSet> sets = results.map((e) => LegoSet(
         setNum: e['set_num'],
         name: e['name'],
@@ -68,11 +66,10 @@ class ApiService {
         imgUrl: e['set_img_url'] ?? '',
       )).toList();
 
-      // Devolvemos los sets y los metadatos de paginación
       return {
         'sets': sets,
         'count': data['count'] ?? 0,
-        'next': data['next'], // Si Rebrickable devuelve una URL aquí, hay más páginas
+        'next': data['next'], 
       };
     } else {
       throw Exception('Fallo al cargar sets del tema');

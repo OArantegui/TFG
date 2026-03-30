@@ -1,3 +1,432 @@
+/**import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart'; // Para kIsWeb
+import '../models/lego_theme.dart';
+import '../models/lego_set.dart';
+import '../services/api_service.dart';
+import 'set_details_screen.dart';
+
+class SetsListScreen extends StatefulWidget {
+  final LegoTheme theme;
+
+  const SetsListScreen({super.key, required this.theme});
+
+  @override
+  State<SetsListScreen> createState() => _SetsListScreenState();
+}
+
+class _SetsListScreenState extends State<SetsListScreen> {
+  final ApiService apiService = ApiService();
+  final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+
+  List<LegoSet> _sets = [];
+  bool _isLoading = true; // Para la carga inicial
+  bool _isLoadingMore = false; // Para cuando hacemos scroll
+  bool _hasMore = true; // ¿Quedan más páginas por cargar?
+  int _currentPage = 1;
+  String _currentSearch = '';
+  String? _errorMessage;
+  String _currentSort = 'year_desc'; // Orden por defecto real de Rebrickable
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSets();
+
+    // Listener para el scroll infinito
+    _scrollController.addListener(() {
+      // Si llegamos casi al final de la lista, cargamos más
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        _loadMoreSets();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Carga inicial o nueva búsqueda
+  Future<void> _loadSets({bool resetPage = false}) async {
+    if (resetPage) {
+      setState(() {
+        _currentPage = 1;
+        _sets.clear();
+        _isLoading = true;
+        _hasMore = true;
+        _errorMessage = null;
+      });
+    }
+
+    try {
+      final response = await apiService.getSetsByTheme(
+        widget.theme.id,
+        page: _currentPage,
+        search: _currentSearch,
+      );
+
+      setState(() {
+        _sets.addAll(response['sets'] as List<LegoSet>);
+        _hasMore = response['hasMore'] as bool;
+        _isLoading = false;
+        _applySorting(); // Ordenamos lo que tenemos
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString();
+      });
+    }
+  }
+
+  // Cargar la siguiente página al hacer scroll
+  Future<void> _loadMoreSets() async {
+    if (_isLoadingMore || !_hasMore) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    _currentPage++;
+    try {
+      final response = await apiService.getSetsByTheme(
+        widget.theme.id,
+        page: _currentPage,
+        search: _currentSearch,
+      );
+
+      setState(() {
+        _sets.addAll(response['sets'] as List<LegoSet>);
+        _hasMore = response['hasMore'] as bool;
+        _isLoadingMore = false;
+        _applySorting();
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingMore = false;
+        _currentPage--; // Revertimos la página si falla
+      });
+    }
+  }
+
+  // Ejecutar búsqueda en el servidor
+  void _runSearch(String keyword) {
+    _currentSearch = keyword;
+    _loadSets(resetPage: true);
+  }
+
+  // --- Mantenemos tu lógica de ordenación local de la lista que ya tenemos cargada ---
+  void _applySorting() {
+    if (_currentSort == 'name_asc') {
+      _sets.sort((a, b) => a.name.compareTo(b.name));
+    } else if (_currentSort == 'name_desc') {
+      _sets.sort((a, b) => b.name.compareTo(a.name));
+    } else if (_currentSort == 'year_desc') {
+      _sets.sort((a, b) => b.year.compareTo(a.year));
+    } else if (_currentSort == 'year_asc') {
+      _sets.sort((a, b) => a.year.compareTo(b.year));
+    } else if (_currentSort == 'pieces_desc') {
+      _sets.sort((a, b) => b.numParts.compareTo(a.numParts));
+    } else if (_currentSort == 'pieces_asc') {
+      _sets.sort((a, b) => a.numParts.compareTo(b.numParts));
+    }
+  }
+
+  String _getImageUrl(String? originalUrl) {
+    if (originalUrl == null || originalUrl.isEmpty) return '';
+    if (kIsWeb) return apiService.getProxyUrl(originalUrl);
+    return originalUrl;
+  }
+
+  void _showSortBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: const BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                ),
+              ),
+              const Text(
+                'Ordenar por',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              _buildSortOption(
+                'Nombre (A - Z)',
+                'name_asc',
+                Icons.sort_by_alpha,
+              ),
+              _buildSortOption(
+                'Nombre (Z - A)',
+                'name_desc',
+                Icons.sort_by_alpha,
+              ),
+              _buildSortOption(
+                'Año (Más recientes)',
+                'year_desc',
+                Icons.calendar_today,
+              ),
+              _buildSortOption(
+                'Año (Más antiguos)',
+                'year_asc',
+                Icons.calendar_today,
+              ),
+              _buildSortOption(
+                'Piezas (Mayor a menor)',
+                'pieces_desc',
+                Icons.extension,
+              ),
+              _buildSortOption(
+                'Piezas (Menor a mayor)',
+                'pieces_asc',
+                Icons.extension,
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSortOption(String title, String sortValue, IconData icon) {
+    final bool isSelected = _currentSort == sortValue;
+    return ListTile(
+      leading: Icon(icon, color: isSelected ? Colors.orange : Colors.grey),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isSelected ? Colors.orange : Colors.white70,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      trailing: isSelected
+          ? const Icon(Icons.check, color: Colors.orange)
+          : null,
+      onTap: () {
+        setState(() {
+          _currentSort = sortValue;
+          _applySorting();
+        });
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF1E1E1E),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1E1E1E),
+        elevation: 0,
+        title: Text(
+          widget.theme.name,
+          style: const TextStyle(color: Colors.white),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60.0),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2D2D2D),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white10),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      // CAMBIO CLAVE: Búsqueda al darle a "Enter/Submit"
+                      onSubmitted: (value) => _runSearch(value),
+                      style: const TextStyle(color: Colors.white),
+                      cursorColor: Colors.orange,
+                      decoration: InputDecoration(
+                        hintText: 'Buscar set...',
+                        hintStyle: const TextStyle(color: Colors.grey),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Colors.orange,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 12,
+                        ),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.clear,
+                                  color: Colors.grey,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _runSearch(
+                                    '',
+                                  ); // Refresca borrando la búsqueda
+                                },
+                              )
+                            : null,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  height: 45,
+                  width: 45,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2D2D2D),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.tune, color: Colors.orange),
+                    onPressed: _showSortBottomSheet,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.orange),
+      );
+    }
+    if (_errorMessage != null) {
+      return Center(
+        child: Text(
+          'Error: $_errorMessage',
+          style: const TextStyle(color: Colors.red),
+        ),
+      );
+    }
+    if (_sets.isEmpty) {
+      return const Center(
+        child: Text(
+          'No se encontraron sets',
+          style: TextStyle(color: Colors.white54),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      controller: _scrollController, // Añadimos el controlador de scroll aquí
+      itemCount:
+          _sets.length +
+          (_hasMore
+              ? 1
+              : 0), // Añadimos 1 extra si hay más para mostrar el spinner final
+      separatorBuilder: (context, index) =>
+          const Divider(color: Colors.white10),
+      itemBuilder: (context, index) {
+        // Si llegamos al último elemento extra y hay más, pintamos un spinner
+        if (index == _sets.length) {
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(
+              child: CircularProgressIndicator(color: Colors.orange),
+            ),
+          );
+        }
+
+        final set = _sets[index];
+        final finalImageUrl = _getImageUrl(set.imgUrl);
+
+        return ListTile(
+          contentPadding: const EdgeInsets.all(8),
+          leading: Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            padding: const EdgeInsets.all(4),
+            child: finalImageUrl.isEmpty
+                ? const Icon(Icons.image_not_supported, color: Colors.grey)
+                : CachedNetworkImage(
+                    imageUrl: finalImageUrl,
+                    memCacheWidth: 200,
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.orange,
+                      ),
+                    ),
+                    errorWidget: (context, url, error) =>
+                        const Icon(Icons.broken_image, color: Colors.grey),
+                    fit: BoxFit.contain,
+                  ),
+          ),
+          title: Text(
+            set.name,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          subtitle: Text(
+            '#${set.setNum} | ${set.year} | ${set.numParts} piezas',
+            style: const TextStyle(color: Colors.white70),
+          ),
+          trailing: const Icon(Icons.chevron_right, color: Colors.orange),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SetDetailsScreen(legoSet: set),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+} **/
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
@@ -24,7 +453,7 @@ class _SetsListScreenState extends State<SetsListScreen> {
   
   int _currentPage = 1;
   int _totalCount = 0;
-  String? _nextPageUrl; // Nos avisa si quedan más sets por cargar
+  String? _nextPageUrl;
 
   final TextEditingController _searchController = TextEditingController();
 
@@ -55,7 +484,7 @@ class _SetsListScreenState extends State<SetsListScreen> {
       setState(() {
         _sets.addAll(response['sets'] as List<LegoSet>);
         _totalCount = response['count'];
-        _nextPageUrl = response['next']; // Si es null, el botón "Ver más" desaparecerá
+        _nextPageUrl = response['next']; 
         _isLoading = false;
         _isLoadingMore = false;
       });
@@ -69,7 +498,6 @@ class _SetsListScreenState extends State<SetsListScreen> {
   }
 
   void _runFilter(String enteredKeyword) {
-    // Busca en la API forzando recarga desde la página 1
     _loadSets(reset: true);
   }
 
@@ -86,13 +514,21 @@ class _SetsListScreenState extends State<SetsListScreen> {
         backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
         title: Text(widget.theme.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.orange),
+          onPressed: () => Navigator.pop(context),
+        ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60.0),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Container(
               height: 45,
-              decoration: BoxDecoration(color: const Color(0xFF2D2D2D), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.white10)),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2D2D2D),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.white10)
+              ),
               child: TextField(
                 controller: _searchController,
                 onSubmitted: (value) => _runFilter(value),
@@ -144,16 +580,92 @@ class _SetsListScreenState extends State<SetsListScreen> {
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2, childAspectRatio: 0.8, crossAxisSpacing: 16, mainAxisSpacing: 16,
+                                crossAxisCount: 2, 
+                                childAspectRatio: 0.8, 
+                                crossAxisSpacing: 16, 
+                                mainAxisSpacing: 16,
                               ),
                               itemCount: _sets.length,
                               itemBuilder: (context, index) {
                                 final legoSet = _sets[index];
-                                return _SetCard(legoSet: legoSet, getImageUrl: _getImageUrl);
+                                // AQUÍ ESTÁ TU DISEÑO ORIGINAL INTACTO
+                                return InkWell(
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SetDetailsScreen(legoSet: legoSet))),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF2D2D2D),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.white10),
+                                    ),
+                                    clipBehavior: Clip.antiAlias,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          flex: 3,
+                                          child: Stack(
+                                            fit: StackFit.expand,
+                                            children: [
+                                              CachedNetworkImage(
+                                                imageUrl: _getImageUrl(legoSet.imgUrl),
+                                                fit: BoxFit.cover,
+                                                placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orange)),
+                                                errorWidget: (context, url, error) => const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
+                                              ),
+                                              Positioned.fill(
+                                                child: DecoratedBox(
+                                                  decoration: BoxDecoration(
+                                                    gradient: LinearGradient(
+                                                      begin: Alignment.topCenter,
+                                                      end: Alignment.bottomCenter,
+                                                      colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
+                                                      stops: const [0.6, 1.0],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(10.0),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                      decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(4)),
+                                                      child: Text('#${legoSet.setNum}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10)),
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Text(legoSet.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Row(children: [const Icon(Icons.calendar_today, size: 10, color: Colors.grey), const SizedBox(width: 4), Text('${legoSet.year}', style: const TextStyle(fontSize: 10, color: Colors.grey))]),
+                                                    Row(children: [const Icon(Icons.extension, size: 10, color: Colors.grey), const SizedBox(width: 4), Text('${legoSet.numParts} pts', style: const TextStyle(fontSize: 10, color: Colors.grey))]),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
                               },
                             ),
                             
-                            // BOTÓN DE CARGAR MÁS (Solo si Rebrickable dice que hay más páginas)
+                            // BOTÓN VER MÁS
                             if (_nextPageUrl != null)
                               Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -179,89 +691,6 @@ class _SetsListScreenState extends State<SetsListScreen> {
                 ),
               ],
             ),
-    );
-  }
-}
-
-// Widget Tarjeta de Set refactorizado para limpieza de código
-class _SetCard extends StatelessWidget {
-  final LegoSet legoSet;
-  final Function(String) getImageUrl;
-
-  const _SetCard({required this.legoSet, required this.getImageUrl});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SetDetailsScreen(legoSet: legoSet))),
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF2D2D2D), borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white10),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 3,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CachedNetworkImage(
-                    imageUrl: getImageUrl(legoSet.imgUrl),
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orange)),
-                    errorWidget: (context, url, error) => const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
-                  ),
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                          colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
-                          stops: const [0.6, 1.0],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(4)),
-                          child: Text('#${legoSet.setNum}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10)),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(legoSet.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(children: [const Icon(Icons.calendar_today, size: 10, color: Colors.grey), const SizedBox(width: 4), Text('${legoSet.year}', style: const TextStyle(fontSize: 10, color: Colors.grey))]),
-                        Row(children: [const Icon(Icons.extension, size: 10, color: Colors.grey), const SizedBox(width: 4), Text('${legoSet.numParts} pts', style: const TextStyle(fontSize: 10, color: Colors.grey))]),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

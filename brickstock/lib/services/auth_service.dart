@@ -65,24 +65,52 @@ class AuthService {
   }
 
   /// Registrar un nuevo usuario
-  Future<bool> register(String email, String password) async {
+  Future<bool> register(String username, String email, String password) async {
     try {
-      // Usamos de forma centralizada ApiService.baseUrl
       final response = await http.post(
         Uri.parse('${ApiService.baseUrl}/auth/register'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'password': password}),
+        body: jsonEncode({
+          'username': username, 
+          'email': email, 
+          'password': password
+        }),
       );
 
-      if (response.statusCode == 201) {
-        return true;
-      }
-      print(
-        "Registro fallido (Status ${response.statusCode}): ${response.body}",
-      );
+      if (response.statusCode == 201) return true;
+      print("Registro fallido: ${response.body}");
       return false;
     } catch (e) {
       print("Error de red en registro: $e");
+      return false;
+    }
+  }
+
+  /// Actualizar ajustes de perfil
+  Future<bool> updateProfile(String? username, String? email, String? password) async {
+    try {
+      final token = await getToken();
+      
+      // Creamos un mapa solo con los datos que se han rellenado
+      final Map<String, dynamic> body = {};
+      if (username != null && username.isNotEmpty) body['username'] = username;
+      if (email != null && email.isNotEmpty) body['email'] = email;
+      if (password != null && password.isNotEmpty) body['password'] = password;
+
+      if (body.isEmpty) return true; // Nada que actualizar
+
+      final response = await http.put(
+        Uri.parse('${ApiService.baseUrl}/auth/profile'), // Asegúrate de enlazar esta ruta en tu backend
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Error actualizando perfil: $e");
       return false;
     }
   }

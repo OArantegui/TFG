@@ -4,52 +4,40 @@ const jwt = require('jsonwebtoken');
 
 const register = async (req, res) => {
     try {
-        //const { username, email, password } = req.body; Quitamos el username para que coincida con el front. Igual hay que volver a añadirlo más tarde para poder registrarse con usuario
-        const { email, password } = req.body;
-        console.log(`Datos recibidos -> Email: ${email}, Password: ${password}`);
+        const { username, email, password } = req.body;
+        console.log(`Registro -> User: ${username}, Email: ${email}`);
 
-        // 1. Comprobar si el usuario ya existe
-        const userExists = await User.findOne({ email });
+        // 1. Comprobar si el correo O el username ya existen
+        const userExists = await User.findOne({ $or: [{ email }, { username }] });
         if (userExists) {
-            console.log("❌ Rechazado: El correo ya existe en la BBDD.");
-            return res.status(400).json({ message: 'El correo ya está en uso' });
+            return res.status(400).json({ message: 'El correo o el nombre de usuario ya están en uso' });
         }
 
-        // 2. Encriptar la contraseña
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // 3. Crear el nuevo usuario
         const newUser = new User({
-            //username,
+            username,
             email,
             password: hashedPassword
         });
 
-        // 4. Guardarlo en MongoDB Atlas
         await newUser.save();
-        console.log("✅ Éxito: Usuario guardado en MongoDB con ID:", newUser._id);
-
-        // 5. Crear el token de sesión (JWT)
+        
         const token = jwt.sign(
             { id: newUser._id }, 
             process.env.JWT_SECRET, 
-            { expiresIn: '30d' } // El token durará 30 días
+            { expiresIn: '30d' } 
         );
 
-        // 6. Enviar respuesta de éxito al móvil
         res.status(201).json({
             message: 'Usuario creado con éxito',
             token: token,
-            user: {
-                id: newUser._id,
-                //username: newUser.username, Lo mismo que arriba, quitamos el username
-                email: newUser.email
-            }
+            user: { id: newUser._id, username: newUser.username, email: newUser.email }
         });
 
     } catch (error) {
-        console.error("🔥 ERROR GRAVE EN REGISTRO:", error);
+        console.error("ERROR EN REGISTRO:", error);
         res.status(500).json({ message: 'Error en el servidor al registrar usuario' });
     }
 };
@@ -88,7 +76,7 @@ const login = async (req, res) => {
             token: token,
             user: {
                 id: user._id,
-                //username: user.username,
+                username: user.username,
                 email: user.email
             }
         });
@@ -99,4 +87,48 @@ const login = async (req, res) => {
     }
 };
 
-module.exports = { register, login };
+//Metodo para actualizar usuario desde ajustes
+const updateUser = async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+        // Obtenemos el ID del token JWT (asumiendo que usas tu auth.middleware.js en la ruta)
+        const userId = req.user.id; 
+
+        let updateFields = {};
+
+        // Validar unicidad si cambian username o email
+        if (username || email) {
+            const query = [];
+            if (username) query.push({ username });
+            if (email) query.push({ email });
+            
+            const existingUser = await User.findOne({ 
+                $or: query, 
+                _id: { $ne: userId } // Que no sea el propio usuario
+            });
+
+            if (existingUser) {
+                return res.status(400).json({ message: 'El correo o username ya están en uso por otra persona' });
+            }
+            if (username) updateFields.username = username;
+            if (email) updateFields.email = email;
+        }
+
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            updateFields.password = await bcrypt.hash(password, salt);
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(userId, updateFields, { new: true });
+
+        res.status(200).json({
+            message: 'Perfil actualizado',
+            user: { username: updatedUser.username, email: updatedUser.email }
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Error actualizando el perfil' });
+    }
+};
+
+module.exports = { register, login, updateUser };

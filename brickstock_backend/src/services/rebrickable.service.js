@@ -4,8 +4,17 @@ require('dotenv').config();
 const API_KEY = process.env.REBRICKABLE_API_KEY;
 const BASE_URL = process.env.REBRICKABLE_BASE_URL;
 
-// Evita que hagamos 50 llamadas a Rebrickable cada vez que entramos a Explorar
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas en milisegundos
+
+// Caché para Portadas de temas
 const themeImagesCache = {};
+let cachedThemes = null;
+let lastThemesFetchTime = 0;
+
+// Caché para Sets individuales (Vital para cargar la Colección y Wishlist al instante)
+// Formato: { "42115-1": { timestamp: 162..., data: { ... } } }
+const setsCache = {};
+// ==========================================
 
 // Configuración base de Axios para no repetir headers
 const apiClient = axios.create({
@@ -17,32 +26,48 @@ const apiClient = axios.create({
 });
 
 const getThemes = async () => {
+    const currentTime = Date.now();
+
+    // 1. CHEQUEO DE CACHÉ: ¿Tenemos temas y aún no han caducado?
+    if (cachedThemes && (currentTime - lastThemesFetchTime < CACHE_TTL_MS)) {
+        console.log("⚡ [CACHÉ] Sirviendo lista de Temas desde memoria RAM");
+        return cachedThemes;
+    }
+
     try {
+        console.log("🌐 [API] Descargando Temas Populares desde Rebrickable...");
         const popularThemeIds = [158, 1, 435, 246, 252, 690, 608, 576, 721, 672, 53];
-        // Pedimos 50 temas
         const themePromises = popularThemeIds.map(id => apiClient.get(`/themes/${id}/`));
         const responses = await Promise.all(themePromises);
 
         const themesData = responses.map(response => response.data);
-        return {
-                count: themesData.length,
-                next: null,
-                previous: null,
-                results: themesData
+        
+        const result = {
+            count: themesData.length,
+            next: null,
+            previous: null,
+            results: themesData
         };
+
+        // 2. GUARDADO EN CACHÉ: Actualizamos los datos y la hora
+        cachedThemes = result;
+        lastThemesFetchTime = currentTime;
+
+        return result;
     } catch (error) {
         console.error("Error en Rebrickable Service (getThemes):", error.message);
+        // Salvavidas: Si la API falla, pero tenemos una caché vieja, devolvemos la vieja
+        if (cachedThemes) return cachedThemes; 
         throw error;
     }
 };
 
-//Obtener sets de un tema
-// Añadimos 'page' y 'search' con valores por defecto
 const getSetsByTheme = async (themeId, page = 1, search = '') => {
     try {
+        // Nota: Los resultados de búsqueda general no los cacheamos porque 
+        // son infinitos y cambian según lo que el usuario busque y pida (paginación).
         let url = `/sets/?theme_id=${themeId}&page_size=20&ordering=-year&page=${page}`;
         
-        // Si el usuario ha escrito algo en el buscador, lo añadimos a la URL
         if (search && search.trim() !== '') {
             url += `&search=${encodeURIComponent(search)}`;
         }
@@ -56,15 +81,11 @@ const getSetsByTheme = async (themeId, page = 1, search = '') => {
 };
 
 const getThemeCover = async (themeId) => {
-    // 1. Si ya tenemos la imagen en caché, la devolvemos directo (Ahorro de API)
     if (themeImagesCache[themeId]) {
         return themeImagesCache[themeId];
     }
 
     try {
-        // 2. Si no, la pedimos a Rebrickable
-        // page_size=1: Solo queremos 1
-        // ordering=-num_parts: El set más grande suele ser el mejor para la portada
         const response = await apiClient.get(`/sets/?theme_id=${themeId}&page_size=1&ordering=-num_parts`);
         
         let imageUrl = null;
@@ -72,9 +93,7 @@ const getThemeCover = async (themeId) => {
             imageUrl = response.data.results[0].set_img_url;
         }
 
-        // 3. Guardamos en caché (aunque sea null, para no volver a intentarlo inútilmente)
         themeImagesCache[themeId] = imageUrl;
-        
         return imageUrl;
     } catch (error) {
         console.error(`Error buscando portada para tema ${themeId}:`, error.message);
@@ -83,12 +102,20 @@ const getThemeCover = async (themeId) => {
 };
 
 const getSetByNum = async (setNum) => {
+    const currentTime = Date.now();
+
+    // 1. CHEQUEO DE CACHÉ: Ideal para cuando el usuario abre la pestaña de Colección repetidas veces
+    if (setsCache[setNum] && (currentTime - setsCache[setNum].timestamp < CACHE_TTL_MS)) {
+        console.log(`⚡ [CACHÉ] Sirviendo detalles del Set ${setNum} desde memoria`);
+        return setsCache[setNum].data;
+    }
+
     try {
+        console.log(`🌐 [API] Descargando detalles del Set ${setNum} desde Rebrickable...`);
         const response = await apiClient.get(`/sets/${setNum}/`);
         const setData = response.data;
 
-        // Mapeamos el JSON de Rebrickable a NUESTRO formato de MongoDB (SetCache)
-        return {
+        const result = {
             _id: setData.set_num,            
             name: setData.name,
             themeId: setData.theme_id,
@@ -97,9 +124,20 @@ const getSetByNum = async (setNum) => {
             pieces: setData.num_parts,
             lastApiSync: new Date()
         };
+
+        // 2. GUARDADO EN CACHÉ: Almacenamos este set para próximas consultas
+        setsCache[setNum] = {
+            timestamp: currentTime,
+            data: result
+        };
+
+        return result;
     } catch (error) {
         console.error(`Error en Rebrickable Service (getSetByNum - ${setNum}):`, error.message);
-        throw error; // Lanzamos el error para que el Controlador (ej. collection.controller) lo maneje
+        
+        // Salvavidas de emergencia
+        if (setsCache[setNum]) return setsCache[setNum].data;
+        throw error; 
     }
 };
 

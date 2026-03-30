@@ -41,41 +41,54 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Cagamos distintos sets de distintos temas
   // Cargamos distintos sets de distintos temas
+  // Cargamos distintos sets de distintos temas
   Future<void> _loadMixedFeaturedSets() async {
     try {
-      // Pedimos todos los temas a la API
-      final themes = await apiService.getThemes();
+      // 1. Pedimos los temas. AHORA devuelve un Map (Paginación)
+      final response = await apiService.getThemes();
+      
+      // 2. Extraemos la lista de la propiedad 'results'
+      final List<dynamic> themeData = response['results'];
+
+      // 3. Mapeamos los datos en bruto a nuestra clase LegoTheme
+      final List<LegoTheme> themes = themeData.map((e) => LegoTheme(
+        id: e['id'],
+        name: e['name'],
+        parentId: e['parent_id']
+      )).toList();
 
       if (themes.isNotEmpty) {
-        // Cada vez que entramos a themes mezclamos para que salga aleatorio
+        // Ahora sí, 'themes' es una Lista y podemos usar shuffle()
         themes.shuffle();
+        
         // Cogemos 12 aunque vayamos a mostrar 10 (por si hay algun fallo)
         final selectedThemes = themes.take(12).toList();
 
-        // Aqui preparamos una lista (futures) para hacer una sola petición por cada tema seleccionado
+        // Preparamos una lista de peticiones (futures)
         final futures = selectedThemes.map(
           (t) => apiService.getSetsByTheme(t.id),
         );
-        // La peticion se hace aqui
-        final results = await Future.wait(futures);
+        
+        // Ejecutamos todas las peticiones a la vez
+        final resultsList = await Future.wait(futures);
 
-        // Recorremos los resultados (que AHORA son Mapas)
         final List<LegoSet> mixedList = [];
-        for (var resultMap in results) {
+        for (var resultMap in resultsList) {
           // Extraemos la lista de sets usando la clave 'sets'
           final List<LegoSet> setList = resultMap['sets'] as List<LegoSet>;
 
           if (setList.isNotEmpty) {
-            // Ahora sí podemos usar .first
             mixedList.add(setList.first);
           }
         }
 
-        // Actualizamos la pantalla (limitado a 10)
-        setState(() {
-          featuredTheme = null; // !!! DARLE UNA VUELTA A ESTO !!!
-          futureFeaturedSets = Future.value(mixedList.take(10).toList());
-        });
+        // Comprobamos si el widget sigue en pantalla antes de actualizar el estado
+        if (mounted) {
+          setState(() {
+            featuredTheme = null; 
+            futureFeaturedSets = Future.value(mixedList.take(10).toList());
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error cargando mix aleatorio: $e');

@@ -453,7 +453,7 @@ class _SetsListScreenState extends State<SetsListScreen> {
   
   int _currentPage = 1;
   int _totalCount = 0;
-  String? _nextPageUrl;
+  String? _nextPageUrl; // Nos avisa si quedan más sets por cargar
 
   final TextEditingController _searchController = TextEditingController();
 
@@ -484,7 +484,7 @@ class _SetsListScreenState extends State<SetsListScreen> {
       setState(() {
         _sets.addAll(response['sets'] as List<LegoSet>);
         _totalCount = response['count'];
-        _nextPageUrl = response['next']; 
+        _nextPageUrl = response['next']; // Si es null, ya no hay más páginas
         _isLoading = false;
         _isLoadingMore = false;
       });
@@ -498,6 +498,7 @@ class _SetsListScreenState extends State<SetsListScreen> {
   }
 
   void _runFilter(String enteredKeyword) {
+    // Al buscar, reiniciamos la lista para pedir desde la página 1
     _loadSets(reset: true);
   }
 
@@ -524,19 +525,16 @@ class _SetsListScreenState extends State<SetsListScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Container(
               height: 45,
-              decoration: BoxDecoration(
-                color: const Color(0xFF2D2D2D),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white10)
-              ),
+              decoration: BoxDecoration(color: const Color(0xFF2D2D2D), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.white10)),
               child: TextField(
                 controller: _searchController,
                 onSubmitted: (value) => _runFilter(value),
                 style: const TextStyle(color: Colors.white),
                 cursorColor: Colors.orange,
                 decoration: InputDecoration(
-                  hintText: 'Buscar set en ${widget.theme.name} (Intro)...',
-                  hintStyle: const TextStyle(color: Colors.grey),
+                  // TEXTO DE AYUDA MEJORADO: Explica al usuario que puede usar el número también
+                  hintText: 'Buscar nombre o número (ej: 42115-1)...',
+                  hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
                   prefixIcon: const Icon(Icons.search, color: Colors.orange),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
@@ -573,108 +571,21 @@ class _SetsListScreenState extends State<SetsListScreen> {
                 Expanded(
                   child: _sets.isEmpty
                       ? const Center(child: Text('No se encontraron sets', style: TextStyle(color: Colors.white54)))
-                      : ListView(
-                          padding: const EdgeInsets.all(16),
-                          children: [
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2, 
-                                childAspectRatio: 0.8, 
-                                crossAxisSpacing: 16, 
-                                mainAxisSpacing: 16,
-                              ),
-                              itemCount: _sets.length,
-                              itemBuilder: (context, index) {
-                                final legoSet = _sets[index];
-                                // AQUÍ ESTÁ TU DISEÑO ORIGINAL INTACTO
-                                return InkWell(
-                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SetDetailsScreen(legoSet: legoSet))),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF2D2D2D),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.white10),
-                                    ),
-                                    clipBehavior: Clip.antiAlias,
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          flex: 3,
-                                          child: Stack(
-                                            fit: StackFit.expand,
-                                            children: [
-                                              CachedNetworkImage(
-                                                imageUrl: _getImageUrl(legoSet.imgUrl),
-                                                fit: BoxFit.cover,
-                                                placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orange)),
-                                                errorWidget: (context, url, error) => const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
-                                              ),
-                                              Positioned.fill(
-                                                child: DecoratedBox(
-                                                  decoration: BoxDecoration(
-                                                    gradient: LinearGradient(
-                                                      begin: Alignment.topCenter,
-                                                      end: Alignment.bottomCenter,
-                                                      colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
-                                                      stops: const [0.6, 1.0],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 2,
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(10.0),
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Container(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                      decoration: BoxDecoration(color: Colors.orange, borderRadius: BorderRadius.circular(4)),
-                                                      child: Text('#${legoSet.setNum}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10)),
-                                                    ),
-                                                    const SizedBox(height: 4),
-                                                    Text(legoSet.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
-                                                  ],
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: [
-                                                    Row(children: [const Icon(Icons.calendar_today, size: 10, color: Colors.grey), const SizedBox(width: 4), Text('${legoSet.year}', style: const TextStyle(fontSize: 10, color: Colors.grey))]),
-                                                    Row(children: [const Icon(Icons.extension, size: 10, color: Colors.grey), const SizedBox(width: 4), Text('${legoSet.numParts} pts', style: const TextStyle(fontSize: 10, color: Colors.grey))]),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
+                      // USAMOS UN ÚNICO LISTVIEW PARA MÁXIMO RENDIMIENTO (Anti-diseño, estilo nativo)
+                      : ListView.builder(
+                          itemCount: _sets.length + (_nextPageUrl != null ? 1 : 0),
+                          itemBuilder: (context, index) {
                             
-                            // BOTÓN VER MÁS
-                            if (_nextPageUrl != null)
-                              Padding(
+                            // Si estamos en el último elemento y hay página siguiente, mostramos el botón
+                            if (index == _sets.length) {
+                              return Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 20),
                                 child: Center(
                                   child: _isLoadingMore
                                       ? const CircularProgressIndicator(color: Colors.orange)
                                       : OutlinedButton.icon(
                                           icon: const Icon(Icons.add_circle_outline, color: Colors.orange),
-                                          label: const Text('Ver más sets', style: TextStyle(color: Colors.orange)),
+                                          label: const Text('Cargar más sets', style: TextStyle(color: Colors.orange)),
                                           onPressed: () {
                                             _currentPage++;
                                             _loadSets();
@@ -685,8 +596,74 @@ class _SetsListScreenState extends State<SetsListScreen> {
                                           ),
                                         ),
                                 ),
+                              );
+                            }
+
+                            final legoSet = _sets[index];
+                            
+                            // DISEÑO DE LISTA (Imagen a la izquierda, info a la derecha)
+                            return Card(
+                              color: const Color(0xFF2A2A2A),
+                              margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(8.0),
+                                leading: ClipRRect(
+                                  borderRadius: BorderRadius.circular(6.0),
+                                  child: Container(
+                                    width: 70,
+                                    height: 70,
+                                    color: Colors.white, // Fondo blanco por si la foto es transparente
+                                    child: CachedNetworkImage(
+                                      imageUrl: _getImageUrl(legoSet.imgUrl),
+                                      fit: BoxFit.contain,
+                                      placeholder: (context, url) => const Padding(
+                                        padding: EdgeInsets.all(15.0),
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orange),
+                                      ),
+                                      errorWidget: (context, url, error) => const Icon(Icons.broken_image, color: Colors.grey),
+                                    ),
+                                  ),
+                                ),
+                                title: Text(
+                                  legoSet.name, 
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 6.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Set: ${legoSet.setNum} • Año: ${legoSet.year}', 
+                                        style: const TextStyle(color: Colors.grey, fontSize: 13)
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.extension, size: 14, color: Colors.orange),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '${legoSet.numParts} piezas', 
+                                            style: const TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.w500)
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                                onTap: () {
+                                  Navigator.push(
+                                    context, 
+                                    MaterialPageRoute(builder: (context) => SetDetailsScreen(legoSet: legoSet))
+                                  );
+                                },
                               ),
-                          ],
+                            );
+                          },
                         ),
                 ),
               ],

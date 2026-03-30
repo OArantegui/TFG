@@ -16,7 +16,7 @@ const getThemes = async (req, res) => {
 };
 
 //Obtener sets
-const getSets = async (req, res) => {
+/*const getSets = async (req, res) => {
     try {
         const { themeId } = req.params; 
         // Extraemos 'page' y 'search' de la query (?page=2&search=X-Wing)
@@ -31,6 +31,21 @@ const getSets = async (req, res) => {
         res.status(200).json(data);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener sets', error: error.message });
+    }
+};*/
+exports.getSetsByTheme = async (req, res) => {
+    try {
+        const themeId = req.params.themeId; // O el nombre que le dieras en tus rutas
+        
+        // Extraemos página y búsqueda de la URL (si no vienen, por defecto 1 y vacío)
+        const page = parseInt(req.query.page) || 1;
+        const search = req.query.search || '';
+
+        // Pasamos los 3 parámetros al servicio de rebrickable que ya preparamos
+        const data = await rebrickableService.getSetsByTheme(themeId, page, search);
+        res.status(200).json(data);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener sets del tema', error: error.message });
     }
 };
 

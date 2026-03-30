@@ -40,8 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Cagamos distintos sets de distintos temas
-  // Cargamos distintos sets de distintos temas
-  // Cargamos distintos sets de distintos temas
   Future<void> _loadMixedFeaturedSets() async {
     try {
       // 1. Pedimos los temas. AHORA devuelve un Map (Paginación)

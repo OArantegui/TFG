@@ -42,29 +42,40 @@ class ApiService {
     }
   }
 
-  // Modificamos para aceptar page y search, y devolvemos un Map
-  Future<Map<String, dynamic>> getSetsByTheme(
-    int themeId, {
-    int page = 1,
-    String search = '',
-  }) async {
-    final uri = Uri.parse(
-      '${ApiService.baseUrl}/lego/sets/$themeId?page=$page&search=$search',
-    );
-    final response = await http.get(uri);
+  Future<Map<String, dynamic>> getSetsByTheme(int themeId, {int page = 1, String search = ''}) async {
+    // Asegúrate de que esta URL coincida con cómo la tienes en tu servidor Node.
+    // Ej: /lego/themes/$themeId/sets 
+    String url = '${ApiService.baseUrl}/lego/themes/$themeId/sets?page=$page';
+    if (search.isNotEmpty) {
+      url += '&search=${Uri.encodeComponent(search)}';
+    }
+
+    final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      final List results = data['results'];
+      
+      // Rebrickable devuelve la lista en bruto dentro de 'results'
+      final List results = data['results'] ?? [];
+      
+      // Mapeamos los datos a nuestra clase LegoSet aquí para no romper el HomeScreen
+      final List<LegoSet> sets = results.map((e) => LegoSet(
+        setNum: e['set_num'],
+        name: e['name'],
+        year: e['year'],
+        themeId: e['theme_id'],
+        numParts: e['num_parts'],
+        imgUrl: e['set_img_url'] ?? '',
+      )).toList();
 
+      // Devolvemos los sets y los metadatos de paginación
       return {
-        'sets': results.map((e) => LegoSet.fromJson(e)).toList(),
-        'hasMore':
-            data['next'] !=
-            null, // Rebrickable devuelve 'next' con una URL si hay más páginas
+        'sets': sets,
+        'count': data['count'] ?? 0,
+        'next': data['next'], // Si Rebrickable devuelve una URL aquí, hay más páginas
       };
     } else {
-      throw Exception('Fallo al cargar sets desde el Backend');
+      throw Exception('Fallo al cargar sets del tema');
     }
   }
 

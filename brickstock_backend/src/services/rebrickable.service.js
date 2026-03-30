@@ -10,6 +10,7 @@ const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas en milisegundos
 const themeImagesCache = {};
 let cachedThemes = null;
 let lastThemesFetchTime = 0;
+let allThemesCache = [];
 
 // Caché para Sets individuales (Vital para cargar la Colección y Wishlist al instante)
 // Formato: { "42115-1": { timestamp: 162..., data: { ... } } }
@@ -25,39 +26,50 @@ const apiClient = axios.create({
     }
 });
 
-const getThemes = async () => {
+const getThemes = async (page = 1, search = '', sort = 'name_asc') => {
     const currentTime = Date.now();
-
-    // 1. CHEQUEO DE CACHÉ: ¿Tenemos temas y aún no han caducado?
-    if (cachedThemes && (currentTime - lastThemesFetchTime < CACHE_TTL_MS)) {
-        console.log("⚡ [CACHÉ] Sirviendo lista de Temas desde memoria RAM");
-        return cachedThemes;
-    }
+    const pageSize = 20;
 
     try {
-        console.log("🌐 [API] Descargando Temas Populares desde Rebrickable...");
-        const popularThemeIds = [158, 1, 435, 246, 252, 690, 608, 576, 721, 672, 53];
-        const themePromises = popularThemeIds.map(id => apiClient.get(`/themes/${id}/`));
-        const responses = await Promise.all(themePromises);
+        // 1. CACHÉ TOTAL: Si no tenemos temas o caducaron, pedimos TODOS de golpe (max 1000)
+        if (allThemesCache.length === 0 || (currentTime - lastThemesFetchTime > CACHE_TTL_MS)) {
+            console.log("🌐 [API] Descargando TODOS los temas de Rebrickable...");
+            const response = await apiClient.get('/themes/?page_size=1000');
+            allThemesCache = response.data.results;
+            lastThemesFetchTime = currentTime;
+        }
 
-        const themesData = responses.map(response => response.data);
-        
-        const result = {
-            count: themesData.length,
-            next: null,
-            previous: null,
-            results: themesData
+        // 2. BÚSQUEDA (Search)
+        let filteredThemes = allThemesCache;
+        if (search && search.trim() !== '') {
+            const searchLower = search.toLowerCase();
+            filteredThemes = allThemesCache.filter(theme => 
+                theme.name.toLowerCase().includes(searchLower)
+            );
+        }
+
+        // 3. ORDENACIÓN (Sorting)
+        filteredThemes.sort((a, b) => {
+            if (sort === 'name_asc') return a.name.localeCompare(b.name);
+            if (sort === 'name_desc') return b.name.localeCompare(a.name);
+            if (sort === 'id_asc') return a.id - b.id;
+            if (sort === 'id_desc') return b.id - a.id;
+            return 0;
+        });
+
+        // 4. PAGINACIÓN (Slice)
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const paginatedThemes = filteredThemes.slice(startIndex, endIndex);
+
+        return {
+            count: filteredThemes.length,
+            page: parseInt(page),
+            totalPages: Math.ceil(filteredThemes.length / pageSize),
+            results: paginatedThemes
         };
-
-        // 2. GUARDADO EN CACHÉ: Actualizamos los datos y la hora
-        cachedThemes = result;
-        lastThemesFetchTime = currentTime;
-
-        return result;
     } catch (error) {
-        console.error("Error en Rebrickable Service (getThemes):", error.message);
-        // Salvavidas: Si la API falla, pero tenemos una caché vieja, devolvemos la vieja
-        if (cachedThemes) return cachedThemes; 
+        console.error("Error en getThemes:", error.message);
         throw error;
     }
 };

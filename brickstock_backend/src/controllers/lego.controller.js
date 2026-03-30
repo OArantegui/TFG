@@ -3,8 +3,12 @@ const rebrickableService = require('../services/rebrickable.service');
 
 const getThemes = async (req, res) => {
     try {
-        const data = await rebrickableService.getThemes();
-        // Aquí podríamos filtrar datos que el frontend no necesita antes de enviarlos
+        // Extraemos página, búsqueda y orden de la query de la URL
+        const page = parseInt(req.query.page) || 1;
+        const search = req.query.search || '';
+        const sort = req.query.sort || 'name_asc';
+
+        const data = await rebrickableService.getThemes(page, search, sort);
         res.status(200).json(data);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener temas', error: error.message });

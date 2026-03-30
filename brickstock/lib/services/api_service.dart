@@ -27,18 +27,17 @@ class ApiService {
     return _localUrl;
   }
 
-  Future<List<LegoTheme>> getThemes() async {
-    // Usamos ApiService.baseUrl directamente para evitar problemas de scope
-    final response = await http.get(
-      Uri.parse('${ApiService.baseUrl}/lego/themes'),
-    );
+  Future<Map<String, dynamic>> getThemes({int page = 1, String search = '', String sort = 'name_asc'}) async {
+    String url = '${ApiService.baseUrl}/lego/themes?page=$page&sort=$sort';
+    if (search.isNotEmpty) {
+      url += '&search=${Uri.encodeComponent(search)}';
+    }
+
+    final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final List results = data['results'];
-      return results.map((e) => LegoTheme.fromJson(e)).toList();
+      return json.decode(response.body); // Devolvemos todo el mapa (results, totalPages, etc)
     } else {
-      debugPrint("Error Backend: ${response.statusCode} - ${response.body}");
       throw Exception('Fallo al cargar temas desde el Backend');
     }
   }

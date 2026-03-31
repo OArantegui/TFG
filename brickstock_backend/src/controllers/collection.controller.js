@@ -38,7 +38,7 @@ exports.addSetToCollection = async (req, res) => {
         const totalSets = await Collection.countDocuments({ userId: req.user.id });
         
         // Evaluamos si merece premio
-        const newlyUnlocked = await achievementService.evaluateCollectionAchievements(req.user.id, totalSets);
+        const newlyUnlocked = await achievementService.syncCollectionAchievements(req.user.id, totalSets);
         // =========================================
 
         res.status(201).json({

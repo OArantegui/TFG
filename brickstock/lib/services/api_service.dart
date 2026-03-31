@@ -326,7 +326,7 @@ class ApiService {
       final jsonResponse = json.decode(response.body);
       if (jsonResponse['success']) {
         List<dynamic> data = jsonResponse['data'];
-        return data.map((json) => Achievement.fromJson(json)).toList();
+        return data.map((json) => Achievement.fromJson(json as Map<String, dynamic>)).toList();
       }
     }
     throw Exception('Fallo al cargar las insignias');

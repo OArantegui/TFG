@@ -20,7 +20,7 @@ const seedAchievements = async () => {
 };
 
 // 2. Evaluador: Se llama automáticamente cuando el usuario añade un set
-const evaluateCollectionAchievements = async (userId, collectionCount) => {
+/*const evaluateCollectionAchievements = async (userId, collectionCount) => {
     // Buscamos qué logros requieren X sets o menos
     const achievementsToUnlock = await Achievement.find({
         conditionType: 'COLLECTION_COUNT',
@@ -50,6 +50,41 @@ const evaluateCollectionAchievements = async (userId, collectionCount) => {
     }
 
     return null;
+};*/
+const syncCollectionAchievements = async (userId, collectionCount) => {
+    const user = await User.findById(userId);
+    const allCollectionAchievements = await Achievement.find({ conditionType: 'COLLECTION_COUNT' });
+    
+    let newlyUnlocked = [];
+    let changed = false;
+
+    allCollectionAchievements.forEach(ach => {
+        // Buscamos si el usuario ya tiene este logro guardado
+        const hasAchievementIndex = user.unlockedAchievements.findIndex(
+            ua => ua.achievement.toString() === ach._id.toString()
+        );
+        
+        // ¿Cumple la condición con su número actual de sets?
+        const qualifies = collectionCount >= ach.conditionValue;
+
+        if (qualifies && hasAchievementIndex === -1) {
+            // CUMPLE y NO LO TIENE -> ¡Lo gana!
+            user.unlockedAchievements.push({ achievement: ach._id });
+            newlyUnlocked.push(ach);
+            changed = true;
+        } else if (!qualifies && hasAchievementIndex !== -1) {
+            // NO CUMPLE pero SÍ LO TIENE -> ¡Se le revoca!
+            user.unlockedAchievements.splice(hasAchievementIndex, 1);
+            changed = true;
+        }
+    });
+
+    // Solo tocamos la base de datos si ha habido algún cambio
+    if (changed) {
+        await user.save();
+    }
+
+    return newlyUnlocked; // Seguimos devolviendo los nuevos para el confeti
 };
 
 // 3. Catálogo: Devuelve todos los logros e indica si el usuario los tiene
@@ -72,4 +107,5 @@ const getUserAchievements = async (userId) => {
     });
 };
 
-module.exports = { seedAchievements, evaluateCollectionAchievements, getUserAchievements };
+//module.exports = { seedAchievements, evaluateCollectionAchievements, getUserAchievements };
+module.exports = { seedAchievements, syncCollectionAchievements, getUserAchievements };

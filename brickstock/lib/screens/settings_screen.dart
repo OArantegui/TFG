@@ -230,42 +230,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         physics: const NeverScrollableScrollPhysics(),
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3, 
-                          childAspectRatio: 0.8,
+                          childAspectRatio: 0.7,
                           crossAxisSpacing: 10,
                           mainAxisSpacing: 10,
                         ),
                         itemCount: achievements.length,
                         itemBuilder: (context, index) {
                           final ach = achievements[index];
+                          
+                          // TFG: Definimos colores y opacidades según estado (reactivo)
+                          final Color iconColor = ach.isUnlocked ? Colors.amber : Colors.grey[600]!;
+                          final Color backgroundColor = ach.isUnlocked ? Colors.orange.withOpacity(0.2) : const Color(0xFF2D2D2D);
+                          final double textOpacity = ach.isUnlocked ? 1.0 : 0.4;
+
                           return Tooltip(
                             message: ach.description,
-                            child: Card(
-                              color: ach.isUnlocked ? const Color(0xFF2D2D2D) : Colors.transparent,
-                              elevation: ach.isUnlocked ? 2 : 0,
-                              shape: RoundedRectangleBorder(
-                                side: BorderSide(color: ach.isUnlocked ? Colors.orange.withOpacity(0.5) : Colors.white10),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    ach.iconData,
-                                    size: 40,
-                                    color: ach.isUnlocked ? Colors.amber : Colors.grey.withOpacity(0.3),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    ach.name,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: ach.isUnlocked ? Colors.white : Colors.grey.withOpacity(0.5),
+                            child: Column( // <-- TFG: Columna principal para Círculo + Texto
+                              children: [
+                                // --- EL MEDALLÓN CIRCULAR (Nativo Material) ---
+                                CircleAvatar(
+                                  radius: 35, // Tamaño del círculo
+                                  backgroundColor: backgroundColor,
+                                  // Borde sutil
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: ach.isUnlocked ? Colors.orange.withOpacity(0.5) : Colors.white10,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: Icon(
+                                        ach.iconData,
+                                        size: 35, // Tamaño del icono dentro
+                                        color: iconColor,
+                                      ),
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                                
+                                const SizedBox(height: 10), // Espacio entre círculo y texto
+
+                                // --- EL TEXTO DEBAJO ---
+                                Opacity( // Usamos opacidad para el texto bloqueado
+                                  opacity: textOpacity,
+                                  child: Text(
+                                    ach.name,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2, // Máximo 2 líneas para que no rompa el grid
+                                    overflow: TextOverflow.ellipsis, // Si es muy largo, pone "..."
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: ach.isUnlocked ? FontWeight.bold : FontWeight.normal,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         },

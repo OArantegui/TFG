@@ -164,7 +164,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                         return ListTile(
                           leading: CircleAvatar(
                             backgroundImage: fig.imageUrl.isNotEmpty
-                                ? NetworkImage(fig.imageUrl)
+                                ? NetworkImage(_getImageUrl(fig.imageUrl)) //Evitamos CORS
                                 : null,
                             child: fig.imageUrl.isEmpty ? const Icon(Icons.person) : null,
                             backgroundColor: Colors.transparent,

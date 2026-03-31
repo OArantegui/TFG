@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart'; // Para kIsWeb
 import '../models/minifigure.dart';
 import '../services/api_service.dart';
 import '../models/lego_set.dart';
+import '../screens/set_details_screen.dart';
 
 class MinifiguresBottomSheet extends StatefulWidget {
   final String setNum;
@@ -226,8 +227,20 @@ class _MinifiguresBottomSheetState extends State<MinifiguresBottomSheet> {
                     ),
                     title: Text(setItem.name),
                     subtitle: Text(setItem.setNum),
-                    // Opcional: Podrías hacer que al pulsar navegue al SetDetailsScreen de ese otro set,
-                    // pero de momento lo dejamos como solo informativo.
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 14), // Indicador visual de que es pulsable
+                    onTap: () {
+                      // 1. Primero cerramos el modal actual para que no se quede abierto por debajo
+                      Navigator.pop(context); 
+
+                      // 2. Navegamos al nuevo set
+                      // Como 'setItem' ya es un objeto de tipo LegoSet, encaja perfectamente
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SetDetailsScreen(legoSet: setItem),
+                        ),
+                      );
+                    },
                   );
                 },
               );

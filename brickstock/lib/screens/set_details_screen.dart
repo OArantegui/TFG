@@ -368,7 +368,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
           children: [
             // --- NUEVO BOTÓN MINIFIGURAS (IZQUIERDA) ---
             FloatingActionButton(
-              heroTag: 'btn_minifigs', // TFG: Explicación abajo
+              heroTag: 'btn_minifigs_${widget.legoSet.setNum}', // Lo hacemos unico
               onPressed: () => _showMinifiguresBottomSheet(context, widget.legoSet.setNum),
               child: const Icon(Icons.smart_toy), // Icono puro de Material
               tooltip: 'Ver Minifiguras',
@@ -376,7 +376,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
 
             // --- TU BOTÓN ACTUAL DE COLECCIÓN (DERECHA) ---
             FloatingActionButton.extended(
-              heroTag: 'btn_collection', // TFG: Explicación abajo
+              heroTag: 'btn_collection_${widget.legoSet.setNum}', // Lo hacemos unico
               onPressed: () async {
                 // (Mantiene todo tu código original sin tocar)
                 ScaffoldMessenger.of(context).showSnackBar(

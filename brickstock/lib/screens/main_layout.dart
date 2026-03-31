@@ -5,6 +5,7 @@ import 'collection_screen.dart';
 import 'wishlist_screen.dart';
 import 'settings_screen.dart';
 import 'sets_list_screen.dart';
+import '../services/auth_service.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -17,6 +18,8 @@ class _MainLayoutState extends State<MainLayout> {
   // Variable para saber que pantalla está activa --> 0 = Home
   int _selectedIndex = 0;
 
+  String _username = "Perfil";
+
   final List<Widget> _screens = [
     const HomeScreen(), // Índice 0: Inicio
     const SetsListScreen(customTitle: 'Buscar Sets'),//Indice 1: Buscar sets
@@ -25,6 +28,22 @@ class _MainLayoutState extends State<MainLayout> {
     const WishlistScreen(), //Indice 2: Lista de deseados
     const SettingsScreen(), // Índice 4: Ajustes
   ];
+  @override
+  void initState() {
+    super.initState();
+    _loadUsername(); // Disparamos la carga al crear el Layout
+  }
+
+  void _loadUsername() async {
+    final userData = await AuthService().getUserData();
+    if (mounted) {
+      setState(() {
+        // Si hay nombre guardado lo usamos, si no, dejamos "Perfil" por defecto
+        _username = userData['username'] ?? 'Perfil'; 
+      });
+    }
+  }
+  
   // Si pulsamos el boton, cambiamos la variable que nos dice que pantalla mostrar
   void _onItemTapped(int index) {
     setState(() {
@@ -58,7 +77,7 @@ class _MainLayoutState extends State<MainLayout> {
                   selectedIconTheme: const IconThemeData(color: Colors.orange),
                   unselectedIconTheme: const IconThemeData(color: Colors.grey),
                   // Destinos laterales (Para PC)
-                  destinations: const [
+                  destinations: [
                     NavigationRailDestination(
                       icon: Icon(Icons.dashboard_outlined),
                       selectedIcon: Icon(Icons.dashboard),
@@ -86,9 +105,9 @@ class _MainLayoutState extends State<MainLayout> {
                       label: Text('Deseados'),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.settings_outlined),
-                      selectedIcon: Icon(Icons.settings),
-                      label: Text('Ajustes'),
+                      icon: Icon(Icons.account_circle),
+                      selectedIcon: Icon(Icons.account_circle),
+                      label: Text(_username),
                     ),
                   ],
                 ),
@@ -113,7 +132,7 @@ class _MainLayoutState extends State<MainLayout> {
                   indicatorColor: Colors.orange.withOpacity(0.2),
                   selectedIndex: _selectedIndex,
                   onDestinationSelected: _onItemTapped,
-                  destinations: const [
+                  destinations: [
                     NavigationDestination(
                       icon: Icon(Icons.dashboard_outlined, color: Colors.grey),
                       selectedIcon: Icon(Icons.dashboard, color: Colors.orange),
@@ -141,9 +160,9 @@ class _MainLayoutState extends State<MainLayout> {
                     ),
                     // Opcional: Descomenta si quieres 6 iconos abajo (puede quedar muy junto)
                     NavigationDestination(
-                      icon: Icon(Icons.settings_outlined, color: Colors.grey),
-                      selectedIcon: Icon(Icons.settings, color: Colors.orange),
-                      label: 'Ajustes',
+                      icon: Icon(Icons.account_circle, color: Colors.grey),
+                      selectedIcon: Icon(Icons.account_circle, color: Colors.orange),
+                      label: _username,
                     ),
                   ],
                 )

@@ -103,6 +103,15 @@ const getMinifigSets = async (req, res) => {
     });
   }
 };
+const getAllSets = async (req, res) => {
+    try {
+        const { page = 1, search = '' } = req.query;
+        const data = await rebrickableService.getAllSets(page, search);
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
 
 module.exports = {
     getThemes,
@@ -110,5 +119,6 @@ module.exports = {
     getImageProxy,
     getThemeCover,
     getSetMinifigs,
-    getMinifigSets
+    getMinifigSets,
+    getAllSets
 };

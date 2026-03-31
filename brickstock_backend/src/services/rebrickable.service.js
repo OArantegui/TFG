@@ -192,6 +192,21 @@ const getMinifigSets = async (figNum) => {
     throw error;
   }
 };
+const getAllSets = async (page = 1, search = '') => {
+    try {
+        let url = `/sets/?page_size=20&ordering=-year&page=${page}`;
+        
+        if (search && search.trim() !== '') {
+            url += `&search=${encodeURIComponent(search)}`;
+        }
+
+        const response = await apiClient.get(url);
+        return response.data; 
+    } catch (error) {
+        console.error("Error en Rebrickable Service (getAllSets):", error.message);
+        throw error;
+    }
+};
 
 module.exports = {
     getThemes,
@@ -199,5 +214,6 @@ module.exports = {
     getThemeCover,
     getSetByNum,
     getSetMinifigs,
-    getMinifigSets
+    getMinifigSets,
+    getAllSets
 };

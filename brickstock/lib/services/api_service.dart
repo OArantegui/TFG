@@ -276,4 +276,35 @@ class ApiService {
       throw Exception('Error de conexión: $e');
     }
   }
+  Future<Map<String, dynamic>> getAllSets({int page = 1, String search = ''}) async {
+    String url = '${ApiService.baseUrl}/lego/sets?page=$page';
+    
+    if (search.isNotEmpty) {
+      url += '&search=${Uri.encodeComponent(search)}';
+    }
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final List results = data['results'] ?? [];
+      
+      final List<LegoSet> sets = results.map((e) => LegoSet(
+        setNum: e['set_num'],
+        name: e['name'],
+        year: e['year'],
+        themeId: e['theme_id'],
+        numParts: e['num_parts'],
+        imgUrl: e['set_img_url'] ?? '',
+      )).toList();
+
+      return {
+        'sets': sets,
+        'count': data['count'] ?? 0,
+        'next': data['next'], 
+      };
+    } else {
+      throw Exception('Fallo al cargar todos los sets');
+    }
+  }
 }

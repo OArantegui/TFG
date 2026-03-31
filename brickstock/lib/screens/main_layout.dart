@@ -1,10 +1,10 @@
-import 'package:brickstock/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'explore_screen.dart';
 import 'collection_screen.dart';
 import 'wishlist_screen.dart';
 import 'settings_screen.dart';
+import 'sets_list_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -17,23 +17,13 @@ class _MainLayoutState extends State<MainLayout> {
   // Variable para saber que pantalla está activa --> 0 = Home
   int _selectedIndex = 0;
 
-  // Lista de pantallas
-  // final List<Widget> _screens = [
-  //   const HomeScreen(), // [0] -> Home
-  //   const ExploreScreen(), // [1] -> Explorar
-  //   const Center(
-  //     child: Text(
-  //       'Ajustes (Próximamente)',
-  //       style: TextStyle(color: Colors.white),
-  //     ),
-  //   ), // [2] -> Ajustes
-  // ];
   final List<Widget> _screens = [
     const HomeScreen(), // Índice 0: Inicio
-    const ExploreScreen(), // Índice 3: Catálogo
-    const CollectionScreen(), // Índice 1: Colección
+    const SetsListScreen(customTitle: 'Buscar Sets'),//Indice 1: Buscar sets
+    const ExploreScreen(), // Índice 2: Categorias
+    const CollectionScreen(), // Índice 1: Coleccion
     const WishlistScreen(), //Indice 2: Lista de deseados
-    const SettingsScreen(), // Índice 4: Ajustes provisional
+    const SettingsScreen(), // Índice 4: Ajustes
   ];
   // Si pulsamos el boton, cambiamos la variable que nos dice que pantalla mostrar
   void _onItemTapped(int index) {
@@ -77,7 +67,12 @@ class _MainLayoutState extends State<MainLayout> {
                     NavigationRailDestination(
                       icon: Icon(Icons.search_outlined),
                       selectedIcon: Icon(Icons.search),
-                      label: Text('Catálogo'),
+                      label: Text('Buscar Set'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.list_alt_outlined),
+                      selectedIcon: Icon(Icons.list_alt),
+                      label: Text('Categorías'),
                     ),
                     // NUEVO ICONO COLECCIÓN (PC)
                     NavigationRailDestination(
@@ -127,9 +122,13 @@ class _MainLayoutState extends State<MainLayout> {
                     NavigationDestination(
                       icon: Icon(Icons.search_outlined, color: Colors.grey),
                       selectedIcon: Icon(Icons.search, color: Colors.orange),
-                      label: 'Explorar',
+                      label: 'Buscar',
                     ),
-                    // NUEVO ICONO COLECCIÓN (Móvil)
+                    NavigationDestination(
+                      icon: Icon(Icons.list_alt_outlined, color: Colors.grey),
+                      selectedIcon: Icon(Icons.list_alt, color: Colors.orange),
+                      label: 'Temas',
+                    ),
                     NavigationDestination(
                       icon: Icon(Icons.shelves, color: Colors.grey),
                       selectedIcon: Icon(Icons.shelves, color: Colors.orange),
@@ -137,12 +136,10 @@ class _MainLayoutState extends State<MainLayout> {
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.favorite_border, color: Colors.grey),
-                      selectedIcon: Icon(
-                        Icons.favorite_border,
-                        color: Colors.orange,
-                      ),
+                      selectedIcon: Icon(Icons.favorite, color: Colors.orange),
                       label: 'Deseados',
                     ),
+                    // Opcional: Descomenta si quieres 6 iconos abajo (puede quedar muy junto)
                     NavigationDestination(
                       icon: Icon(Icons.settings_outlined, color: Colors.grey),
                       selectedIcon: Icon(Icons.settings, color: Colors.orange),

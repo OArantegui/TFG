@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart'; // Para kIsWeb
 import 'package:flutter/material.dart';
 import '../models/lego_set.dart';
 import '../services/api_service.dart';
-import '../models/minifigure.dart';
+import '../widgets/minifigures_bottom_sheet.dart';
 
 class SetDetailsScreen extends StatefulWidget {
   final LegoSet legoSet;
@@ -125,75 +125,13 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
   void _showMinifiguresBottomSheet(BuildContext context, String setNum) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Permite que el modal sea un poco más grande si la lista es larga
+      isScrollControlled: true, 
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (BuildContext context) {
-        return FractionallySizedBox(
-          heightFactor: 0.7, // Ocupará el 70% de la pantalla
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Minifiguras del Set',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              const Divider(),
-              Expanded(
-                child: FutureBuilder<List<Minifigure>>(
-                  // Llamamos a nuestro ApiService
-                  future: ApiService().getSetMinifigures(setNum),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text('Este set no contiene minifiguras.'));
-                    }
-
-                    final minifigs = snapshot.data!;
-                    return ListView.builder(
-                      itemCount: minifigs.length,
-                      itemBuilder: (context, index) {
-                        final fig = minifigs[index];
-                        // Componentes nativos de Material: ListTile y CircleAvatar
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: fig.imageUrl.isNotEmpty
-                                ? NetworkImage(_getImageUrl(fig.imageUrl)) //Evitamos CORS
-                                : null,
-                            child: fig.imageUrl.isEmpty ? const Icon(Icons.person) : null,
-                            backgroundColor: Colors.transparent,
-                          ),
-                          title: Text(fig.name),
-                          subtitle: Text('${fig.figNum} • Cantidad: ${fig.quantity}'),
-                          trailing: const Icon(Icons.chevron_right), // Indicador de navegación
-                          onTap: () {
-                            // Aquí irá la navegación a los detalles de la minifigura.
-                            // Por ahora cerramos el modal y mostramos un SnackBar de prueba
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Ir a detalles de ${fig.name}')),
-                            );
-                            
-                            // Cuando tengas la pantalla creada será algo como:
-                            // Navigator.push(context, MaterialPageRoute(
-                            //   builder: (context) => MinifigureDetailsScreen(figNum: fig.figNum),
-                            // ));
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
+        // TFG: Inyectamos nuestro nuevo Widget encapsulado
+        return MinifiguresBottomSheet(setNum: setNum);
       },
     );
   }

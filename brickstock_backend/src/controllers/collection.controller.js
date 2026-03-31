@@ -101,6 +101,9 @@ exports.deleteCollectionItem = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Set no encontrado en tu colección' });
         }
 
+        const totalSets = await Collection.countDocuments({ userId: req.user.id });
+        await achievementService.syncCollectionAchievements(req.user.id, totalSets);
+
         res.status(200).json({ success: true, message: 'Set borrado de la colección' });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error al borrar', error: error.message });

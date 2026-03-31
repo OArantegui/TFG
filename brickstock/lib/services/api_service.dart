@@ -6,6 +6,7 @@ import '../models/lego_theme.dart';
 import '../models/lego_set.dart';
 import '../models/collection_item.dart';
 import 'auth_service.dart';
+import '../models/minifigure.dart';
 
 class ApiService {
   // 1. Definimos las URLs de los entornos
@@ -223,4 +224,27 @@ class ApiService {
     );
     return response.statusCode == 200;
   }
+
+  Future<List<Minifigure>> getSetMinifigures(String setNum) async {
+  try {
+    // Usamos el endpoint que hemos creado en nuestro propio backend Node
+    final response = await http.get(
+      Uri.parse('${ApiService.baseUrl}/lego/sets/$setNum/minifigs'),
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+      if (jsonResponse['success']) {
+        List<dynamic> data = jsonResponse['data'];
+        return data.map((json) => Minifigure.fromJson(json)).toList();
+      } else {
+        throw Exception('Error del servidor: ${jsonResponse['message']}');
+      }
+    } else {
+      throw Exception('Fallo al cargar minifiguras');
+    }
+  } catch (e) {
+    throw Exception('Error de conexión: $e');
+  }
+}
 }

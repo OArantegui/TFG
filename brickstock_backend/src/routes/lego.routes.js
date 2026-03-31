@@ -7,5 +7,6 @@ router.get('/themes', legoController.getThemes);
 router.get('/themes/:themeId/cover', legoController.getThemeCover);
 router.get('/sets/:themeId', legoController.getSetsByTheme);
 router.get('/image-proxy', legoController.getImageProxy);
+router.get('/sets/:set_num/minifigs', legoController.getSetMinifigs);
 
 module.exports = router;

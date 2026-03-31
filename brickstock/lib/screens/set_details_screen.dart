@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart'; // Para kIsWeb
 import 'package:flutter/material.dart';
 import '../models/lego_set.dart';
 import '../services/api_service.dart';
+import '../models/minifigure.dart';
 
 class SetDetailsScreen extends StatefulWidget {
   final LegoSet legoSet;
@@ -118,6 +119,82 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showMinifiguresBottomSheet(BuildContext context, String setNum) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Permite que el modal sea un poco más grande si la lista es larga
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext context) {
+        return FractionallySizedBox(
+          heightFactor: 0.7, // Ocupará el 70% de la pantalla
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Minifiguras del Set',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              const Divider(),
+              Expanded(
+                child: FutureBuilder<List<Minifigure>>(
+                  // Llamamos a nuestro ApiService
+                  future: ApiService().getSetMinifigures(setNum),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('Este set no contiene minifiguras.'));
+                    }
+
+                    final minifigs = snapshot.data!;
+                    return ListView.builder(
+                      itemCount: minifigs.length,
+                      itemBuilder: (context, index) {
+                        final fig = minifigs[index];
+                        // Componentes nativos de Material: ListTile y CircleAvatar
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: fig.imageUrl.isNotEmpty
+                                ? NetworkImage(fig.imageUrl)
+                                : null,
+                            child: fig.imageUrl.isEmpty ? const Icon(Icons.person) : null,
+                            backgroundColor: Colors.transparent,
+                          ),
+                          title: Text(fig.name),
+                          subtitle: Text('${fig.figNum} • Cantidad: ${fig.quantity}'),
+                          trailing: const Icon(Icons.chevron_right), // Indicador de navegación
+                          onTap: () {
+                            // Aquí irá la navegación a los detalles de la minifigura.
+                            // Por ahora cerramos el modal y mostramos un SnackBar de prueba
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Ir a detalles de ${fig.name}')),
+                            );
+                            
+                            // Cuando tengas la pantalla creada será algo como:
+                            // Navigator.push(context, MaterialPageRoute(
+                            //   builder: (context) => MinifigureDetailsScreen(figNum: fig.figNum),
+                            // ));
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -345,48 +422,59 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        // 1. TFG: Ponemos la función como 'async' porque la llamada a la red tarda tiempo
-        onPressed: () async {
-          // 2. Mostramos al usuario que estamos trabajando en ello (Feedback visual nativo)
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Guardando en MongoDB... ⏳')),
-          );
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // --- NUEVO BOTÓN MINIFIGURAS (IZQUIERDA) ---
+            FloatingActionButton(
+              heroTag: 'btn_minifigs', // TFG: Explicación abajo
+              onPressed: () => _showMinifiguresBottomSheet(context, widget.legoSet.setNum),
+              child: const Icon(Icons.smart_toy), // Icono puro de Material
+              tooltip: 'Ver Minifiguras',
+            ),
 
-          // 3. TFG: Cogemos el precio más bajo simulado para guardarlo como precio de compra.
-          // Si por lo que sea no hay precios (infinito), le ponemos 0.0
-          double priceToSave = minPrice == double.infinity ? 0.0 : minPrice;
+            // --- TU BOTÓN ACTUAL DE COLECCIÓN (DERECHA) ---
+            FloatingActionButton.extended(
+              heroTag: 'btn_collection', // TFG: Explicación abajo
+              onPressed: () async {
+                // (Mantiene todo tu código original sin tocar)
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Guardando en MongoDB... ⏳')),
+                );
 
-          // 4. ¡LA LLAMADA REAL AL BACKEND!
-          bool success = await ApiService().addToCollection(
-            widget.legoSet.setNum,
-            priceToSave,
-          );
+                double priceToSave = minPrice == double.infinity ? 0.0 : minPrice;
 
-          // 5. Ocultamos el mensaje de "Guardando..."
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                bool success = await ApiService().addToCollection(
+                  widget.legoSet.setNum,
+                  priceToSave,
+                );
 
-          // 6. Mostramos el resultado real según lo que nos haya devuelto Node.js
-          if (success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  '¡${widget.legoSet.name} añadido a tu colección! 🚀',
-                ),
-                backgroundColor: Colors.green, // Verde para el éxito
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Error al guardar. ¿Has iniciado sesión?'),
-                backgroundColor: Colors.red, // Rojo para el error
-              ),
-            );
-          }
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Añadir a Colección'),
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('¡${widget.legoSet.name} añadido a tu colección! 🚀'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Error al guardar. ¿Has iniciado sesión?'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Añadir a Colección'),
+            ),
+          ],
+        ),
       ),
     );
   }

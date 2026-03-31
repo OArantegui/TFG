@@ -69,9 +69,28 @@ const getThemeCover = async (req, res) => {
     }
 };
 
+const getSetMinifigs = async (req, res) => {
+  try {
+    const { set_num } = req.params;
+    const minifigs = await rebrickableService.getSetMinifigs(set_num);
+    
+    res.json({
+      success: true,
+      count: minifigs.length,
+      data: minifigs
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error al obtener las minifiguras del set' 
+    });
+  }
+};
+
 module.exports = {
     getThemes,
     getSetsByTheme,
     getImageProxy,
-    getThemeCover
+    getThemeCover,
+    getSetMinifigs
 };

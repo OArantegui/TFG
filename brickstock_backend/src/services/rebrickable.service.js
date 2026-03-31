@@ -153,9 +153,29 @@ const getSetByNum = async (setNum) => {
     }
 };
 
+const getSetMinifigs = async (setNum) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/lego/sets/${setNum}/minifigs/`, {
+      headers: getHeaders()
+    });
+    // Rebrickable devuelve la info de las minifiguras dentro de un array "results"
+    // Mapeamos los datos para enviar un payload más limpio al frontend
+    return response.data.results.map(item => ({
+      figNum: item.minifig.fig_num,
+      name: item.minifig.name,
+      imageUrl: item.minifig.fig_url,
+      quantity: item.quantity
+    }));
+  } catch (error) {
+    console.error(`Error fetching minifigs for set ${setNum} from Rebrickable:`, error.message);
+    throw error;
+  }
+};
+
 module.exports = {
     getThemes,
     getSetsByTheme,
     getThemeCover,
-    getSetByNum
+    getSetByNum,
+    getSetMinifigs
 };

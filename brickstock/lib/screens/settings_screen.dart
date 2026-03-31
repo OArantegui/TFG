@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../models/achievement.dart';
+import '../widgets/wishlist_summary_card.dart'; // Importamos el componente reutilizable
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,17 +19,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _confirmPasswordController = TextEditingController();
   
   final _authService = AuthService();
+  final _apiService = ApiService();
   bool _isLoading = false;
 
   late Future<List<Achievement>> _achievementsFuture;
+  late Future<Map<String, dynamic>> _userStatsFuture; // Nuevo Future para las estadísticas
+
   String _currentUsername = "Coleccionista";
 
   @override
   void initState() {
     super.initState();
     _cargarDatosUsuario();
-    // TFG: Disparamos la carga de insignias al iniciar la vista
-    _achievementsFuture = ApiService().getMyAchievements();
+    _achievementsFuture = _apiService.getMyAchievements();
+    _loadUserStats(); // Cargamos estadísticas al vuelo
+  }
+
+  void _loadUserStats() {
+    setState(() {
+      _userStatsFuture = _fetchUserStats();
+    });
+  }
+
+  // TFG: Recopilamos datos de la Colección y Wishlist para el panel de estadísticas
+  Future<Map<String, dynamic>> _fetchUserStats() async {
+    final collection = await _apiService.getUserCollection();
+    final wishlistData = await _apiService.getWishlistData();
+
+    final wishlistItems = wishlistData['data'] as List;
+    final budget = (wishlistData['budget'] as num).toDouble();
+    final totalWishlistValue = wishlistItems.fold(
+      0.0,
+      (sum, item) => sum + (item['targetPrice'] as num).toDouble(),
+    );
+
+    return {
+      'collectionCount': collection.length,
+      'wishlistCount': wishlistItems.length,
+      'wishlistTotal': totalWishlistValue,
+      'wishlistBudget': budget,
+    };
   }
 
   void _cargarDatosUsuario() async {
@@ -59,7 +89,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
       _passwordController.clear();
       _confirmPasswordController.clear();
-      _cargarDatosUsuario(); // Actualizamos el título
+      _cargarDatosUsuario();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error al guardar. Puede que el email o usuario ya existan.'), backgroundColor: Colors.red),
@@ -70,7 +100,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _logout() async {
     await _authService.logout();
     if (!mounted) return;
-    // Volvemos a la pantalla de login borrando el historial de navegación
     Navigator.of(context).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
   }
 
@@ -94,7 +123,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- SECCIÓN 1: CABECERA Y LOGROS ---
+            // --- SECCIÓN 1: CABECERA Y ESTADÍSTICAS ---
             Container(
               color: const Color(0xFF1E1E1E),
               padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
@@ -111,6 +140,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   const SizedBox(height: 24),
+
+                  // TFG: Panel de Estadísticas del Usuario
+                  FutureBuilder<Map<String, dynamic>>(
+                    future: _userStatsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator(color: Colors.orange));
+                      }
+                      if (snapshot.hasError) {
+                        return const Text('Error al cargar estadísticas', style: TextStyle(color: Colors.grey));
+                      }
+
+                      final stats = snapshot.data!;
+                      
+                      return Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Card(
+                                  color: const Color(0xFF2D2D2D),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      children: [
+                                        const Icon(Icons.shelves, color: Colors.orange, size: 30),
+                                        const SizedBox(height: 8),
+                                        Text('${stats['collectionCount']}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                                        const Text('En Colección', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Card(
+                                  color: const Color(0xFF2D2D2D),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      children: [
+                                        const Icon(Icons.favorite_border, color: Colors.pinkAccent, size: 30),
+                                        const SizedBox(height: 8),
+                                        Text('${stats['wishlistCount']}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                                        const Text('En Deseados', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          // Nuestro nuevo Widget Reutilizable en acción
+                          WishlistSummaryCard(
+                            totalValue: stats['wishlistTotal'],
+                            budget: stats['wishlistBudget'],
+                            onBudgetUpdated: _loadUserStats, // Recargamos las stats al guardar
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 32),
                   
                   const Align(
                     alignment: Alignment.centerLeft,
@@ -132,10 +226,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       final achievements = snapshot.data ?? [];
                       
                       return GridView.builder(
-                        shrinkWrap: true, // Vital dentro de un SingleChildScrollView
+                        shrinkWrap: true, 
                         physics: const NeverScrollableScrollPhysics(),
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3, // 3 columnas puras
+                          crossAxisCount: 3, 
                           childAspectRatio: 0.8,
                           crossAxisSpacing: 10,
                           mainAxisSpacing: 10,

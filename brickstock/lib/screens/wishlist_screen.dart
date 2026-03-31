@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/lego_set.dart';
 import '../services/api_service.dart';
 import 'set_details_screen.dart';
+import '../widgets/wishlist_summary_card.dart';
 
 class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
@@ -99,40 +100,10 @@ class _WishlistScreenState extends State<WishlistScreen> {
 
         return Column(
           children: [
-            // PANEL SUPERIOR: Presupuesto y Barra de progreso
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              color: const Color(0xFF2A2A2A),
-              width: double.infinity,
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Icon(Icons.favorite, color: Colors.pinkAccent),
-                      Text(
-                        '${totalValue.toStringAsFixed(2)} € / ${budget.toStringAsFixed(0)} €',
-                        style: TextStyle(
-                          color: statusColor,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.settings, color: Colors.grey),
-                        onPressed: () => _editBudget(budget),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  LinearProgressIndicator(
-                    value: progress > 1.0 ? 1.0 : progress,
-                    backgroundColor: Colors.grey[800],
-                    color: statusColor,
-                    minHeight: 8,
-                  ),
-                ],
-              ),
+            WishlistSummaryCard(
+              totalValue: totalValue,
+              budget: budget,
+              onBudgetUpdated: _loadWishlist, // Le pasamos la función para recargar
             ),
 
             if (items.isEmpty)

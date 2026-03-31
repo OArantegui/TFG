@@ -226,25 +226,54 @@ class ApiService {
   }
 
   Future<List<Minifigure>> getSetMinifigures(String setNum) async {
-  try {
-    // Usamos el endpoint que hemos creado en nuestro propio backend Node
-    final response = await http.get(
-      Uri.parse('${ApiService.baseUrl}/lego/sets/$setNum/minifigs'),
-    );
+    try {
+      // Usamos el endpoint que hemos creado en nuestro propio backend Node
+      final response = await http.get(
+        Uri.parse('${ApiService.baseUrl}/lego/sets/$setNum/minifigs'),
+      );
 
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-      if (jsonResponse['success']) {
-        List<dynamic> data = jsonResponse['data'];
-        return data.map((json) => Minifigure.fromJson(json)).toList();
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        if (jsonResponse['success']) {
+          List<dynamic> data = jsonResponse['data'];
+          return data.map((json) => Minifigure.fromJson(json)).toList();
+        } else {
+          throw Exception('Error del servidor: ${jsonResponse['message']}');
+        }
       } else {
-        throw Exception('Error del servidor: ${jsonResponse['message']}');
+        throw Exception('Fallo al cargar minifiguras');
       }
-    } else {
-      throw Exception('Fallo al cargar minifiguras');
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
     }
-  } catch (e) {
-    throw Exception('Error de conexión: $e');
   }
-}
+  Future<List<LegoSet>> getMinifigSets(String figNum) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiService.baseUrl}/lego/minifigs/$figNum/sets')
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        if (jsonResponse['success']) {
+          List<dynamic> data = jsonResponse['data'];
+          // Reutilizamos tu modelo LegoSet directamente
+          return data.map((e) => LegoSet(
+            setNum: e['setNum'] ?? '',
+            name: e['name'] ?? 'Desconocido',
+            year: e['year'] ?? 0,
+            themeId: e['themeId'] ?? 0,
+            numParts: e['numParts'] ?? 0,
+            imgUrl: e['imageUrl'] ?? '',
+          )).toList();
+        } else {
+          throw Exception('Error del servidor: ${jsonResponse['message']}');
+        }
+      } else {
+        throw Exception('Fallo al cargar sets de la minifigura');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
 }

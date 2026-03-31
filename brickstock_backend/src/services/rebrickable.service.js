@@ -173,10 +173,31 @@ const getSetMinifigs = async (setNum) => {
   }
 };
 
+const getMinifigSets = async (figNum) => {
+  try {
+    // La API de Rebrickable usa la ruta /minifigs/{fig_num}/sets/
+    const response = await apiClient.get(`/minifigs/${figNum}/sets/`);
+    
+    // Mapeamos los datos simulando la estructura que espera tu modelo LegoSet de Flutter
+    return response.data.results.map(item => ({
+      setNum: item.set_num,
+      name: item.name,
+      year: item.year || 0,
+      themeId: item.theme_id || 0,
+      numParts: item.num_parts || 0,
+      imageUrl: item.set_img_url || ''
+    }));
+  } catch (error) {
+    console.error(`Error fetching sets for minifig ${figNum}:`, error.message);
+    throw error;
+  }
+};
+
 module.exports = {
     getThemes,
     getSetsByTheme,
     getThemeCover,
     getSetByNum,
-    getSetMinifigs
+    getSetMinifigs,
+    getMinifigSets
 };

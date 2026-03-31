@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart'; // Para kIsWeb
 import '../models/minifigure.dart';
 import '../services/api_service.dart';
+import '../models/lego_set.dart';
 
 class MinifiguresBottomSheet extends StatefulWidget {
   final String setNum;
@@ -166,6 +167,71 @@ class _MinifiguresBottomSheetState extends State<MinifiguresBottomSheet> {
                 ],
               ),
             ),
+          ),
+          const SizedBox(height: 32),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'También aparece en:',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const Divider(),
+          FutureBuilder<List<LegoSet>>(
+            future: ApiService().getMinifigSets(_selectedMinifigure!.figNum),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: CircularProgressIndicator(),
+                );
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                // Fallback de seguridad (no debería ocurrir)
+                return const Text('No hay datos disponibles.');
+              }
+
+              final allSets = snapshot.data!;
+              
+              // TFG Lógica de UX: Filtramos para NO mostrar el set en el que ya estamos
+              final otherSets = allSets.where((s) => s.setNum != widget.setNum).toList();
+
+              if (otherSets.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Text(
+                    '🌟 ¡Esta figura es exclusiva de este set!',
+                    style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                shrinkWrap: true, // VITAL: Permite que un ListView viva dentro de un SingleChildScrollView
+                physics: const NeverScrollableScrollPhysics(), // Desactiva el scroll interno de la lista
+                itemCount: otherSets.length,
+                itemBuilder: (context, index) {
+                  final setItem = otherSets[index];
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero, // Quita los márgenes por defecto para alinear
+                    leading: SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: setItem.imgUrl.isNotEmpty
+                          ? Image.network(_getImageUrl(setItem.imgUrl), fit: BoxFit.contain)
+                          : const Icon(Icons.image_not_supported),
+                    ),
+                    title: Text(setItem.name),
+                    subtitle: Text(setItem.setNum),
+                    // Opcional: Podrías hacer que al pulsar navegue al SetDetailsScreen de ese otro set,
+                    // pero de momento lo dejamos como solo informativo.
+                  );
+                },
+              );
+            },
           ),
         ],
       ),

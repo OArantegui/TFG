@@ -86,11 +86,29 @@ const getSetMinifigs = async (req, res) => {
     });
   }
 };
+const getMinifigSets = async (req, res) => {
+  try {
+    const { fig_num } = req.params;
+    const sets = await rebrickableService.getMinifigSets(fig_num);
+    
+    res.json({
+      success: true,
+      count: sets.length,
+      data: sets
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error al obtener los sets de la minifigura' 
+    });
+  }
+};
 
 module.exports = {
     getThemes,
     getSetsByTheme,
     getImageProxy,
     getThemeCover,
-    getSetMinifigs
+    getSetMinifigs,
+    getMinifigSets
 };

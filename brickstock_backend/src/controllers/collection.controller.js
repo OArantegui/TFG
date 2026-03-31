@@ -1,5 +1,6 @@
 const Collection = require('../models/collection.model');
 const rebrickableService = require('../services/rebrickable.service');
+const achievementService = require('../services/achievement.service');
 
 // POST: Añadir un nuevo set a la cartera
 exports.addSetToCollection = async (req, res) => {
@@ -32,7 +33,20 @@ exports.addSetToCollection = async (req, res) => {
         });
 
         await newItem.save();
-        res.status(201).json({ success: true, message: 'Set añadido a la colección', data: newItem });
+        // === TFG: INTERCEPTOR DE GAMIFICACIÓN ===
+        // Contamos cuántos sets tiene ahora en total
+        const totalSets = await Collection.countDocuments({ userId: req.user.id });
+        
+        // Evaluamos si merece premio
+        const newlyUnlocked = await achievementService.evaluateCollectionAchievements(req.user.id, totalSets);
+        // =========================================
+
+        res.status(201).json({
+        success: true,
+        message: 'Set añadido a la colección',
+        data: newItem,
+        newAchievements: newlyUnlocked // <-- ¡Enviamos el premio a Flutter en la misma petición!
+        });
 
     } catch (error) {
         console.error("Error al añadir a colección:", error);

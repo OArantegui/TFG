@@ -7,6 +7,7 @@ import '../models/lego_set.dart';
 import '../models/collection_item.dart';
 import 'auth_service.dart';
 import '../models/minifigure.dart';
+import '../models/achievement.dart';
 
 class ApiService {
   // 1. Definimos las URLs de los entornos
@@ -96,10 +97,9 @@ class ApiService {
     return '${ApiService.baseUrl}/lego/image-proxy?url=${Uri.encodeComponent(originalUrl)}';
   }
 
-  Future<bool> addToCollection(String setNum, double purchasePrice) async {
+  Future<Map<String, dynamic>> addToCollection(String setNum, double purchasePrice) async {
     final token = await AuthService().getToken();
-
-    if (token == null) throw Exception("Usuario no autenticado");
+    if (token == null) return {'success': false, 'message': 'No autenticado'};
 
     final url = Uri.parse('${ApiService.baseUrl}/collection');
 
@@ -118,15 +118,18 @@ class ApiService {
         }),
       );
 
+      final data = jsonDecode(response.body);
+
       if (response.statusCode == 201 || response.statusCode == 200) {
-        return true;
+        return {
+          'success': true,
+          'newAchievements': data['newAchievements'] // <-- Aquí viene el premio de Node
+        };
       } else {
-        debugPrint("Error del server: ${response.body}");
-        return false;
+        return {'success': false, 'message': data['message'] ?? 'Error del servidor'};
       }
     } catch (e) {
-      debugPrint("Error de red: $e");
-      return false;
+      return {'success': false, 'message': 'Error de red: $e'};
     }
   }
 
@@ -276,6 +279,7 @@ class ApiService {
       throw Exception('Error de conexión: $e');
     }
   }
+  
   Future<Map<String, dynamic>> getAllSets({int page = 1, String search = ''}) async {
     String url = '${ApiService.baseUrl}/lego/sets?page=$page';
     
@@ -306,5 +310,25 @@ class ApiService {
     } else {
       throw Exception('Fallo al cargar todos los sets');
     }
+  }
+
+  // Obtener todo el catálogo de logros del usuario
+  Future<List<Achievement>> getMyAchievements() async {
+    final token = await AuthService().getToken();
+    if (token == null) throw Exception("Usuario no autenticado");
+
+    final response = await http.get(
+      Uri.parse('${ApiService.baseUrl}/achievements'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+      if (jsonResponse['success']) {
+        List<dynamic> data = jsonResponse['data'];
+        return data.map((json) => Achievement.fromJson(json)).toList();
+      }
+    }
+    throw Exception('Fallo al cargar las insignias');
   }
 }

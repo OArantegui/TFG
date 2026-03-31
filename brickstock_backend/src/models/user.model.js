@@ -4,7 +4,11 @@ const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    wishlistBudget: { type: Number, default: 500 }
+    wishlistBudget: { type: Number, default: 500 },
+    unlockedAchievements: [{
+      achievement: { type: mongoose.Schema.Types.ObjectId, ref: 'Achievement' },
+      unlockedAt: { type: Date, default: Date.now }
+  }]
 }, {
     timestamps: true // Guarda automáticamente la fecha de creación
 });

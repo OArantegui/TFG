@@ -4,6 +4,7 @@ const legoRoutes = require('./routes/lego.routes');
 const authRoutes = require('./routes/auth.routes'); 
 const collectionRoutes = require('./routes/collection.routes');
 const wishlistRoutes = require('./routes/wishlist.routes'); // Cuando la crees
+const achievementRoutes = require('./routes/achievement.routes');
 
 
 const app = express();
@@ -42,6 +43,7 @@ app.use('/api/wishlist', wishlistRoutes);
 // Rutas base
 app.use('/api/lego', legoRoutes);
 app.use('/api/auth', authRoutes); 
+app.use('/api/achievements', achievementRoutes);
 
 // Ruta de salud (Health Check)
 app.get('/', (req, res) => {

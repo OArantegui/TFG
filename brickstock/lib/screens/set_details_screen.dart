@@ -378,31 +378,75 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
             FloatingActionButton.extended(
               heroTag: 'btn_collection_${widget.legoSet.setNum}', // Lo hacemos unico
               onPressed: () async {
-                // (Mantiene todo tu código original sin tocar)
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Guardando en MongoDB... ⏳')),
                 );
 
                 double priceToSave = minPrice == double.infinity ? 0.0 : minPrice;
 
-                bool success = await ApiService().addToCollection(
+                // TFG: Ahora devuelve un Map con la info de la gamificación
+                final result = await ApiService().addToCollection(
                   widget.legoSet.setNum,
                   priceToSave,
                 );
 
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-                if (success) {
+                if (result['success'] == true) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('¡${widget.legoSet.name} añadido a tu colección! 🚀'),
                       backgroundColor: Colors.green,
                     ),
                   );
+
+                  // === TFG: INTERCEPTOR DE GAMIFICACIÓN EN FLUTTER ===
+                  // Verificamos si Node.js nos ha mandado premios
+                  if (result['newAchievements'] != null && result['newAchievements'].isNotEmpty) {
+                    final achievementData = result['newAchievements'][0]; // Cogemos el primero
+                    
+                    if (!mounted) return;
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        title: const Row(
+                          children: [
+                            Icon(Icons.stars, color: Colors.amber, size: 30),
+                            SizedBox(width: 10),
+                            Text('¡Nuevo Logro!'),
+                          ],
+                        ),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              achievementData['name'],
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              achievementData['description'],
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text('¡Genial!', style: TextStyle(color: Colors.orange)),
+                          )
+                        ],
+                      ),
+                    );
+                  }
+                  // ====================================================
+
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Error al guardar. ¿Has iniciado sesión?'),
+                    SnackBar(
+                      content: Text(result['message'] ?? 'Error al guardar.'),
                       backgroundColor: Colors.red,
                     ),
                   );

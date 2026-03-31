@@ -155,15 +155,15 @@ const getSetByNum = async (setNum) => {
 
 const getSetMinifigs = async (setNum) => {
   try {
-    const response = await axios.get(`${BASE_URL}/lego/sets/${setNum}/minifigs/`, {
-      headers: getHeaders()
-    });
-    // Rebrickable devuelve la info de las minifiguras dentro de un array "results"
-    // Mapeamos los datos para enviar un payload más limpio al frontend
+    // TFG: Usamos tu instancia apiClient que ya inyecta el API Key y la Base URL automáticamente.
+    // La ruta oficial de Rebrickable v3 es /sets/{set_num}/minifigs/
+    const response = await apiClient.get(`/sets/${setNum}/minifigs/`);
+    
+    // Mapeamos los datos para enviar un payload limpio al frontend (BFF Pattern)
     return response.data.results.map(item => ({
       figNum: item.minifig.fig_num,
       name: item.minifig.name,
-      imageUrl: item.minifig.fig_url,
+      imageUrl: item.minifig.fig_url, // Puede venir nulo si la figura no tiene foto
       quantity: item.quantity
     }));
   } catch (error) {

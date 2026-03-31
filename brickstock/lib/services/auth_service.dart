@@ -24,7 +24,7 @@ class AuthService {
   /// Borra el token (Útil para el botón de "Cerrar Sesión")
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('jwt_token');
+    await prefs.clear();
   }
 
   /// Comprueba si hay una sesión activa al abrir la app
@@ -33,6 +33,19 @@ class AuthService {
     return token != null && token.isNotEmpty;
   }
 
+  Future<void> saveUserData(String username, String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('username', username);
+    await prefs.setString('email', email);
+  }
+
+  Future<Map<String, String>> getUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    return {
+      'username': prefs.getString('username') ?? '',
+      'email': prefs.getString('email') ?? '',
+    };
+  }
   // ==========================================
   // 2. LLAMADAS AL BACKEND (NODE.JS)
   // ==========================================
@@ -40,7 +53,6 @@ class AuthService {
   /// Iniciar sesión
   Future<bool> login(String email, String password) async {
     try {
-      // Usamos de forma centralizada ApiService.baseUrl
       final response = await http.post(
         Uri.parse('${ApiService.baseUrl}/auth/login'),
         headers: {'Content-Type': 'application/json'},
@@ -50,13 +62,17 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final token = data['token'];
+        final user = data['user']; // Extraemos el usuario que nos manda Node.js
 
         if (token != null) {
-          await saveToken(token); // Guardamos el token
+          await saveToken(token);
+          // TFG Info: Guardamos los datos en caché local para usarlos en Ajustes
+          if (user != null) {
+            await saveUserData(user['username'], user['email']);
+          }
           return true;
         }
       }
-      print("Login fallido (Status ${response.statusCode}): ${response.body}");
       return false;
     } catch (e) {
       print("Error de red en login: $e");
@@ -91,16 +107,15 @@ class AuthService {
     try {
       final token = await getToken();
       
-      // Creamos un mapa solo con los datos que se han rellenado
       final Map<String, dynamic> body = {};
       if (username != null && username.isNotEmpty) body['username'] = username;
       if (email != null && email.isNotEmpty) body['email'] = email;
       if (password != null && password.isNotEmpty) body['password'] = password;
 
-      if (body.isEmpty) return true; // Nada que actualizar
+      if (body.isEmpty) return true; 
 
       final response = await http.put(
-        Uri.parse('${ApiService.baseUrl}/auth/profile'), // Asegúrate de enlazar esta ruta en tu backend
+        Uri.parse('${ApiService.baseUrl}/auth/profile'), 
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -108,7 +123,16 @@ class AuthService {
         body: jsonEncode(body),
       );
 
-      return response.statusCode == 200;
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final user = data['user'];
+        // TFG Info: Si se actualiza con éxito, sobrescribimos la caché local con los nuevos datos
+        if (user != null) {
+          await saveUserData(user['username'], user['email']);
+        }
+        return true;
+      }
+      return false;
     } catch (e) {
       print("Error actualizando perfil: $e");
       return false;

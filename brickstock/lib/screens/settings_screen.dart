@@ -13,10 +13,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController(); // Controlador para la doble comprobación
+  final _confirmPasswordController = TextEditingController();
   
   final _authService = AuthService();
   bool _isLoading = false;
+
+  // --- NUEVO: CARGAMOS LOS DATOS AL ABRIR LA PANTALLA ---
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatosUsuario();
+  }
+
+  void _cargarDatosUsuario() async {
+    final userData = await _authService.getUserData();
+    // setState actualiza la interfaz visual una vez tenemos los datos
+    setState(() {
+      _usernameController.text = userData['username'] ?? '';
+      _emailController.text = userData['email'] ?? '';
+    });
+  }
+  // ------------------------------------------------------
 
   void _guardarAjustes() async {
     if (!_formKey.currentState!.validate()) return;
@@ -36,9 +53,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Ajustes guardados correctamente'), backgroundColor: Colors.green),
       );
-      // Opcional: limpiar las contraseñas tras guardar
       _passwordController.clear();
       _confirmPasswordController.clear();
+      // Al guardar, Flutter mantendrá los nuevos valores en los TextField porque ya están actualizados en la caché
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error al guardar. Puede que el email o usuario ya existan.'), backgroundColor: Colors.red),
@@ -57,19 +74,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Deja en blanco los campos que no quieras cambiar.', style: TextStyle(color: Colors.grey)),
+              const Text('Deja en blanco la contraseña si no quieres cambiarla.', style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 20),
 
               TextFormField(
                 controller: _usernameController,
-                decoration: const InputDecoration(labelText: 'Nuevo Nombre de Usuario', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Nombre de Usuario', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 15),
 
               TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: 'Nuevo Correo Electrónico', border: OutlineInputBorder()),
+                decoration: const InputDecoration(labelText: 'Correo Electrónico', border: OutlineInputBorder()),
               ),
               const SizedBox(height: 30),
 
@@ -88,7 +105,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 obscureText: true,
                 decoration: const InputDecoration(labelText: 'Confirmar Nueva Contraseña', border: OutlineInputBorder()),
                 validator: (val) {
-                  // MAGIA AQUÍ: Validación de doble contraseña en frontend
                   if (_passwordController.text.isNotEmpty && val != _passwordController.text) {
                     return 'Las contraseñas no coinciden';
                   }

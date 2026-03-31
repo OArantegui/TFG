@@ -155,16 +155,17 @@ const getSetByNum = async (setNum) => {
 
 const getSetMinifigs = async (setNum) => {
   try {
-    // TFG: Usamos tu instancia apiClient que ya inyecta el API Key y la Base URL automáticamente.
-    // La ruta oficial de Rebrickable v3 es /sets/{set_num}/minifigs/
     const response = await apiClient.get(`/sets/${setNum}/minifigs/`);
     
-    // Mapeamos los datos para enviar un payload limpio al frontend (BFF Pattern)
+    // TFG: Mapeamos los datos. Como la API v3 trata a las minifiguras 
+    // como "sets" con el prefijo "fig-", la respuesta es plana.
     return response.data.results.map(item => ({
-      figNum: item.minifig.fig_num,
-      name: item.minifig.name,
-      imageUrl: item.minifig.fig_url, // Puede venir nulo si la figura no tiene foto
-      quantity: item.quantity
+      // Usamos el fallback (||) por si acaso la API decide cambiar 
+      // y enviarnos fig_num en el futuro (programación defensiva).
+      figNum: item.set_num || item.fig_num,
+      name: item.set_name || item.name,
+      imageUrl: item.set_img_url || item.fig_url || '', 
+      quantity: item.quantity || 1
     }));
   } catch (error) {
     console.error(`Error fetching minifigs for set ${setNum} from Rebrickable:`, error.message);

@@ -425,5 +425,15 @@ class ApiService {
       return {'success': false, 'message': 'Error de red o sesión expirada: $e'};
     }
   }
+  
+  // Borrar minifigura de la colección
+  Future<bool> deleteMinifigFromCollection(String id) async {
+    try {
+      final response = await _authRequest('DELETE', '/collection/minifigs/$id');
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
 }
 

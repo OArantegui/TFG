@@ -30,5 +30,6 @@ router.delete('/:id', verifyJWT, collectionController.deleteCollectionItem);
 
 router.get('/minifigs', verifyJWT, collectionController.getUserMinifigCollection);
 router.post('/minifigs', verifyJWT, collectionController.addMinifigToCollection);
+router.delete('/minifigs/:id', verifyJWT, collectionController.removeMinifigFromCollection);
 
 module.exports = router;

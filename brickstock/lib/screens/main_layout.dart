@@ -9,6 +9,7 @@ import 'settings_screen.dart';
 import 'sets_list_screen.dart';
 import '../services/auth_service.dart';
 import '../providers/home_provider.dart';
+import '../providers/collection_provider.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -53,7 +54,10 @@ class _MainLayoutState extends State<MainLayout> {
       ),
       const SetsListScreen(customTitle: 'Buscar Sets'),
       const ExploreScreen(),
-      const CollectionScreen(),
+      ChangeNotifierProvider(
+        create: (_) => CollectionProvider(),
+        child: const CollectionScreen(),
+      ),
       const WishlistScreen(),
       const SettingsScreen(),
     ];

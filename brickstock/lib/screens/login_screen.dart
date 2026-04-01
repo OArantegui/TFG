@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'main_layout.dart';
-import 'register_screen.dart'; // Importamos la nueva pantalla de registro
+import 'register_screen.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,16 +14,27 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
+  
   bool _isLoading = false;
+  bool _keepSignedIn = true; // Variable de estado para el checkbox
 
   void _hacerLogin() async {
+    // Validaciones básicas de campos vacíos
+    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+       ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, rellena todos los campos.')),
+      );
+      return;
+    }
+
     FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
 
-    // Llamada a nuestro Backend en Node.js
+    // Le pasamos al servicio si queremos mantener la sesión
     final bool isSuccess = await _authService.login(
       _emailController.text.trim(),
       _passwordController.text.trim(),
+      keepSignedIn: _keepSignedIn, // ¡NUEVO!
     );
 
     if (!mounted) return;
@@ -58,7 +69,6 @@ class _LoginScreenState extends State<LoginScreen> {
               const Icon(Icons.lock_person, size: 80, color: Colors.blueGrey),
               const SizedBox(height: 30),
 
-              // Uso de TextField estándar de Material Design
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
@@ -79,7 +89,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   prefixIcon: Icon(Icons.lock)
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 10),
+
+              // ¡NUEVO! Widget nativo para el checkbox
+              CheckboxListTile(
+                title: const Text("Mantener sesión iniciada"),
+                value: _keepSignedIn,
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _keepSignedIn = value ?? true;
+                  });
+                },
+              ),
+              
+              const SizedBox(height: 20),
 
               if (_isLoading)
                 const Center(child: CircularProgressIndicator())
@@ -93,7 +118,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               
               const SizedBox(height: 20),
-              // Enlace a la pantalla de registro
               TextButton(
                 onPressed: () => Navigator.pushReplacement(
                   context, 

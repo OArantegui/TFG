@@ -49,6 +49,17 @@ class AuthService {
 
   /// Comprueba si hay una sesión activa al abrir la app (basta con tener el refresh_token)
   Future<bool> isLoggedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Comprobamos si el usuario marcó la casilla. Por defecto (si no existe) es true.
+    final keepSignedIn = prefs.getBool('keep_signed_in') ?? true;
+
+    // Si NO quería mantener la sesión, destruimos los tokens ahora que ha reabierto la app
+    if (!keepSignedIn) {
+      await logout();
+      return false;
+    }
+
     final token = await getRefreshToken();
     return token != null && token.isNotEmpty;
   }
@@ -72,7 +83,7 @@ class AuthService {
   // 2. LLAMADAS AL BACKEND (NODE.JS)
   // ==========================================
 
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String email, String password, {bool keepSignedIn = true}) async {
     try {
       final response = await http.post(
         Uri.parse('${ApiService.baseUrl}/auth/login'),
@@ -82,8 +93,6 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
-        // ¡Cambiado! Ahora recibimos dos tokens
         final accessToken = data['accessToken'];
         final refreshToken = data['refreshToken'];
         final user = data['user']; 
@@ -93,6 +102,11 @@ class AuthService {
           if (user != null) {
             await saveUserData(user['username'], user['email']);
           }
+          
+          //Guardamos la decisión del usuario
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('keep_signed_in', keepSignedIn);
+          
           return true;
         }
       }
@@ -104,7 +118,7 @@ class AuthService {
   }
 
   // Registro: Ahora también guardamos los dos tokens igual que en login
-  Future<bool> register(String username, String email, String password) async {
+  Future<bool> register(String username, String email, String password, {bool keepSignedIn = true}) async {
     try {
       final response = await http.post(
         Uri.parse('${ApiService.baseUrl}/auth/register'),
@@ -121,6 +135,11 @@ class AuthService {
          if (accessToken != null && refreshToken != null) {
            await saveTokens(accessToken, refreshToken);
            if (user != null) await saveUserData(user['username'], user['email']);
+           
+           // Guardamos la decisión
+           final prefs = await SharedPreferences.getInstance();
+           await prefs.setBool('keep_signed_in', keepSignedIn);
+           
            return true;
          }
       }

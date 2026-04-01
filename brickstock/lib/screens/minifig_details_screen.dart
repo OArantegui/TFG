@@ -27,21 +27,25 @@ class _MinifigDetailsScreenState extends State<MinifigDetailsScreen> {
 
   Future<void> _loadDetails() async {
     try {
-      // Usamos el endpoint enriquecido de nuestro backend
       final data = await _apiService.getMinifigDetails(widget.minifigure.figNum);
       
       if (data['appearsInSets'] != null) {
         final List setsData = data['appearsInSets'];
         setState(() {
-          // Mapeamos los sets recibidos al modelo LegoSet existente para reciclar pantallas
-          _appearsInSets = setsData.map((e) => LegoSet(
-            setNum: e['set_num'] ?? e['setNum'] ?? '',
-            name: e['name'] ?? 'Desconocido',
-            year: e['year'] ?? 0,
-            themeId: e['theme_id'] ?? e['themeId'] ?? 0,
-            numParts: e['num_parts'] ?? e['numParts'] ?? 0,
-            imgUrl: e['set_img_url'] ?? e['imageUrl'] ?? '',
-          )).toList();
+          _appearsInSets = setsData.map((e) {
+            // TFG: La API de Rebrickable anida los datos completos dentro de un objeto 'set' en este endpoint específico.
+            // Usamos un fallback (??) por si en el futuro cambian la respuesta de la API.
+            final setInfo = e['set'] ?? e;
+            
+            return LegoSet(
+              setNum: setInfo['set_num'] ?? e['set_num'] ?? e['setNum'] ?? '',
+              name: setInfo['name'] ?? e['name'] ?? 'Desconocido',
+              year: setInfo['year'] ?? 0,
+              themeId: setInfo['theme_id'] ?? setInfo['themeId'] ?? 0,
+              numParts: setInfo['num_parts'] ?? setInfo['numParts'] ?? 0,
+              imgUrl: setInfo['set_img_url'] ?? setInfo['imageUrl'] ?? '',
+            );
+          }).toList();
         });
       }
     } catch (e) {

@@ -136,6 +136,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       backgroundColor: const Color(0xFF121212),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 100),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

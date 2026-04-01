@@ -179,14 +179,18 @@ const getMinifigSets = async (figNum) => {
     const response = await apiClient.get(`/minifigs/${figNum}/sets/`);
     
     // Mapeamos los datos simulando la estructura que espera tu modelo LegoSet de Flutter
-    return response.data.results.map(item => ({
-      setNum: item.set_num,
-      name: item.name,
-      year: item.year || 0,
-      themeId: item.theme_id || 0,
-      numParts: item.num_parts || 0,
-      imageUrl: item.set_img_url || ''
-    }));
+    return response.data.results.map(item => {
+      const setData = item.set || item; 
+
+      return {
+        setNum: setData.set_num,
+        name: setData.name,
+        year: setData.year || 0,
+        themeId: setData.theme_id || 0,
+        numParts: setData.num_parts || 0,
+        imageUrl: setData.set_img_url || ''
+      };
+    });
   } catch (error) {
     console.error(`Error fetching sets for minifig ${figNum}:`, error.message);
     throw error;

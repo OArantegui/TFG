@@ -371,18 +371,42 @@ class _MinifigDetailsScreenState extends State<MinifigDetailsScreen> {
                               ),
                               title: Text(set.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
                               
-                              // TFG: LÓGICA DEFENSIVA PARA EL AÑO
                               subtitle: Text(
                                 set.year > 0 ? '${set.setNum} • Año: ${set.year}' : 'Set: ${set.setNum}', 
                                 style: const TextStyle(color: Colors.white54, fontSize: 12)
                               ),
                               
                               trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                              onTap: () {
-                                Navigator.push(
-                                  context, 
-                                  MaterialPageRoute(builder: (context) => SetDetailsScreen(legoSet: set))
+                              // === TFG: TU LÓGICA MAGISTRAL APLICADA AQUÍ ===
+                              onTap: () async {
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) => const Center(child: CircularProgressIndicator(color: Colors.orange)),
                                 );
+
+                                try {
+                                  // Buscamos el set completo (hidratación)
+                                  final result = await _apiService.getAllSets(search: set.setNum);
+                                  Navigator.pop(context); // Quita el loading
+
+                                  LegoSet fullSet = set; 
+                                  if (result['sets'] != null && (result['sets'] as List).isNotEmpty) {
+                                    fullSet = (result['sets'] as List).first;
+                                  }
+
+                                  Navigator.push(
+                                    context, 
+                                    MaterialPageRoute(builder: (context) => SetDetailsScreen(legoSet: fullSet))
+                                  );
+                                } catch (e) {
+                                  Navigator.pop(context); // Quita el loading
+                                  // Fallback: navegamos con el set incompleto si falla internet
+                                  Navigator.push(
+                                    context, 
+                                    MaterialPageRoute(builder: (context) => SetDetailsScreen(legoSet: set))
+                                  );
+                                }
                               },
                             ),
                           );

@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     wishlistBudget: { type: Number, default: 500 },
+    refreshTokens: [{ type: String }],
     unlockedAchievements: [{
       achievement: { type: mongoose.Schema.Types.ObjectId, ref: 'Achievement' },
       unlockedAt: { type: Date, default: Date.now }

@@ -1,38 +1,59 @@
 import 'dart:convert';
-// ¡ELIMINADO dart:io para que funcione en WEB!
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'api_service.dart'; // Importamos el ApiService para usar su URL base
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'api_service.dart'; 
 
 class AuthService {
+  // TFG Info: Usamos Secure Storage para tokens (encriptado) y SharedPreferences para datos no sensibles.
+  final _secureStorage = const FlutterSecureStorage();
+
   // ==========================================
-  // 1. GESTIÓN DEL TOKEN (ALMACENAMIENTO LOCAL)
+  // 1. GESTIÓN DE TOKENS (SECURE STORAGE)
   // ==========================================
 
-  /// Guarda el token en la memoria del dispositivo
-  Future<void> saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('jwt_token', token);
+  Future<void> saveTokens(String accessToken, String refreshToken) async {
+    await _secureStorage.write(key: 'access_token', value: accessToken);
+    await _secureStorage.write(key: 'refresh_token', value: refreshToken);
   }
 
-  /// Recupera el token para inyectarlo en las peticiones a Node.js
-  Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('jwt_token');
+  Future<String?> getAccessToken() async {
+    return await _secureStorage.read(key: 'access_token');
   }
 
-  /// Borra el token (Útil para el botón de "Cerrar Sesión")
+  Future<String?> getRefreshToken() async {
+    return await _secureStorage.read(key: 'refresh_token');
+  }
+
+  /// Borra los tokens y llama al Backend para revocar la sesión
   Future<void> logout() async {
+    final refreshToken = await getRefreshToken();
+    if (refreshToken != null) {
+      // Le decimos al backend que destruya este token
+      try {
+        await http.post(
+          Uri.parse('${ApiService.baseUrl}/auth/logout'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'refreshToken': refreshToken}),
+        );
+      } catch (e) {
+        print("Error avisando al servidor del logout: $e");
+      }
+    }
+    
+    // Borramos datos locales
+    await _secureStorage.deleteAll();
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }
 
-  /// Comprueba si hay una sesión activa al abrir la app
+  /// Comprueba si hay una sesión activa al abrir la app (basta con tener el refresh_token)
   Future<bool> isLoggedIn() async {
-    final token = await getToken();
+    final token = await getRefreshToken();
     return token != null && token.isNotEmpty;
   }
 
+  // Métodos de UserData (Se quedan igual, en SharedPreferences)
   Future<void> saveUserData(String username, String email) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', username);
@@ -46,11 +67,11 @@ class AuthService {
       'email': prefs.getString('email') ?? '',
     };
   }
+
   // ==========================================
   // 2. LLAMADAS AL BACKEND (NODE.JS)
   // ==========================================
 
-  /// Iniciar sesión
   Future<bool> login(String email, String password) async {
     try {
       final response = await http.post(
@@ -61,12 +82,14 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final token = data['token'];
-        final user = data['user']; // Extraemos el usuario que nos manda Node.js
+        
+        // ¡Cambiado! Ahora recibimos dos tokens
+        final accessToken = data['accessToken'];
+        final refreshToken = data['refreshToken'];
+        final user = data['user']; 
 
-        if (token != null) {
-          await saveToken(token);
-          // TFG Info: Guardamos los datos en caché local para usarlos en Ajustes
+        if (accessToken != null && refreshToken != null) {
+          await saveTokens(accessToken, refreshToken);
           if (user != null) {
             await saveUserData(user['username'], user['email']);
           }
@@ -80,33 +103,71 @@ class AuthService {
     }
   }
 
-  /// Registrar un nuevo usuario
+  // Registro: Ahora también guardamos los dos tokens igual que en login
   Future<bool> register(String username, String email, String password) async {
     try {
       final response = await http.post(
         Uri.parse('${ApiService.baseUrl}/auth/register'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'username': username, 
-          'email': email, 
-          'password': password
-        }),
+        body: jsonEncode({'username': username, 'email': email, 'password': password}),
       );
 
-      if (response.statusCode == 201) return true;
-      print("Registro fallido: ${response.body}");
+      if (response.statusCode == 201) {
+         final data = jsonDecode(response.body);
+         final accessToken = data['accessToken'];
+         final refreshToken = data['refreshToken'];
+         final user = data['user']; 
+
+         if (accessToken != null && refreshToken != null) {
+           await saveTokens(accessToken, refreshToken);
+           if (user != null) await saveUserData(user['username'], user['email']);
+           return true;
+         }
+      }
       return false;
     } catch (e) {
-      print("Error de red en registro: $e");
       return false;
     }
   }
 
-  /// Actualizar ajustes de perfil
-  Future<bool> updateProfile(String? username, String? email, String? password) async {
+  // ==========================================
+  // 3. LA MAGIA: REFRESCAR EL TOKEN
+  // ==========================================
+  
+  /// Pide un nuevo Access Token usando el Refresh Token
+  Future<bool> refreshAccessToken() async {
+    final refreshToken = await getRefreshToken();
+    if (refreshToken == null) return false;
+
     try {
-      final token = await getToken();
-      
+      final response = await http.post(
+        Uri.parse('${ApiService.baseUrl}/auth/refresh'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refreshToken': refreshToken}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final newAccessToken = data['accessToken'];
+        
+        // Sobrescribimos SOLO el Access Token corto
+        await _secureStorage.write(key: 'access_token', value: newAccessToken);
+        return true;
+      } else {
+        // Si el servidor rechaza el refresh token (ha caducado el de 30 días o lo hemos revocado)
+        // Forzamos cerrar sesión
+        await logout();
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> updateProfile(String? username, String? email, String? password) async {
+    // Aquí podrías usar el nuevo método de ApiService luego, pero de momento:
+    try {
+      final token = await getAccessToken();
       final Map<String, dynamic> body = {};
       if (username != null && username.isNotEmpty) body['username'] = username;
       if (email != null && email.isNotEmpty) body['email'] = email;
@@ -125,16 +186,13 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final user = data['user'];
-        // TFG Info: Si se actualiza con éxito, sobrescribimos la caché local con los nuevos datos
-        if (user != null) {
-          await saveUserData(user['username'], user['email']);
+        if (data['user'] != null) {
+          await saveUserData(data['user']['username'], data['user']['email']);
         }
         return true;
       }
       return false;
     } catch (e) {
-      print("Error actualizando perfil: $e");
       return false;
     }
   }

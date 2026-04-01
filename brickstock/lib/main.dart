@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart'; // Para PointerDeviceKind
 import 'screens/login_screen.dart';
+import 'screens/main_layout.dart';
+import 'services/auth_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -32,7 +34,24 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       scrollBehavior: MyCustomScrollBehavior(),
-      home: const LoginScreen(),
+      home: FutureBuilder<bool>(
+        future: AuthService().isLoggedIn(),
+        builder: (context, snapshot) {
+          // Mientras comprueba, mostramos un indicador de carga limpio
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator(color: Colors.orange)),
+            );
+          }
+          
+          // Si isLoggedIn devolvió true, vamos a la app. Si no, al Login.
+          if (snapshot.data == true) {
+            return const MainLayout(); // Cambia esto por el nombre de tu vista principal
+          } else {
+            return const LoginScreen();
+          }
+        },
+      ),
     );
   }
 }

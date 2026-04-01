@@ -2,10 +2,19 @@ const User = require('../models/user.model');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const generateAccessToken = (userId) => {
+    // 15 minutos de vida. Minimiza el riesgo si nos roban este token.
+    return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '15m' });
+};
+
+const generateRefreshToken = (userId) => {
+    // 30 días de vida. Solo sirve para pedir un nuevo Access Token.
+    return jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET, { expiresIn: '30d' });
+};
+
 const register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
-        console.log(`Registro -> User: ${username}, Email: ${email}`);
 
         // 1. Comprobar si el correo O el username ya existen
         const userExists = await User.findOne({ $or: [{ email }, { username }] });
@@ -22,17 +31,24 @@ const register = async (req, res) => {
             password: hashedPassword
         });
 
+        //Generamos tokens
+        const accessToken = generateAccessToken(newUser._id);
+        const refreshToken = generateRefreshToken(newUser._id);
+
+        //Guardamos refresh token
+        newUser.refreshToken.push(refreshToken);
         await newUser.save();
         
-        const token = jwt.sign(
+        /*const token = jwt.sign(
             { id: newUser._id }, 
             process.env.JWT_SECRET, 
             { expiresIn: '30d' } 
-        );
+        );*/
 
         res.status(201).json({
             message: 'Usuario creado con éxito',
-            token: token,
+            accessToken,   // Enviamos el corto
+            refreshToken,  // Enviamos el largo
             user: { id: newUser._id, username: newUser.username, email: newUser.email }
         });
 
@@ -45,35 +61,38 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        console.log(`Datos recibidos -> Email: ${email}, Password: ${password}`);
 
         // 1. Buscar si existe un usuario con ese email
         const user = await User.findOne({ email });
         if (!user) {
-            console.log("❌ Rechazado: No se encontró el usuario en la BBDD.");
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
 
         // 2. Comprobar si la contraseña es correcta (bcrypt compara la normal con la encriptada)
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
         if (!isPasswordCorrect) {
-            console.log("❌ Rechazado: La contraseña no coincide con el hash.");
             return res.status(400).json({ message: 'Contraseña incorrecta' });
         }
 
-        console.log("✅ Éxito: Contraseña correcta. Generando token...");
+        //Generamos tokens
+        const accessToken = generateAccessToken(user._id);
+        const refreshToken = generateRefreshToken(user._id);
 
-        // 3. Si todo está bien, crear el pase VIP (Token JWT)
+        user.refreshTokens.push(refreshToken);
+        await user.save();
+
+        /* 3. Si todo está bien, crear el pase VIP (Token JWT)
         const token = jwt.sign(
             { id: user._id }, 
             process.env.JWT_SECRET, 
             { expiresIn: '30d' }
-        );
+        );*/
 
         // 4. Enviar los datos al móvil
         res.status(200).json({
             message: 'Login exitoso',
-            token: token,
+            accessToken,   // Peticiones del día a día
+            refreshToken,  // Pase para renovar la sesión
             user: {
                 id: user._id,
                 username: user.username,
@@ -82,7 +101,6 @@ const login = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("🔥 ERROR GRAVE EN LOGIN:", error);
         res.status(500).json({ message: 'Error en el servidor al iniciar sesión' });
     }
 };
@@ -130,5 +148,66 @@ const updateUser = async (req, res) => {
         res.status(500).json({ message: 'Error actualizando el perfil' });
     }
 };
+const refreshToken = async (req, res) => {
+    // El frontend nos enviará su Refresh Token guardado
+    const { refreshToken } = req.body;
 
-module.exports = { register, login, updateUser };
+    if (!refreshToken) {
+        return res.status(401).json({ message: 'Se requiere un Refresh Token' });
+    }
+
+    try {
+        // 1. Verificamos que el token no esté manipulado usando el SECRETO LARGO
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        
+        // 2. Buscamos al usuario y comprobamos la BBDD
+        const user = await User.findById(decoded.id);
+        
+        // Si el usuario fue borrado O si el token no está en su lista (fue revocado)
+        if (!user || !user.refreshTokens.includes(refreshToken)) {
+            return res.status(403).json({ message: 'Refresh Token inválido o revocado' });
+        }
+
+        // 3. MAGIA: Todo es correcto, le damos un Access Token NUEVO de 15 min
+        // (Asegúrate de que el helper generateAccessToken sigue arriba en tu archivo)
+        const newAccessToken = generateAccessToken(user._id);
+
+        res.status(200).json({
+            message: 'Token renovado con éxito',
+            accessToken: newAccessToken
+        });
+
+    } catch (error) {
+        // Si el Refresh Token (de 30 días) ha caducado, cae aquí.
+        console.error("Error renovando token:", error.message);
+        return res.status(403).json({ message: 'Refresh Token expirado. Vuelve a iniciar sesión.' });
+    }
+};
+
+const logout = async (req, res) => {
+    const { refreshToken } = req.body;
+
+    try {
+        if (!refreshToken) {
+            return res.status(400).json({ message: 'No se proporcionó token para cerrar sesión' });
+        }
+
+        // Extraemos el ID del usuario del token
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        const user = await User.findById(decoded.id);
+
+        if (user) {
+            // Filtramos el array: nos quedamos con todos los tokens MENOS el que nos han pasado
+            user.refreshTokens = user.refreshTokens.filter(token => token !== refreshToken);
+            await user.save();
+        }
+
+        res.status(200).json({ message: 'Sesión cerrada correctamente en este dispositivo' });
+
+    } catch (error) {
+        // Si el token ya había caducado o era inválido, para nosotros ya está "cerrada"
+        res.status(200).json({ message: 'Sesión finalizada' });
+    }
+};
+
+module.exports = { register, login, updateUser, refreshToken, logout };

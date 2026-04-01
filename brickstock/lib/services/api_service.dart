@@ -144,41 +144,6 @@ class ApiService {
     return '${ApiService.baseUrl}/lego/image-proxy?url=${Uri.encodeComponent(originalUrl)}';
   }
 
-  /*Future<Map<String, dynamic>> addToCollection(String setNum, double purchasePrice) async {
-    final token = await AuthService().getToken();
-    if (token == null) return {'success': false, 'message': 'No autenticado'};
-
-    final url = Uri.parse('${ApiService.baseUrl}/collection');
-
-    try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'setNum': setNum,
-          'purchasePrice': purchasePrice,
-          'quantity': 1,
-          'condition': 'NISB',
-        }),
-      );
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        return {
-          'success': true,
-          'newAchievements': data['newAchievements'] // <-- Aquí viene el premio de Node
-        };
-      } else {
-        return {'success': false, 'message': data['message'] ?? 'Error del servidor'};
-      }
-    } catch (e) {
-      return {'success': false, 'message': 'Error de red: $e'};
-    }
-  }*/
   Future<Map<String, dynamic>> addToCollection(String setNum, double purchasePrice) async {
     try {
       // Usamos el wrapper, pasándole directamente el método, la ruta y el body
@@ -209,24 +174,6 @@ class ApiService {
     }
   }
 
-  /*Future<List<CollectionItem>> getUserCollection() async {
-    final token = await AuthService().getToken();
-    if (token == null) throw Exception("Usuario no autenticado");
-
-    final response = await http.get(
-      Uri.parse('${ApiService.baseUrl}/collection'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final List results =
-          data['data']; // 'data' es la key que hemos usado en Node
-      return results.map((e) => CollectionItem.fromJson(e)).toList();
-    } else {
-      throw Exception('Fallo al cargar la colección');
-    }
-  }*/
   Future<List<CollectionItem>> getUserCollection() async {
     final response = await _authRequest('GET', '/collection'); // Usamos nuestro wrapper
 
@@ -239,17 +186,6 @@ class ApiService {
     }
   }
 
-  /*Future<bool> deleteFromCollection(String collectionId) async {
-    final token = await AuthService().getToken();
-    if (token == null) return false;
-
-    final response = await http.delete(
-      Uri.parse('${ApiService.baseUrl}/collection/$collectionId'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-
-    return response.statusCode == 200;
-  }*/
   Future<bool> deleteFromCollection(String collectionId) async {
     try {
       final response = await _authRequest('DELETE', '/collection/$collectionId');
@@ -260,24 +196,6 @@ class ApiService {
   }
 
   // AÑADIR A WISHLIST (Devuelve Map para poder leer el 'warning')
-  /*Future<Map<String, dynamic>> addToWishlist(
-    String setNum,
-    double price, {
-    bool force = false,
-  }) async {
-    final token = await AuthService().getToken();
-    if (token == null) return {'success': false, 'message': 'No autenticado'};
-
-    final response = await http.post(
-      Uri.parse('${ApiService.baseUrl}/wishlist'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({'setNum': setNum, 'price': price, 'force': force}),
-    );
-    return json.decode(response.body);
-  }*/
   Future<Map<String, dynamic>> addToWishlist(
     String setNum,
     double price, {
@@ -296,21 +214,6 @@ class ApiService {
   }
 
   // OBTENER WISHLIST COMPLETA
-  /*Future<Map<String, dynamic>> getWishlistData() async {
-    final token = await AuthService().getToken();
-    if (token == null) throw Exception("Usuario no autenticado");
-
-    final response = await http.get(
-      Uri.parse('${ApiService.baseUrl}/wishlist'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Fallo al cargar la lista de deseados');
-    }
-  }*/
   Future<Map<String, dynamic>> getWishlistData() async {
     final response = await _authRequest('GET', '/wishlist');
 
@@ -322,20 +225,6 @@ class ApiService {
   }
 
   // ACTUALIZAR PRESUPUESTO
-  /*Future<bool> updateWishlistBudget(double newBudget) async {
-    final token = await AuthService().getToken();
-    if (token == null) return false;
-
-    final response = await http.put(
-      Uri.parse('${ApiService.baseUrl}/wishlist/budget'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({'newBudget': newBudget}),
-    );
-    return response.statusCode == 200;
-  }*/
   Future<bool> updateWishlistBudget(double newBudget) async {
     try {
       final response = await _authRequest(
@@ -350,15 +239,6 @@ class ApiService {
   }
 
   // BORRAR DE WISHLIST (Similar al de Collection)
-  /*Future<bool> deleteFromWishlist(String id) async {
-    final token = await AuthService().getToken();
-    if (token == null) return false;
-    final response = await http.delete(
-      Uri.parse('${ApiService.baseUrl}/wishlist/$id'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    return response.statusCode == 200;
-  }*/
   Future<bool> deleteFromWishlist(String id) async {
     try {
       final response = await _authRequest('DELETE', '/wishlist/$id');
@@ -453,24 +333,6 @@ class ApiService {
   }
 
   // Obtener todo el catálogo de logros del usuario
-  /*Future<List<Achievement>> getMyAchievements() async {
-    final token = await AuthService().getToken();
-    if (token == null) throw Exception("Usuario no autenticado");
-
-    final response = await http.get(
-      Uri.parse('${ApiService.baseUrl}/achievements'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-      if (jsonResponse['success']) {
-        List<dynamic> data = jsonResponse['data'];
-        return data.map((json) => Achievement.fromJson(json as Map<String, dynamic>)).toList();
-      }
-    }
-    throw Exception('Fallo al cargar las insignias');
-  }*/
   Future<List<Achievement>> getMyAchievements() async {
     final response = await _authRequest('GET', '/achievements');
 

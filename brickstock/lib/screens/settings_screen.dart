@@ -3,6 +3,7 @@ import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../models/achievement.dart';
 import '../widgets/wishlist_summary_card.dart'; // Importamos el componente reutilizable
+import 'login_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -114,7 +115,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.redAccent),
             tooltip: 'Cerrar Sesión',
-            onPressed: _logout,
+            onPressed: () async {
+              //Destruimos la sesión en la BBDD y en el almacenamiento local
+              await AuthService().logout();
+
+              //Comprobación de seguridad nativa de Flutter: 
+              // Asegurarnos de que esta pantalla sigue existiendo antes de intentar navegar
+              if (!context.mounted) return;
+
+              //Navegamos al Login pero DESTRUYENDO todo el historial anterior.
+              // Así evitamos que el usuario le dé al botón físico de "Atrás" en Android y vuelva a entrar.
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (Route<dynamic> route) => false, // Esto le dice a Flutter: "Elimina todas las rutas"
+              );
+            },
           )
         ],
       ),

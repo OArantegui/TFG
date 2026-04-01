@@ -28,7 +28,7 @@ router.put('/:id',
 // [DELETE] Borrar set de la colección
 router.delete('/:id', verifyJWT, collectionController.deleteCollectionItem);
 
-router.get('/minifigs', collectionController.getUserMinifigCollection);
-router.post('/minifigs', collectionController.addMinifigToCollection);
+router.get('/minifigs', verifyJWT, collectionController.getUserMinifigCollection);
+router.post('/minifigs', verifyJWT, collectionController.addMinifigToCollection);
 
 module.exports = router;

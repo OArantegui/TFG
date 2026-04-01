@@ -262,7 +262,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                     ),
                     segments: const [
                       ButtonSegment(value: CollectionMode.sets, label: Text('Sets'), icon: Icon(Icons.inventory_2)),
-                      ButtonSegment(value: CollectionMode.minifigs, label: Text('Minifiguras'), icon: Icon(Icons.person_pin)),
+                      ButtonSegment(value: CollectionMode.minifigs, label: Text('Minifiguras'), icon: Icon(Icons.smart_toy)),
                     ],
                     selected: {_selectedMode},
                     onSelectionChanged: (Set<CollectionMode> newSelection) {

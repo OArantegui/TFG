@@ -231,7 +231,7 @@ class _SetsListScreenState extends State<SetsListScreen> {
                       ButtonSegment(
                         value: SearchMode.minifigs,
                         label: Text('Minifiguras'),
-                        icon: Icon(Icons.person_pin),
+                        icon: Icon(Icons.smart_toy),
                       ),
                     ],
                     selected: {_searchMode},

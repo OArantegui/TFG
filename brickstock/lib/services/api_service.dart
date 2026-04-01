@@ -345,4 +345,85 @@ class ApiService {
     }
     throw Exception('Fallo al cargar las insignias');
   }
+  Future<Map<String, dynamic>> getAllMinifigs({int page = 1, String search = ''}) async {
+    String url = '${ApiService.baseUrl}/lego/minifigs?page=$page';
+    if (search.isNotEmpty) {
+      url += '&search=${Uri.encodeComponent(search)}';
+    }
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['success'] == true) {
+        final results = data['data']['results'] ?? [];
+        final minifigs = results.map<Minifigure>((e) => Minifigure.fromJson(e)).toList();
+        return {
+          'minifigs': minifigs,
+          'count': data['data']['count'] ?? 0,
+          'next': data['data']['next'],
+        };
+      }
+      throw Exception('Error en el formato de datos de minifiguras');
+    } else {
+      throw Exception('Fallo al cargar todas las minifiguras');
+    }
+  }
+
+  // 2. Obtener detalles de una minifigura (Para la nueva pantalla de detalles)
+  Future<Map<String, dynamic>> getMinifigDetails(String figNum) async {
+    final response = await http.get(Uri.parse('${ApiService.baseUrl}/lego/minifigs/$figNum'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['success'] == true) {
+        return data['data']; // Devolvemos el json enriquecido con 'appearsInSets'
+      }
+      throw Exception('Error en los detalles de la minifigura');
+    } else {
+      throw Exception('Fallo al cargar detalles de la minifigura');
+    }
+  }
+
+  // 3. Obtener la colección de minifiguras del usuario (Para la pestaña Colección)
+  Future<List<Minifigure>> getUserMinifigCollection() async {
+    // Usamos el wrapper con Token JWT
+    final response = await _authRequest('GET', '/collection/minifigs');
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['success'] == true) {
+        final List results = data['data'];
+        return results.map((e) => Minifigure.fromJson(e)).toList();
+      }
+      throw Exception('Error al parsear cartera de minifiguras');
+    } else {
+      throw Exception('Fallo al cargar la colección de minifiguras');
+    }
+  }
+
+  // 4. Añadir una minifigura suelta a la colección
+  Future<Map<String, dynamic>> addMinifigToCollection(String figNum, {int quantity = 1}) async {
+    try {
+      final response = await _authRequest(
+        'POST',
+        '/collection/minifigs',
+        body: {
+          'figNum': figNum,
+          'quantity': quantity,
+        },
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return {'success': true, 'message': data['message']};
+      } else {
+        return {'success': false, 'message': data['message'] ?? 'Error del servidor'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error de red o sesión expirada: $e'};
+    }
+  }
 }
+

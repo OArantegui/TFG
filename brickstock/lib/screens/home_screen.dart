@@ -4,126 +4,141 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../services/api_service.dart';
 import '../models/lego_set.dart';
-import '../models/lego_theme.dart';
 import '../providers/home_provider.dart';
+import '../widgets/nav_card.dart'; // Nuestro nuevo componente
 import 'set_details_screen.dart';
 import 'sets_list_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+// Cambiamos a StatelessWidget porque el estado lo maneja el HomeProvider
+class HomeScreen extends StatelessWidget {
+  // Recibimos la función de navegación desde MainLayout
+  final Function(int) onNavigate;
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  final ScrollController _scrollController = ScrollController();
-  // Constante para evitar "Magic Numbers"
-  static const double _scrollOffset = 220.0; 
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _scrollList(double multiplier) {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.offset + (_scrollOffset * multiplier),
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
-  }
+  const HomeScreen({super.key, required this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
-    // Usamos context.watch para re-dibujar solo cuando el Provider llame a notifyListeners()
     final provider = context.watch<HomeProvider>();
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'PANEL DE CONTROL',
-            style: TextStyle(
-              letterSpacing: 1.5,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
-            ),
+    return CustomScrollView(
+      slivers: [
+        // CABECERA DINÁMICA: Desaparece al bajar, aparece al subir
+        SliverAppBar(
+          floating: true,
+          snap: true,
+          backgroundColor: const Color(0xFF1E1E1E),
+          elevation: 0,
+          title: const Text(
+            'BRICKSTOCK', 
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange, letterSpacing: 1.2)
           ),
-          const SizedBox(height: 10),
-          const Text(
-            'Bienvenido de nuevo',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              height: 1.1,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.account_circle, color: Colors.grey, size: 28),
+              // El índice 5 corresponde al Perfil / Ajustes en MainLayout
+              onPressed: () => onNavigate(5), 
+              tooltip: 'Perfil',
             ),
-          ),
-          const SizedBox(height: 30),
+            const SizedBox(width: 8),
+          ],
+        ),
 
-          // TÍTULO Y CONTROLES
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  provider.featuredTheme != null
-                      ? 'DESTACADOS (${provider.featuredTheme!.name})'
-                      : 'DESTACADOS',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange,
+        // CONTENIDO PRINCIPAL
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              const Text(
+                'PANEL DE CONTROL',
+                style: TextStyle(letterSpacing: 1.5, fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Bienvenido de nuevo',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white, height: 1.1),
+              ),
+              const SizedBox(height: 30),
+
+              // BOTONES DE NAVEGACIÓN
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(), // El scroll lo maneja el CustomScrollView
+                crossAxisCount: 2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 1.3,
+                children: [
+                  NavCard(
+                    title: 'Buscar', 
+                    icon: Icons.search, 
+                    onTap: () => onNavigate(1) // Índice 1: Buscar
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                  NavCard(
+                    title: 'Temas', 
+                    icon: Icons.list_alt, 
+                    onTap: () => onNavigate(2) // Índice 2: Temas
+                  ),
+                  NavCard(
+                    title: 'Colección', 
+                    icon: Icons.shelves, 
+                    onTap: () => onNavigate(3) // Índice 3: Colección
+                  ),
+                  NavCard(
+                    title: 'Deseados', 
+                    icon: Icons.favorite_border, 
+                    onTap: () => onNavigate(4) // Índice 4: Deseados
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.arrow_back_ios, size: 16, color: Colors.white70),
-                onPressed: () => _scrollList(-1),
-                tooltip: "Anterior",
-              ),
-              IconButton(
-                icon: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white70),
-                onPressed: () => _scrollList(1),
-                tooltip: "Siguiente",
-              ),
-              const SizedBox(width: 8),
+              const SizedBox(height: 40),
 
-              if (provider.featuredTheme != null)
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SetsListScreen(theme: provider.featuredTheme!),
-                      ),
-                    );
-                  },
-                  child: const Text('Ver todos', style: TextStyle(color: Colors.grey)),
-                ),
-            ],
+              // CABECERA DE DESTACADOS
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      provider.featuredTheme != null
+                          ? 'DESTACADOS (${provider.featuredTheme!.name})'
+                          : 'DESTACADOS',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (provider.featuredTheme != null)
+                    TextButton(
+                      onPressed: () {
+                        // Aquí usamos push normal porque es una vista específica filtrada, no la pestaña general
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SetsListScreen(theme: provider.featuredTheme!),
+                          ),
+                        );
+                      },
+                      child: const Text('Ver todos', style: TextStyle(color: Colors.grey)),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
+            ]),
           ),
+        ),
 
-          const SizedBox(height: 10),
-
-          // CARRUSEL
-          Expanded(
+        // CARRUSEL DE DESTACADOS INTEGRADO EN SLIVER
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: 250, // Altura fija para el carrusel horizontal
             child: _buildCarouselContent(provider),
           ),
-          const SizedBox(height: 20),
-        ],
-      ),
+        ),
+        
+        // Espacio extra al final para que no se pegue al borde inferior
+        const SliverToBoxAdapter(child: SizedBox(height: 40)), 
+      ],
     );
   }
 
-  // Extraemos el IF de estados a un método para que el build principal no quede sucio
+  // Lógica del carrusel adaptada (es idéntica a la que tenías, solo adaptada al nuevo widget)
   Widget _buildCarouselContent(HomeProvider provider) {
     if (provider.isLoading) {
       return const Center(child: CircularProgressIndicator(color: Colors.orange));
@@ -131,19 +146,16 @@ class _HomeScreenState extends State<HomeScreen> {
     
     if (provider.errorMessage != null) {
       return Center(
-        child: Text(
-          provider.errorMessage!,
-          style: const TextStyle(color: Colors.redAccent),
-        ),
+        child: Text(provider.errorMessage!, style: const TextStyle(color: Colors.redAccent)),
       );
     }
 
     if (provider.featuredSets.isEmpty) {
-      return const Center(child: Text('No hay sets destacados'));
+      return const Center(child: Text('No hay sets destacados', style: TextStyle(color: Colors.grey)));
     }
 
     return ListView.separated(
-      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
       itemCount: provider.featuredSets.length,
@@ -155,16 +167,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// TARJETA DE SET
+// TARJETA DE SET DESTACADO (Mantenida exactamente igual)
 class _FeaturedSetCard extends StatelessWidget {
   final LegoSet legoSet;
 
   const _FeaturedSetCard({required this.legoSet});
 
-  // Función refactorizada aplicando DRY
   String _getImageUrl(String originalUrl) {
     if (kIsWeb) {
-      // Usamos el servicio centralizado que sabe si estamos en Local o Producción
       return ApiService().getProxyUrl(originalUrl);
     }
     return originalUrl;
@@ -174,7 +184,6 @@ class _FeaturedSetCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // al hacer click, nos movemos a la pantalla Details
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -183,7 +192,7 @@ class _FeaturedSetCard extends StatelessWidget {
         );
       },
       child: Container(
-        width: 200,
+        width: 180, // Ligeramente ajustado para que queden mejor en móviles pequeños
         decoration: BoxDecoration(
           color: const Color(0xFF2D2D2D),
           borderRadius: BorderRadius.circular(16),
@@ -193,28 +202,19 @@ class _FeaturedSetCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Imagen
             Expanded(
               flex: 3,
               child: Stack(
-                //Stack nos permite poner cosas encima de otras
                 fit: StackFit.expand,
                 children: [
                   CachedNetworkImage(
                     imageUrl: _getImageUrl(legoSet.imgUrl),
                     fit: BoxFit.cover,
                     placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.orange,
-                      ),
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orange),
                     ),
                     errorWidget: (context, url, error) => const Center(
-                      child: Icon(
-                        Icons.broken_image,
-                        color: Colors.grey,
-                        size: 40,
-                      ),
+                      child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
                     ),
                   ),
                   Positioned.fill(
@@ -223,11 +223,8 @@ class _FeaturedSetCard extends StatelessWidget {
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.6),
-                          ],
-                          stops: const [0.7, 1.0],
+                          colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
+                          stops: const [0.6, 1.0],
                         ),
                       ),
                     ),
@@ -235,8 +232,6 @@ class _FeaturedSetCard extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Textos
             Expanded(
               flex: 2,
               child: Padding(
@@ -249,21 +244,14 @@ class _FeaturedSetCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: Colors.orange,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             '#${legoSet.setNum}',
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 10,
-                            ),
+                            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10),
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -271,43 +259,19 @@ class _FeaturedSetCard extends StatelessWidget {
                           legoSet.name,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.white,
-                          ),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
                         ),
                       ],
                     ),
                     Row(
                       children: [
-                        const Icon(
-                          Icons.calendar_today,
-                          size: 12,
-                          color: Colors.grey,
-                        ),
+                        const Icon(Icons.calendar_today, size: 12, color: Colors.grey),
                         const SizedBox(width: 4),
-                        Text(
-                          '${legoSet.year}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
+                        Text('${legoSet.year}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                         const Spacer(),
-                        const Icon(
-                          Icons.extension,
-                          size: 12,
-                          color: Colors.grey,
-                        ),
+                        const Icon(Icons.extension, size: 12, color: Colors.grey),
                         const SizedBox(width: 4),
-                        Text(
-                          '${legoSet.numParts} pcs',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
+                        Text('${legoSet.numParts}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                       ],
                     ),
                   ],

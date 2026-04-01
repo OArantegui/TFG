@@ -35,12 +35,12 @@ class _MinifigDetailsScreenState extends State<MinifigDetailsScreen> {
         setState(() {
           // Mapeamos los sets recibidos al modelo LegoSet existente para reciclar pantallas
           _appearsInSets = setsData.map((e) => LegoSet(
-            setNum: e['setNum'] ?? '',
+            setNum: e['set_num'] ?? e['setNum'] ?? '',
             name: e['name'] ?? 'Desconocido',
             year: e['year'] ?? 0,
-            themeId: e['themeId'] ?? 0,
-            numParts: e['numParts'] ?? 0,
-            imgUrl: e['imageUrl'] ?? '',
+            themeId: e['theme_id'] ?? e['themeId'] ?? 0,
+            numParts: e['num_parts'] ?? e['numParts'] ?? 0,
+            imgUrl: e['set_img_url'] ?? e['imageUrl'] ?? '',
           )).toList();
         });
       }

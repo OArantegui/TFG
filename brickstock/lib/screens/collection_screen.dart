@@ -175,6 +175,7 @@ import '../services/api_service.dart';
 import '../models/minifigure.dart';
 import '../models/lego_set.dart';
 import 'set_details_screen.dart';
+import 'minifig_details_screen.dart';
 
 enum CollectionMode { sets, minifigs }
 
@@ -397,6 +398,14 @@ class _CollectionScreenState extends State<CollectionScreen> {
               icon: const Icon(Icons.delete, color: Colors.redAccent),
               onPressed: () => _confirmDeleteMinifig(context, provider, fig),
             ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MinifigDetailsScreen(minifigure: fig),
+                ),
+              );
+            },
           ),
         );
       },

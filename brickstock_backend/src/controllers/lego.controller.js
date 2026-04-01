@@ -113,6 +113,45 @@ const getAllSets = async (req, res) => {
     }
 };
 
+// GET: Buscar todas las minifiguras (Paginado)
+const getMinifigs = async (req, res) => {
+    try {
+        const page = req.query.page || 1;
+        const search = req.query.search || '';
+
+        const data = await rebrickableService.getAllMinifigs(page, search);
+        res.status(200).json({ success: true, data });
+    } catch (error) {
+        console.error("Error obteniendo minifiguras:", error);
+        res.status(500).json({ success: false, message: 'Error al obtener minifiguras', error: error.message });
+    }
+};
+
+// GET: Detalles de una minifigura y en qué sets aparece
+const getMinifigDetails = async (req, res) => {
+    try {
+        const { figNum } = req.params;
+
+        // TFG: Ejecutamos ambas peticiones a Rebrickable en paralelo para reducir el tiempo de respuesta (Latencia)
+        const [details, sets] = await Promise.all([
+            rebrickableService.getMinifigDetails(figNum),
+            rebrickableService.getMinifigSets(figNum)
+        ]);
+
+        res.status(200).json({ 
+            success: true, 
+            data: {
+                ...details,
+                appearsInSets: sets // Inyectamos los sets en la misma respuesta
+            } 
+        });
+    } catch (error) {
+        console.error(`Error obteniendo detalles de la minifigura ${req.params.figNum}:`, error);
+        res.status(500).json({ success: false, message: 'Error al obtener detalles', error: error.message });
+    }
+};
+
+
 module.exports = {
     getThemes,
     getSetsByTheme,
@@ -120,5 +159,7 @@ module.exports = {
     getThemeCover,
     getSetMinifigs,
     getMinifigSets,
-    getAllSets
+    getAllSets,
+    getMinifigs,
+    getMinifigDetails
 };

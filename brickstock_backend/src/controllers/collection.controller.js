@@ -1,51 +1,71 @@
 const Collection = require('../models/collection.model');
+const MinifigCollection = require('../models/minifig_collection.model');
 const rebrickableService = require('../services/rebrickable.service');
 const achievementService = require('../services/achievement.service');
+
 
 // POST: Añadir un nuevo set a la cartera
 exports.addSetToCollection = async (req, res) => {
     try {
         const { setNum, quantity = 1, purchasePrice, condition = 'NISB' } = req.body;
-        const userId = req.user.id; // Viene de nuestro middleware verifyJWT
+        const userId = req.user.id; 
 
-        // 1. (Opcional pero recomendado) Comprobar si el set existe en Rebrickable 
-        // y guardarlo en nuestra caché si tuviéramos un SetCache.model.
-        // const setDetails = await rebrickableService.getSetByNum(setNum);
-
-        // 2. Comprobar si el usuario ya tiene este set en su colección
+        // 1 y 2. Comprobar si existe el set en la colección (como ya tenías)
         let existingItem = await Collection.findOne({ userId, setNum, condition });
 
         if (existingItem) {
-            // Si ya lo tiene, actualizamos la cantidad
             existingItem.quantity += quantity;
-            // Podrías hacer una media del precio de compra aquí
             await existingItem.save();
             return res.status(200).json({ success: true, message: 'Cantidad actualizada en la colección', data: existingItem });
         }
 
-        // 3. Si no lo tiene, creamos un registro nuevo
-        const newItem = new Collection({
-            userId,
-            setNum,
-            quantity,
-            purchasePrice,
-            condition
-        });
-
+        // 3. Crear el nuevo registro del Set
+        const newItem = new Collection({ userId, setNum, quantity, purchasePrice, condition });
         await newItem.save();
+
+        // === MAGIA DEL TFG: AUTO-AÑADIR MINIFIGURAS ===
+        // Justificación Académica: Delegamos la lógica compleja al backend. El cliente no hace múltiples peticiones.
+        try {
+            const minifigs = await rebrickableService.getSetMinifigs(setNum);
+            
+            if (minifigs && minifigs.length > 0) {
+                for (const fig of minifigs) {
+                    // Verificamos si el usuario ya tiene esta minifigura
+                    let existingFig = await MinifigCollection.findOne({ userId, figNum: fig.figNum });
+                    
+                    // Calculamos cuántas minifiguras reales trae (cantidad en el set * cantidad de sets comprados)
+                    const figsToAdd = (fig.quantity || 1) * quantity;
+
+                    if (existingFig) {
+                        existingFig.quantity += figsToAdd;
+                        await existingFig.save();
+                    } else {
+                        await MinifigCollection.create({
+                            userId,
+                            figNum: fig.figNum,
+                            quantity: figsToAdd,
+                            source: 'From Set',
+                            sourceSetNum: setNum
+                        });
+                    }
+                }
+            }
+        } catch (figError) {
+            // Capturamos el error pero NO paramos la ejecución, porque el Set ya se ha guardado
+            console.error("Error al auto-añadir minifiguras del set:", figError.message);
+        }
+        // ==============================================
+
         // === TFG: INTERCEPTOR DE GAMIFICACIÓN ===
-        // Contamos cuántos sets tiene ahora en total
-        const totalSets = await Collection.countDocuments({ userId: req.user.id });
-        
-        // Evaluamos si merece premio
-        const newlyUnlocked = await achievementService.syncCollectionAchievements(req.user.id, totalSets);
+        const totalSets = await Collection.countDocuments({ userId });
+        const newlyUnlocked = await achievementService.syncCollectionAchievements(userId, totalSets);
         // =========================================
 
         res.status(201).json({
-        success: true,
-        message: 'Set añadido a la colección',
-        data: newItem,
-        newAchievements: newlyUnlocked // <-- ¡Enviamos el premio a Flutter en la misma petición!
+            success: true,
+            message: 'Set y sus minifiguras añadidos a la colección',
+            data: newItem,
+            newAchievements: newlyUnlocked 
         });
 
     } catch (error) {
@@ -53,6 +73,7 @@ exports.addSetToCollection = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error al añadir el set', error: error.message });
     }
 };
+
 // GET: Obtener toda la cartera del usuario
 exports.getUserCollection = async (req, res) => {
     try {
@@ -112,3 +133,68 @@ exports.deleteCollectionItem = async (req, res) => {
 
 // PUT y DELETE (Modificar cantidad o vender/borrar)
 exports.updateCollectionItem = async (req, res) => { res.status(200).send("Actualizar set"); };
+
+// GET: Obtener la colección de minifiguras del usuario (Patrón BFF)
+exports.getUserMinifigCollection = async (req, res) => {
+    try {
+        const collection = await MinifigCollection.find({ userId: req.user.id });
+
+        // Enriquecemos con datos de Rebrickable
+        const enrichedCollection = await Promise.all(collection.map(async (item) => {
+            let details = {};
+            try {
+                details = await rebrickableService.getMinifigDetails(item.figNum);
+            } catch (err) {
+                console.error(`Error obteniendo detalles de minifig ${item.figNum}`);
+            }
+
+            return {
+                id: item._id,
+                figNum: item.figNum,
+                quantity: item.quantity,
+                source: item.source,
+                sourceSetNum: item.sourceSetNum,
+                name: details.name || 'Minifigura Desconocida',
+                numParts: details.num_parts || 0,
+                imageUrl: details.set_img_url || 'https://via.placeholder.com/150'
+            };
+        }));
+
+        res.status(200).json({ success: true, data: enrichedCollection });
+    } catch (error) {
+        console.error("Error al obtener la colección de minifiguras:", error);
+        res.status(500).json({ success: false, message: 'Error al obtener la cartera de minifiguras', error: error.message });
+    }
+};
+
+// POST: Añadir una minifigura suelta manualmente
+exports.addMinifigToCollection = async (req, res) => {
+    try {
+        const { figNum, quantity = 1 } = req.body;
+        const userId = req.user.id;
+
+        let existingItem = await MinifigCollection.findOne({ userId, figNum });
+
+        if (existingItem) {
+            existingItem.quantity += quantity;
+            // Si antes era de un Set y ahora la compra manual, podemos actualizar el 'source' si queremos, 
+            // pero lo dejaremos intacto por simplicidad de la cartera.
+            await existingItem.save();
+            return res.status(200).json({ success: true, message: 'Cantidad actualizada', data: existingItem });
+        }
+
+        const newItem = new MinifigCollection({
+            userId,
+            figNum,
+            quantity,
+            source: 'Manual' // Marcamos que la añadió suelta
+        });
+
+        await newItem.save();
+
+        res.status(201).json({ success: true, message: 'Minifigura añadida a la colección', data: newItem });
+    } catch (error) {
+        console.error("Error al añadir minifigura a colección:", error);
+        res.status(500).json({ success: false, message: 'Error al añadir minifigura', error: error.message });
+    }
+};

@@ -207,6 +207,31 @@ const getAllSets = async (page = 1, search = '') => {
         throw error;
     }
 };
+// Obtener lista paginada de minifiguras (para el buscador del Frontend)
+const getAllMinifigs = async (page = 1, search = '') => {
+    try {
+        let url = `/minifigs/?page_size=20&page=${page}`;
+        if (search && search.trim() !== '') {
+            url += `&search=${encodeURIComponent(search)}`;
+        }
+        const response = await apiClient.get(url);
+        return response.data;
+    } catch (error) {
+        console.error("Error en Rebrickable Service (getAllMinifigs):", error.message);
+        throw error;
+    }
+};
+
+// Obtener detalles de una minifigura concreta
+const getMinifigDetails = async (figNum) => {
+    try {
+        const response = await apiClient.get(`/minifigs/${figNum}/`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error en Rebrickable Service (getMinifigDetails - ${figNum}):`, error.message);
+        throw error;
+    }
+};
 
 module.exports = {
     getThemes,
@@ -215,5 +240,7 @@ module.exports = {
     getSetByNum,
     getSetMinifigs,
     getMinifigSets,
-    getAllSets
+    getAllSets,
+    getAllMinifigs,
+    getMinifigDetails
 };

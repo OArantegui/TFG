@@ -441,11 +441,7 @@ class _SetsListScreenState extends State<SetsListScreen> {
                             ],
                           ),
                         ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.add_circle, color: Colors.orange),
-                          tooltip: "Añadir a colección",
-                          onPressed: () => _showAddMinifigDialog(fig),
-                        ),
+                        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                         onTap: () {
                           Navigator.push(
                             context, 

@@ -10,17 +10,17 @@ import 'minifig_details_screen.dart';
 
 enum SearchMode { sets, minifigs }
 
-class SetsListScreen extends StatefulWidget {
+class ElementsListScreen extends StatefulWidget {
   final LegoTheme? theme;
   final String? customTitle;
 
-  const SetsListScreen({super.key, this.theme, this.customTitle});
+  const ElementsListScreen({super.key, this.theme, this.customTitle});
 
   @override
-  State<SetsListScreen> createState() => _SetsListScreenState();
+  State<ElementsListScreen> createState() => _ElementsListScreenState();
 }
 
-class _SetsListScreenState extends State<SetsListScreen> {
+class _ElementsListScreenState extends State<ElementsListScreen> {
   final ApiService apiService = ApiService();
 
   // --- ESTADO DE SETS ---

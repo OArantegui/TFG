@@ -3,16 +3,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import '../services/api_service.dart';
 import '../models/lego_theme.dart';
-import 'sets_list_screen.dart';
+import 'elements_list_screen.dart';
 
-class ExploreScreen extends StatefulWidget {
-  const ExploreScreen({super.key});
+class ThemesScreen extends StatefulWidget {
+  const ThemesScreen({super.key});
 
   @override
-  State<ExploreScreen> createState() => _ExploreScreenState();
+  State<ThemesScreen> createState() => _ThemesScreenState();
 }
 
-class _ExploreScreenState extends State<ExploreScreen> {
+class _ThemesScreenState extends State<ThemesScreen> {
   final ApiService apiService = ApiService();
 
   List<LegoTheme> _themes = [];
@@ -267,7 +267,7 @@ class _ThemeCardState extends State<_ThemeCard> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SetsListScreen(theme: widget.theme))),
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ElementsListScreen(theme: widget.theme))),
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF2D2D2D), borderRadius: BorderRadius.circular(12),

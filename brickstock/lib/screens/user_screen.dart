@@ -5,14 +5,14 @@ import '../models/achievement.dart';
 import '../widgets/wishlist_summary_card.dart'; // Importamos el componente reutilizable
 import 'login_screen.dart';
 
-class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+class UserScreen extends StatefulWidget {
+  const UserScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  State<UserScreen> createState() => _UserScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _UserScreenState extends State<UserScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();

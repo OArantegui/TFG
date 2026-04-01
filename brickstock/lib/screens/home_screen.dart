@@ -7,7 +7,7 @@ import '../models/lego_set.dart';
 import '../providers/home_provider.dart';
 import '../widgets/nav_card.dart'; // Nuestro nuevo componente
 import 'set_details_screen.dart';
-import 'sets_list_screen.dart';
+import 'elements_list_screen.dart';
 
 // Cambiamos a StatelessWidget porque el estado lo maneja el HomeProvider
 class HomeScreen extends StatelessWidget {
@@ -111,7 +111,7 @@ class HomeScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => SetsListScreen(theme: provider.featuredTheme!),
+                            builder: (context) => ElementsListScreen(theme: provider.featuredTheme!),
                           ),
                         );
                       },

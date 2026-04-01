@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/rendering.dart';
 import 'home_screen.dart';
-import 'explore_screen.dart';
+import 'themes_screen.dart';
 import 'collection_screen.dart';
 import 'wishlist_screen.dart';
-import 'settings_screen.dart';
-import 'sets_list_screen.dart';
+import 'user_screen.dart';
+import 'elements_list_screen.dart';
 import '../services/auth_service.dart';
 import '../providers/home_provider.dart';
 import '../providers/collection_provider.dart';
@@ -54,7 +54,7 @@ class _MainLayoutState extends State<MainLayout> {
   Widget build(BuildContext context) {
     final List<Widget> screens = [
       ChangeNotifierProvider(create: (_) => HomeProvider(), child: HomeScreen(onNavigate: _onItemTapped)),
-      const SetsListScreen(customTitle: 'Buscar Sets'),
+      const ElementsListScreen(customTitle: 'Buscar Sets'),
       PopScope(
         canPop: false,
         onPopInvokedWithResult: (bool didPop, dynamic result) {
@@ -67,12 +67,12 @@ class _MainLayoutState extends State<MainLayout> {
         },
         child: Navigator(
           key: _exploreNavKey,
-          onGenerateRoute: (settings) => MaterialPageRoute(builder: (context) => const ExploreScreen()),
+          onGenerateRoute: (settings) => MaterialPageRoute(builder: (context) => const ThemesScreen()),
         ),
       ),
       ChangeNotifierProvider(create: (_) => CollectionProvider(), child: const CollectionScreen()),
       const WishlistScreen(),
-      const SettingsScreen(),
+      const UserScreen(),
     ];
 
     return LayoutBuilder(

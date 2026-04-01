@@ -239,7 +239,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                         children: [
                           const Text('MINIFIGURAS', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
                           const SizedBox(height: 5),
-                          Text('${provider.totalMinifigures}', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                          Text('${provider.totalMinifigures}', style: const TextStyle(color: Colors.orange, fontSize: 24, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ],

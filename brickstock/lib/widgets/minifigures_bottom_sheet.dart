@@ -4,6 +4,7 @@ import '../models/minifigure.dart';
 import '../services/api_service.dart';
 import '../models/lego_set.dart';
 import '../screens/set_details_screen.dart';
+import '../screens/minifig_details_screen.dart'; // <--- IMPORTANTE: Importamos la nueva pantalla
 
 class MinifiguresBottomSheet extends StatefulWidget {
   final String setNum;
@@ -61,6 +62,26 @@ class _MinifiguresBottomSheetState extends State<MinifiguresBottomSheet> {
                   ),
                 ),
                 
+                // === NUEVO: BOTÓN DE VÍNCULO EXTERNO A PANTALLA COMPLETA ===
+                if (_selectedMinifigure != null)
+                  IconButton(
+                    icon: const Icon(Icons.open_in_new, color: Colors.orange),
+                    tooltip: 'Ver Ficha Completa',
+                    onPressed: () {
+                      final fig = _selectedMinifigure!;
+                      // 1. Cerramos el modal actual para limpiar la pila de navegación
+                      Navigator.pop(context);
+                      // 2. Navegamos a la pantalla de detalles de la minifigura
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MinifigDetailsScreen(minifigure: fig),
+                        ),
+                      );
+                    },
+                  ),
+                // =============================================================
+
                 // Botón para cerrar el modal
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -88,7 +109,7 @@ class _MinifiguresBottomSheetState extends State<MinifiguresBottomSheet> {
       future: ApiService().getSetMinifigures(widget.setNum),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator(color: Colors.orange));
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -105,14 +126,14 @@ class _MinifiguresBottomSheetState extends State<MinifiguresBottomSheet> {
                 backgroundImage: fig.imageUrl.isNotEmpty
                     ? NetworkImage(_getImageUrl(fig.imageUrl))
                     : null,
-                child: fig.imageUrl.isEmpty ? const Icon(Icons.person) : null,
                 backgroundColor: Colors.transparent,
+                child: fig.imageUrl.isEmpty ? const Icon(Icons.person) : null,
               ),
               title: Text(fig.name),
               subtitle: Text(fig.figNum),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                // TFG: Al pulsar, actualizamos el estado para mostrar el detalle
+                // Al pulsar, actualizamos el estado para mostrar el detalle local en el sheet
                 setState(() {
                   _selectedMinifigure = fig;
                 });
@@ -124,9 +145,8 @@ class _MinifiguresBottomSheetState extends State<MinifiguresBottomSheet> {
     );
   }
 
-  // VISTA 2: EL DETALLE
+  // VISTA 2: EL DETALLE LOCAL
   Widget _buildMinifigureDetails() {
-    // Usamos componentes puros de Material (Anti-Diseño)
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -144,26 +164,27 @@ class _MinifiguresBottomSheetState extends State<MinifiguresBottomSheet> {
           const SizedBox(height: 24),
           
           Card(
+            color: const Color(0xFF2A2A2A),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
                   ListTile(
-                    title: const Text('Nombre'),
-                    subtitle: Text(_selectedMinifigure!.name),
-                    leading: const Icon(Icons.badge),
+                    title: const Text('Nombre', style: TextStyle(color: Colors.white70)),
+                    subtitle: Text(_selectedMinifigure!.name, style: const TextStyle(color: Colors.white)),
+                    leading: const Icon(Icons.badge, color: Colors.orange),
                   ),
-                  const Divider(),
+                  const Divider(color: Colors.white10),
                   ListTile(
-                    title: const Text('Número de Identificación'),
-                    subtitle: Text(_selectedMinifigure!.figNum),
-                    leading: const Icon(Icons.tag),
+                    title: const Text('Número de Identificación', style: TextStyle(color: Colors.white70)),
+                    subtitle: Text(_selectedMinifigure!.figNum, style: const TextStyle(color: Colors.white)),
+                    leading: const Icon(Icons.tag, color: Colors.orange),
                   ),
-                  const Divider(),
+                  const Divider(color: Colors.white10),
                   ListTile(
-                    title: const Text('Cantidad en este set'),
-                    subtitle: Text('${_selectedMinifigure!.quantity} unidades'),
-                    leading: const Icon(Icons.inventory_2),
+                    title: const Text('Cantidad en este set', style: TextStyle(color: Colors.white70)),
+                    subtitle: Text('${_selectedMinifigure!.quantity} unidades', style: const TextStyle(color: Colors.white)),
+                    leading: const Icon(Icons.inventory_2, color: Colors.orange),
                   ),
                 ],
               ),
@@ -176,28 +197,28 @@ class _MinifiguresBottomSheetState extends State<MinifiguresBottomSheet> {
               'También aparece en:',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
           ),
-          const Divider(),
+          const Divider(color: Colors.white10),
           FutureBuilder<List<LegoSet>>(
             future: ApiService().getMinifigSets(_selectedMinifigure!.figNum),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Padding(
                   padding: EdgeInsets.all(20.0),
-                  child: CircularProgressIndicator(),
+                  child: CircularProgressIndicator(color: Colors.orange),
                 );
               } else if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
+                return Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.red));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                // Fallback de seguridad (no debería ocurrir)
-                return const Text('No hay datos disponibles.');
+                return const Text('No hay datos disponibles.', style: TextStyle(color: Colors.white54));
               }
 
               final allSets = snapshot.data!;
               
-              // TFG Lógica de UX: Filtramos para NO mostrar el set en el que ya estamos
+              // Filtramos para NO mostrar el set en el que ya estamos
               final otherSets = allSets.where((s) => s.setNum != widget.setNum).toList();
 
               if (otherSets.isEmpty) {
@@ -211,29 +232,25 @@ class _MinifiguresBottomSheetState extends State<MinifiguresBottomSheet> {
               }
 
               return ListView.builder(
-                shrinkWrap: true, // VITAL: Permite que un ListView viva dentro de un SingleChildScrollView
-                physics: const NeverScrollableScrollPhysics(), // Desactiva el scroll interno de la lista
+                shrinkWrap: true, 
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: otherSets.length,
                 itemBuilder: (context, index) {
                   final setItem = otherSets[index];
                   return ListTile(
-                    contentPadding: EdgeInsets.zero, // Quita los márgenes por defecto para alinear
+                    contentPadding: EdgeInsets.zero, 
                     leading: SizedBox(
                       width: 50,
                       height: 50,
                       child: setItem.imgUrl.isNotEmpty
                           ? Image.network(_getImageUrl(setItem.imgUrl), fit: BoxFit.contain)
-                          : const Icon(Icons.image_not_supported),
+                          : const Icon(Icons.image_not_supported, color: Colors.grey),
                     ),
-                    title: Text(setItem.name),
-                    subtitle: Text(setItem.setNum),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 14), // Indicador visual de que es pulsable
+                    title: Text(setItem.name, style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(setItem.setNum, style: const TextStyle(color: Colors.white54)),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
                     onTap: () {
-                      // 1. Primero cerramos el modal actual para que no se quede abierto por debajo
                       Navigator.pop(context); 
-
-                      // 2. Navegamos al nuevo set
-                      // Como 'setItem' ya es un objeto de tipo LegoSet, encaja perfectamente
                       Navigator.push(
                         context,
                         MaterialPageRoute(

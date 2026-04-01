@@ -198,3 +198,17 @@ exports.addMinifigToCollection = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error al añadir minifigura', error: error.message });
     }
 };
+exports.removeMinifigFromCollection = async (req, res) => {
+    try {
+        const { id } = req.params; // ID de MongoDB de la minifigura
+        const deletedItem = await MinifigCollection.findOneAndDelete({ _id: id, userId: req.user.id });
+        
+        if (!deletedItem) {
+            return res.status(404).json({ success: false, message: 'Minifigura no encontrada' });
+        }
+        res.status(200).json({ success: true, message: 'Minifigura eliminada de la cartera' });
+    } catch (error) {
+        console.error("Error al eliminar minifigura:", error);
+        res.status(500).json({ success: false, message: 'Error al eliminar', error: error.message });
+    }
+};

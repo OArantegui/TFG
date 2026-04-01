@@ -8,7 +8,7 @@ Este proyecto es parte del **Trabajo de Fin de Grado (TFG)** del ciclo de Desarr
 
 * **Frontend:** Flutter (Dart).
 * **Backend:** Node.js con Express.
-* **Base de Datos:** PostgreSQL (Próximamente).
+* **Base de Datos:** MongoDB con Mongoose.
 * **API Externa:** Rebrickable API v3.
 * **Arquitectura:** Cliente-Servidor con patrón BFF (Backend for Frontend).
 

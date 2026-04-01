@@ -322,7 +322,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Set: ${item.setNum} • ${item.numParts} pz', style: const TextStyle(color: Colors.grey, fontSize: 13)),
-                  Text('Cantidad: ${item.quantity} • Compra: ${item.purchasePrice}€', style: const TextStyle(color: Colors.orange, fontSize: 13)),
+                  Text('Cantidad: ${item.quantity} • ${item.purchasePrice}€', style: const TextStyle(color: Colors.orange, fontSize: 13)),
                 ],
               ),
             ),

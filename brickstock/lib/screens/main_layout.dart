@@ -23,6 +23,8 @@ class _MainLayoutState extends State<MainLayout> {
   String _username = "Perfil";
   bool _isBottomBarVisible = true;
 
+  final GlobalKey<NavigatorState> _exploreNavKey = GlobalKey<NavigatorState>();
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +42,11 @@ class _MainLayoutState extends State<MainLayout> {
   
   void _onItemTapped(int index) {
     setState(() {
+
+      if (_selectedIndex == 2 && index == 2) {
+        _exploreNavKey.currentState?.popUntil((route) => route.isFirst);
+      }
+
       _selectedIndex = index;
       _isBottomBarVisible = true; // Restaurar la barra móvil al cambiar de pestaña
     });
@@ -50,16 +57,37 @@ class _MainLayoutState extends State<MainLayout> {
     final List<Widget> screens = [
       ChangeNotifierProvider(
         create: (_) => HomeProvider(),
-        child: HomeScreen(onNavigate: _onItemTapped),
+        child: HomeScreen(onNavigate: _onItemTapped), //0
       ),
-      const SetsListScreen(customTitle: 'Buscar Sets'),
-      const ExploreScreen(),
+      const SetsListScreen(customTitle: 'Buscar Sets'), //1
+      PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (bool didPop, dynamic result) {
+          if (didPop) return;
+          // 1. Si estamos dentro de un Tema y pulsamos el botón "Atrás" de Android, volvemos a la lista de Temas
+          if (_exploreNavKey.currentState != null && _exploreNavKey.currentState!.canPop()) {
+            _exploreNavKey.currentState!.pop();
+          } 
+          // 2. Si ya estamos en la lista de Temas, nos devuelve a la pantalla de Inicio
+          else {
+            setState(() => _selectedIndex = 0);
+          }
+        },
+        child: Navigator(
+          key: _exploreNavKey,
+          onGenerateRoute: (settings) {
+            return MaterialPageRoute(
+              builder: (context) => const ExploreScreen(),
+            );
+          },
+        ),
+      ),
       ChangeNotifierProvider(
         create: (_) => CollectionProvider(),
-        child: const CollectionScreen(),
+        child: const CollectionScreen(), //3
       ),
-      const WishlistScreen(),
-      const SettingsScreen(),
+      const WishlistScreen(), //4
+      const SettingsScreen(), //5
     ];
 
     return LayoutBuilder(
@@ -125,14 +153,27 @@ class _MainLayoutState extends State<MainLayout> {
 
               // CONTENIDO PRINCIPAL
               Expanded(
-                child: NotificationListener<UserScrollNotification>(
-                  onNotification: (notification) {
-                    // La lógica del scroll solo afecta a la variable de la barra inferior
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (ScrollNotification notification) {
                     if (isMobile) {
-                      if (notification.direction == ScrollDirection.reverse) {
-                        if (_isBottomBarVisible) setState(() => _isBottomBarVisible = false);
-                      } else if (notification.direction == ScrollDirection.forward) {
-                        if (!_isBottomBarVisible) setState(() => _isBottomBarVisible = true);
+                      // Si la lista vuelve arriba del todo (pixels <= 0) 
+                      // o si la lista ya no es scrolleable porque hay pocos resultados (maxScrollExtent <= 0)
+                      if (notification.metrics.pixels <= 0 || notification.metrics.maxScrollExtent <= 0) {
+                        if (!_isBottomBarVisible) {
+                          // Usamos addPostFrameCallback para no interferir con el renderizado actual de Flutter
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) setState(() => _isBottomBarVisible = true);
+                          });
+                        }
+                      }
+
+                      // Comportamiento normal: Ocultar al bajar, mostrar al subir
+                      if (notification is UserScrollNotification) {
+                        if (notification.direction == ScrollDirection.reverse) {
+                          if (_isBottomBarVisible) setState(() => _isBottomBarVisible = false);
+                        } else if (notification.direction == ScrollDirection.forward) {
+                          if (!_isBottomBarVisible) setState(() => _isBottomBarVisible = true);
+                        }
                       }
                     }
                     return false;

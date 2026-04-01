@@ -11,22 +11,13 @@ import '../models/achievement.dart';
 
 class ApiService {
   // 1. Definimos las URLs de los entornos
-  // Para Android Emulator deberás usar 'http://10.0.2.2:3000/api' cuando desarrolles en local
-  //static const String _localUrl = 'http://localhost:3000/api';
-  static const String _localUrl = 'http://10.44.44.99:3000/api';
-
   // TODO: Pon aquí tu URL pública de Render cuando la tengas
   static const String _productionUrl =
       'https://brickstock-o9l6.onrender.com/api';
 
   // 2. Getter estático que decide qué URL usar
   static String get baseUrl {
-    if (kReleaseMode) {
-      // Si compilamos para Producción (GitHub Pages), usa la de Render
-      return _productionUrl;
-    }
-    // Si estamos en Debug (Desarrollo), usa Localhost
-    return _localUrl;
+    return _productionUrl;
   }
 
   Future<http.Response> _authRequest(
@@ -46,8 +37,10 @@ class ApiService {
       };
 
       if (method == 'GET') return http.get(uri, headers: headers);
-      if (method == 'POST') return http.post(uri, headers: headers, body: jsonEncode(body));
-      if (method == 'PUT') return http.put(uri, headers: headers, body: jsonEncode(body));
+      if (method == 'POST')
+        return http.post(uri, headers: headers, body: jsonEncode(body));
+      if (method == 'PUT')
+        return http.put(uri, headers: headers, body: jsonEncode(body));
       if (method == 'DELETE') return http.delete(uri, headers: headers);
       throw Exception('Método HTTP no soportado');
     }
@@ -59,7 +52,7 @@ class ApiService {
     if (response.statusCode == 401 || response.statusCode == 403) {
       print("⚠️ Token expirado. Intentando refrescar de fondo...");
       bool refreshed = await authService.refreshAccessToken();
-      
+
       if (refreshed) {
         // 3. ¡Éxito! Obtenemos el nuevo token y reintentamos la petición original
         token = await authService.getAccessToken();
@@ -69,14 +62,18 @@ class ApiService {
         // Si no se pudo refrescar (expiró también el largo), se fuerza el logout
         print("❌ Imposible refrescar. Redirigir a Login.");
         // Opcional: Aquí podrías lanzar un evento global para mandar a LoginScreen
-        throw Exception("Sesión expirada"); 
+        throw Exception("Sesión expirada");
       }
     }
 
     return response;
   }
 
-  Future<Map<String, dynamic>> getThemes({int page = 1, String search = '', String sort = 'name_asc'}) async {
+  Future<Map<String, dynamic>> getThemes({
+    int page = 1,
+    String search = '',
+    String sort = 'name_asc',
+  }) async {
     String url = '${ApiService.baseUrl}/lego/themes?page=$page&sort=$sort';
     if (search.isNotEmpty) {
       url += '&search=${Uri.encodeComponent(search)}';
@@ -85,16 +82,22 @@ class ApiService {
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
-      return json.decode(response.body); // Devolvemos todo el mapa (results, totalPages, etc)
+      return json.decode(
+        response.body,
+      ); // Devolvemos todo el mapa (results, totalPages, etc)
     } else {
       throw Exception('Fallo al cargar temas desde el Backend');
     }
   }
 
-  Future<Map<String, dynamic>> getSetsByTheme(int themeId, {int page = 1, String search = ''}) async {
+  Future<Map<String, dynamic>> getSetsByTheme(
+    int themeId, {
+    int page = 1,
+    String search = '',
+  }) async {
     // ¡ATENCIÓN A ESTA LÍNEA! Es la que estaba dando el error 404.
     String url = '${ApiService.baseUrl}/lego/sets/$themeId?page=$page';
-    
+
     if (search.isNotEmpty) {
       url += '&search=${Uri.encodeComponent(search)}';
     }
@@ -103,23 +106,23 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      
-      final List results = data['results'] ?? [];
-      
-      final List<LegoSet> sets = results.map((e) => LegoSet(
-        setNum: e['set_num'],
-        name: e['name'],
-        year: e['year'],
-        themeId: e['theme_id'],
-        numParts: e['num_parts'],
-        imgUrl: e['set_img_url'] ?? '',
-      )).toList();
 
-      return {
-        'sets': sets,
-        'count': data['count'] ?? 0,
-        'next': data['next'], 
-      };
+      final List results = data['results'] ?? [];
+
+      final List<LegoSet> sets = results
+          .map(
+            (e) => LegoSet(
+              setNum: e['set_num'],
+              name: e['name'],
+              year: e['year'],
+              themeId: e['theme_id'],
+              numParts: e['num_parts'],
+              imgUrl: e['set_img_url'] ?? '',
+            ),
+          )
+          .toList();
+
+      return {'sets': sets, 'count': data['count'] ?? 0, 'next': data['next']};
     } else {
       throw Exception('Fallo al cargar sets del tema');
     }
@@ -144,11 +147,14 @@ class ApiService {
     return '${ApiService.baseUrl}/lego/image-proxy?url=${Uri.encodeComponent(originalUrl)}';
   }
 
-  Future<Map<String, dynamic>> addToCollection(String setNum, double purchasePrice) async {
+  Future<Map<String, dynamic>> addToCollection(
+    String setNum,
+    double purchasePrice,
+  ) async {
     try {
       // Usamos el wrapper, pasándole directamente el método, la ruta y el body
       final response = await _authRequest(
-        'POST', 
+        'POST',
         '/collection',
         body: {
           'setNum': setNum,
@@ -161,21 +167,27 @@ class ApiService {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        return {
-          'success': true,
-          'newAchievements': data['newAchievements'] 
-        };
+        return {'success': true, 'newAchievements': data['newAchievements']};
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Error del servidor'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Error del servidor',
+        };
       }
     } catch (e) {
       // Si el interceptor falla (ej. expiró la sesión y el refresh token), caerá aquí
-      return {'success': false, 'message': 'Error de red o sesión expirada: $e'};
+      return {
+        'success': false,
+        'message': 'Error de red o sesión expirada: $e',
+      };
     }
   }
 
   Future<List<CollectionItem>> getUserCollection() async {
-    final response = await _authRequest('GET', '/collection'); // Usamos nuestro wrapper
+    final response = await _authRequest(
+      'GET',
+      '/collection',
+    ); // Usamos nuestro wrapper
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -188,7 +200,10 @@ class ApiService {
 
   Future<bool> deleteFromCollection(String collectionId) async {
     try {
-      final response = await _authRequest('DELETE', '/collection/$collectionId');
+      final response = await _authRequest(
+        'DELETE',
+        '/collection/$collectionId',
+      );
       return response.statusCode == 200;
     } catch (e) {
       return false;
@@ -270,10 +285,11 @@ class ApiService {
       throw Exception('Error de conexión: $e');
     }
   }
+
   Future<List<LegoSet>> getMinifigSets(String figNum) async {
     try {
       final response = await http.get(
-        Uri.parse('${ApiService.baseUrl}/lego/minifigs/$figNum/sets')
+        Uri.parse('${ApiService.baseUrl}/lego/minifigs/$figNum/sets'),
       );
 
       if (response.statusCode == 200) {
@@ -281,14 +297,18 @@ class ApiService {
         if (jsonResponse['success']) {
           List<dynamic> data = jsonResponse['data'];
           // Reutilizamos tu modelo LegoSet directamente
-          return data.map((e) => LegoSet(
-            setNum: e['setNum'] ?? '',
-            name: e['name'] ?? 'Desconocido',
-            year: e['year'] ?? 0,
-            themeId: e['themeId'] ?? 0,
-            numParts: e['numParts'] ?? 0,
-            imgUrl: e['imageUrl'] ?? '',
-          )).toList();
+          return data
+              .map(
+                (e) => LegoSet(
+                  setNum: e['setNum'] ?? '',
+                  name: e['name'] ?? 'Desconocido',
+                  year: e['year'] ?? 0,
+                  themeId: e['themeId'] ?? 0,
+                  numParts: e['numParts'] ?? 0,
+                  imgUrl: e['imageUrl'] ?? '',
+                ),
+              )
+              .toList();
         } else {
           throw Exception('Error del servidor: ${jsonResponse['message']}');
         }
@@ -299,10 +319,13 @@ class ApiService {
       throw Exception('Error de conexión: $e');
     }
   }
-  
-  Future<Map<String, dynamic>> getAllSets({int page = 1, String search = ''}) async {
+
+  Future<Map<String, dynamic>> getAllSets({
+    int page = 1,
+    String search = '',
+  }) async {
     String url = '${ApiService.baseUrl}/lego/sets?page=$page';
-    
+
     if (search.isNotEmpty) {
       url += '&search=${Uri.encodeComponent(search)}';
     }
@@ -312,21 +335,21 @@ class ApiService {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       final List results = data['results'] ?? [];
-      
-      final List<LegoSet> sets = results.map((e) => LegoSet(
-        setNum: e['set_num'],
-        name: e['name'],
-        year: e['year'],
-        themeId: e['theme_id'],
-        numParts: e['num_parts'],
-        imgUrl: e['set_img_url'] ?? '',
-      )).toList();
 
-      return {
-        'sets': sets,
-        'count': data['count'] ?? 0,
-        'next': data['next'], 
-      };
+      final List<LegoSet> sets = results
+          .map(
+            (e) => LegoSet(
+              setNum: e['set_num'],
+              name: e['name'],
+              year: e['year'],
+              themeId: e['theme_id'],
+              numParts: e['num_parts'],
+              imgUrl: e['set_img_url'] ?? '',
+            ),
+          )
+          .toList();
+
+      return {'sets': sets, 'count': data['count'] ?? 0, 'next': data['next']};
     } else {
       throw Exception('Fallo al cargar todos los sets');
     }
@@ -340,12 +363,18 @@ class ApiService {
       final jsonResponse = json.decode(response.body);
       if (jsonResponse['success']) {
         List<dynamic> data = jsonResponse['data'];
-        return data.map((json) => Achievement.fromJson(json as Map<String, dynamic>)).toList();
+        return data
+            .map((json) => Achievement.fromJson(json as Map<String, dynamic>))
+            .toList();
       }
     }
     throw Exception('Fallo al cargar las insignias');
   }
-  Future<Map<String, dynamic>> getAllMinifigs({int page = 1, String search = ''}) async {
+
+  Future<Map<String, dynamic>> getAllMinifigs({
+    int page = 1,
+    String search = '',
+  }) async {
     String url = '${ApiService.baseUrl}/lego/minifigs?page=$page';
     if (search.isNotEmpty) {
       url += '&search=${Uri.encodeComponent(search)}';
@@ -357,7 +386,9 @@ class ApiService {
       final data = json.decode(response.body);
       if (data['success'] == true) {
         final results = data['data']['results'] ?? [];
-        final minifigs = results.map<Minifigure>((e) => Minifigure.fromJson(e)).toList();
+        final minifigs = results
+            .map<Minifigure>((e) => Minifigure.fromJson(e))
+            .toList();
         return {
           'minifigs': minifigs,
           'count': data['data']['count'] ?? 0,
@@ -372,7 +403,9 @@ class ApiService {
 
   // 2. Obtener detalles de una minifigura (Para la nueva pantalla de detalles)
   Future<Map<String, dynamic>> getMinifigDetails(String figNum) async {
-    final response = await http.get(Uri.parse('${ApiService.baseUrl}/lego/minifigs/$figNum'));
+    final response = await http.get(
+      Uri.parse('${ApiService.baseUrl}/lego/minifigs/$figNum'),
+    );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -403,15 +436,15 @@ class ApiService {
   }
 
   // 4. Añadir una minifigura suelta a la colección
-  Future<Map<String, dynamic>> addMinifigToCollection(String figNum, {int quantity = 1}) async {
+  Future<Map<String, dynamic>> addMinifigToCollection(
+    String figNum, {
+    int quantity = 1,
+  }) async {
     try {
       final response = await _authRequest(
         'POST',
         '/collection/minifigs',
-        body: {
-          'figNum': figNum,
-          'quantity': quantity,
-        },
+        body: {'figNum': figNum, 'quantity': quantity},
       );
 
       final data = jsonDecode(response.body);
@@ -419,13 +452,19 @@ class ApiService {
       if (response.statusCode == 201 || response.statusCode == 200) {
         return {'success': true, 'message': data['message']};
       } else {
-        return {'success': false, 'message': data['message'] ?? 'Error del servidor'};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Error del servidor',
+        };
       }
     } catch (e) {
-      return {'success': false, 'message': 'Error de red o sesión expirada: $e'};
+      return {
+        'success': false,
+        'message': 'Error de red o sesión expirada: $e',
+      };
     }
   }
-  
+
   // Borrar minifigura de la colección
   Future<bool> deleteMinifigFromCollection(String id) async {
     try {
@@ -436,4 +475,3 @@ class ApiService {
     }
   }
 }
-

@@ -36,7 +36,7 @@ const register = async (req, res) => {
         const refreshToken = generateRefreshToken(newUser._id);
 
         //Guardamos refresh token
-        newUser.refreshToken.push(refreshToken);
+        newUser.refreshTokens.push(refreshToken);
         await newUser.save();
         
         /*const token = jwt.sign(

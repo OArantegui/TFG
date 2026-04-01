@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'home_screen.dart';
 import 'explore_screen.dart';
 import 'collection_screen.dart';
@@ -6,6 +7,7 @@ import 'wishlist_screen.dart';
 import 'settings_screen.dart';
 import 'sets_list_screen.dart';
 import '../services/auth_service.dart';
+import '../providers/home_provider.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -21,7 +23,10 @@ class _MainLayoutState extends State<MainLayout> {
   String _username = "Perfil";
 
   final List<Widget> _screens = [
-    const HomeScreen(), // Índice 0: Inicio
+    ChangeNotifierProvider(
+      create: (_) => HomeProvider(),
+      child: const HomeScreen(),
+    ),
     const SetsListScreen(customTitle: 'Buscar Sets'),//Indice 1: Buscar sets
     const ExploreScreen(), // Índice 2: Categorias
     const CollectionScreen(), // Índice 1: Coleccion

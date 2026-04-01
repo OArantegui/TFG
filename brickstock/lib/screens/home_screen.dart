@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
 import '../services/api_service.dart';
 import '../models/lego_set.dart';
 import '../models/lego_theme.dart';
+import '../providers/home_provider.dart';
 import 'set_details_screen.dart';
 import 'sets_list_screen.dart';
 
@@ -15,23 +17,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final ApiService apiService = ApiService();
-
-  // Controlador para las flechas de navegación
   final ScrollController _scrollController = ScrollController();
-
-  //Future porque tardan los datos en llegar de internet
-  Future<List<LegoSet>>? futureFeaturedSets;
-
-  // Si es null, significa que estamos en modo "Mix Aleatorio"
-  // HAY QUE DARLE UNA VUELTA A ESTO!!!
-  LegoTheme? featuredTheme;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadMixedFeaturedSets();
-  }
+  // Constante para evitar "Magic Numbers"
+  static const double _scrollOffset = 220.0; 
 
   @override
   void dispose() {
@@ -39,80 +27,26 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // Cagamos distintos sets de distintos temas
-  Future<void> _loadMixedFeaturedSets() async {
-    try {
-      // 1. Pedimos los temas. AHORA devuelve un Map (Paginación)
-      final response = await apiService.getThemes();
-      
-      // 2. Extraemos la lista de la propiedad 'results'
-      final List<dynamic> themeData = response['results'];
-
-      // 3. Mapeamos los datos en bruto a nuestra clase LegoTheme
-      final List<LegoTheme> themes = themeData.map((e) => LegoTheme(
-        id: e['id'],
-        name: e['name'],
-        parentId: e['parent_id']
-      )).toList();
-
-      if (themes.isNotEmpty) {
-        // Ahora sí, 'themes' es una Lista y podemos usar shuffle()
-        themes.shuffle();
-        
-        // Cogemos 12 aunque vayamos a mostrar 10 (por si hay algun fallo)
-        final selectedThemes = themes.take(12).toList();
-
-        // Preparamos una lista de peticiones (futures)
-        final futures = selectedThemes.map(
-          (t) => apiService.getSetsByTheme(t.id),
-        );
-        
-        // Ejecutamos todas las peticiones a la vez
-        final resultsList = await Future.wait(futures);
-
-        final List<LegoSet> mixedList = [];
-        for (var resultMap in resultsList) {
-          // Extraemos la lista de sets usando la clave 'sets'
-          final List<LegoSet> setList = resultMap['sets'] as List<LegoSet>;
-
-          if (setList.isNotEmpty) {
-            mixedList.add(setList.first);
-          }
-        }
-
-        // Comprobamos si el widget sigue en pantalla antes de actualizar el estado
-        if (mounted) {
-          setState(() {
-            featuredTheme = null; 
-            futureFeaturedSets = Future.value(mixedList.take(10).toList());
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('Error cargando mix aleatorio: $e');
-    }
-  }
-
-  // Función para mover el scroll con las flechas
-  void _scrollList(double offset) {
+  void _scrollList(double multiplier) {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        _scrollController.offset +
-            offset, // Posicion actual + offset (220px en este caso)
-        duration: const Duration(milliseconds: 300), // Duracion de la animacion
-        curve: Curves.easeOut, // Animacion de rapida a lenta
+        _scrollController.offset + (_scrollOffset * multiplier),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Usamos context.watch para re-dibujar solo cuando el Provider llame a notifyListeners()
+    final provider = context.watch<HomeProvider>();
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. HEADER
           const Text(
             'PANEL DE CONTROL',
             style: TextStyle(
@@ -132,17 +66,15 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 1.1,
             ),
           ),
-
           const SizedBox(height: 30),
 
-          // 2. TÍTULO Y CONTROLES
+          // TÍTULO Y CONTROLES
           Row(
             children: [
               Expanded(
                 child: Text(
-                  // Si featuredTheme es null, mostramos título genérico
-                  featuredTheme != null
-                      ? 'DESTACADOS (${featuredTheme!.name})'
+                  provider.featuredTheme != null
+                      ? 'DESTACADOS (${provider.featuredTheme!.name})'
                       : 'DESTACADOS',
                   style: const TextStyle(
                     fontSize: 18,
@@ -152,95 +84,73 @@ class _HomeScreenState extends State<HomeScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-
-              // Flechas de navegación manual
               IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios,
-                  size: 16,
-                  color: Colors.white70,
-                ),
-                onPressed: () => _scrollList(-220),
+                icon: const Icon(Icons.arrow_back_ios, size: 16, color: Colors.white70),
+                onPressed: () => _scrollList(-1),
                 tooltip: "Anterior",
               ),
               IconButton(
-                icon: const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Colors.white70,
-                ),
-                onPressed: () => _scrollList(220),
+                icon: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white70),
+                onPressed: () => _scrollList(1),
                 tooltip: "Siguiente",
               ),
-
               const SizedBox(width: 8),
 
-              // Botón "Ver todos"
-              // Solo se muestra si hay un tema específico seleccionado.
-              // En el modo Mix lo ocultamos porque no hay "un catálogo" que ver.
-              if (featuredTheme != null)
+              if (provider.featuredTheme != null)
                 TextButton(
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            SetsListScreen(theme: featuredTheme!),
+                        builder: (context) => SetsListScreen(theme: provider.featuredTheme!),
                       ),
                     );
                   },
-                  child: const Text(
-                    'Ver todos',
-                    style: TextStyle(color: Colors.grey),
-                  ),
+                  child: const Text('Ver todos', style: TextStyle(color: Colors.grey)),
                 ),
             ],
           ),
 
           const SizedBox(height: 10),
 
-          // 3. CARRUSEL
+          // CARRUSEL
           Expanded(
-            child: futureFeaturedSets == null
-                ? const Center(
-                    child: CircularProgressIndicator(color: Colors.orange),
-                  )
-                : FutureBuilder<List<LegoSet>>(
-                    future: futureFeaturedSets,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.orange,
-                          ),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(
-                          child: Text('No hay sets destacados'),
-                        );
-                      }
-
-                      return ListView.separated(
-                        controller: _scrollController,
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: snapshot.data!.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(width: 16),
-                        itemBuilder: (context, index) {
-                          return _FeaturedSetCard(
-                            legoSet: snapshot.data![index],
-                          );
-                        },
-                      );
-                    },
-                  ),
+            child: _buildCarouselContent(provider),
           ),
           const SizedBox(height: 20),
         ],
       ),
+    );
+  }
+
+  // Extraemos el IF de estados a un método para que el build principal no quede sucio
+  Widget _buildCarouselContent(HomeProvider provider) {
+    if (provider.isLoading) {
+      return const Center(child: CircularProgressIndicator(color: Colors.orange));
+    }
+    
+    if (provider.errorMessage != null) {
+      return Center(
+        child: Text(
+          provider.errorMessage!,
+          style: const TextStyle(color: Colors.redAccent),
+        ),
+      );
+    }
+
+    if (provider.featuredSets.isEmpty) {
+      return const Center(child: Text('No hay sets destacados'));
+    }
+
+    return ListView.separated(
+      controller: _scrollController,
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      itemCount: provider.featuredSets.length,
+      separatorBuilder: (context, index) => const SizedBox(width: 16),
+      itemBuilder: (context, index) {
+        return _FeaturedSetCard(legoSet: provider.featuredSets[index]);
+      },
     );
   }
 }

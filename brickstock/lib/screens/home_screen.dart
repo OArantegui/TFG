@@ -54,7 +54,7 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Bienvenido de nuevo',
+                'Inicio',
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white, height: 1.1),
               ),
               const SizedBox(height: 30),

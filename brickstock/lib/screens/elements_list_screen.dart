@@ -3,7 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import '../models/lego_set.dart';
 import '../models/lego_theme.dart';
-import '../models/minifigure.dart'; 
+import '../models/minifigure.dart';
 import '../services/api_service.dart';
 import 'set_details_screen.dart';
 import 'minifig_details_screen.dart';
@@ -29,10 +29,10 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
   bool _isLoadingMore = false;
   int _currentPage = 1;
   int _totalCount = 0;
-  String? _nextPageUrl; 
+  String? _nextPageUrl;
 
   // --- ESTADO DE MINIFIGURAS ---
-  SearchMode _searchMode = SearchMode.sets; 
+  SearchMode _searchMode = SearchMode.sets;
   List<Minifigure> _minifigs = [];
   bool _isLoadingMinifigs = false;
   bool _isLoadingMoreMinifigs = false;
@@ -59,7 +59,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
         _sets.clear();
         _totalCount = 0;
       });
-      return; 
+      return;
     }
 
     if (reset) {
@@ -73,7 +73,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
     }
 
     try {
-      final response = !_isGlobalSearch 
+      final response = !_isGlobalSearch
           ? await apiService.getSetsByTheme(
               widget.theme!.id,
               page: _currentPage,
@@ -87,7 +87,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
       setState(() {
         _sets.addAll(response['sets'] as List<LegoSet>);
         _totalCount = response['count'];
-        _nextPageUrl = response['next']; 
+        _nextPageUrl = response['next'];
         _isLoading = false;
         _isLoadingMore = false;
       });
@@ -161,15 +161,22 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final String appBarTitle = widget.theme?.name ?? widget.customTitle ?? 'Buscar';
+    final String appBarTitle =
+        widget.theme?.name ?? widget.customTitle ?? 'Buscar';
 
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
-        title: Text(appBarTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        leading: !_isGlobalSearch 
+        title: Text(
+          appBarTitle,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        leading: !_isGlobalSearch
             ? IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.orange),
                 onPressed: () => Navigator.pop(context),
@@ -179,28 +186,49 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
           // TFG: Ajustamos el alto dinámicamente. Si es global, caben las pestañas. Si es tema, solo el buscador.
           preferredSize: Size.fromHeight(_isGlobalSearch ? 115.0 : 60.0),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: Column(
               children: [
                 Container(
                   height: 45,
-                  decoration: BoxDecoration(color: const Color(0xFF2D2D2D), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.white10)),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2D2D2D),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.white10),
+                  ),
                   child: TextField(
                     controller: _searchController,
                     onSubmitted: (value) => _runFilter(value),
                     style: const TextStyle(color: Colors.white),
                     cursorColor: Colors.orange,
                     decoration: InputDecoration(
-                      hintText: _searchMode == SearchMode.sets || !_isGlobalSearch
+                      hintText:
+                          _searchMode == SearchMode.sets || !_isGlobalSearch
                           ? 'Buscar set por nombre o número...'
                           : 'Buscar minifigura (ej: luke)...',
-                      hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-                      prefixIcon: const Icon(Icons.search, color: Colors.orange),
+                      hintStyle: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 14,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Colors.orange,
+                      ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 12,
+                      ),
                       suffixIcon: _searchController.text.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear, color: Colors.grey, size: 20),
+                              icon: const Icon(
+                                Icons.clear,
+                                color: Colors.grey,
+                                size: 20,
+                              ),
                               onPressed: () {
                                 _searchController.clear();
                                 _runFilter('');
@@ -210,7 +238,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                     ),
                   ),
                 ),
-                
+
                 // TFG: CONDICIONAL. Solo mostramos el toggle si estamos en Búsqueda Global
                 if (_isGlobalSearch) ...[
                   const SizedBox(height: 12),
@@ -239,10 +267,11 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                       setState(() {
                         _searchMode = newSelection.first;
                       });
-                      
+
                       if (_searchMode == SearchMode.sets && _sets.isEmpty) {
                         _loadSets(reset: true);
-                      } else if (_searchMode == SearchMode.minifigs && _minifigs.isEmpty) {
+                      } else if (_searchMode == SearchMode.minifigs &&
+                          _minifigs.isEmpty) {
                         _loadMinifigs(reset: true);
                       }
                     },
@@ -254,18 +283,21 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
         ),
       ),
       // TFG: Si estamos dentro de un tema, FORZAMOS a que renderice la lista de Sets
-      body: (!_isGlobalSearch || _searchMode == SearchMode.sets) 
-          ? _buildSetsList() 
+      body: (!_isGlobalSearch || _searchMode == SearchMode.sets)
+          ? _buildSetsList()
           : _buildMinifigsList(),
     );
   }
 
   // ===============================================
-  // VISTA 1: LISTA DE SETS 
+  // VISTA 1: LISTA DE SETS
   // ===============================================
   Widget _buildSetsList() {
-    if (_isLoading) return const Center(child: CircularProgressIndicator(color: Colors.orange));
-    
+    if (_isLoading)
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.orange),
+      );
+
     return Column(
       children: [
         Padding(
@@ -274,14 +306,24 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
             children: [
               Text(
                 '$_totalCount SETS ENCONTRADOS',
-                style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.0,
+                ),
               ),
             ],
           ),
         ),
         Expanded(
           child: _sets.isEmpty
-              ? const Center(child: Text('No se encontraron sets', style: TextStyle(color: Colors.white54)))
+              ? const Center(
+                  child: Text(
+                    'No se encontraron sets',
+                    style: TextStyle(color: Colors.white54),
+                  ),
+                )
               : ListView.builder(
                   itemCount: _sets.length + (_nextPageUrl != null ? 1 : 0),
                   itemBuilder: (context, index) {
@@ -290,17 +332,30 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         child: Center(
                           child: _isLoadingMore
-                              ? const CircularProgressIndicator(color: Colors.orange)
+                              ? const CircularProgressIndicator(
+                                  color: Colors.orange,
+                                )
                               : OutlinedButton.icon(
-                                  icon: const Icon(Icons.add_circle_outline, color: Colors.orange),
-                                  label: const Text('Cargar más sets', style: TextStyle(color: Colors.orange)),
+                                  icon: const Icon(
+                                    Icons.add_circle_outline,
+                                    color: Colors.orange,
+                                  ),
+                                  label: const Text(
+                                    'Cargar más sets',
+                                    style: TextStyle(color: Colors.orange),
+                                  ),
                                   onPressed: () {
                                     _currentPage++;
                                     _loadSets();
                                   },
                                   style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(color: Colors.orange),
-                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                    side: const BorderSide(
+                                      color: Colors.orange,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
                                   ),
                                 ),
                         ),
@@ -310,43 +365,94 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                     final legoSet = _sets[index];
                     return Card(
                       color: const Color(0xFF2A2A2A),
-                      margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 6.0,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       child: ListTile(
                         contentPadding: const EdgeInsets.all(8.0),
                         leading: ClipRRect(
                           borderRadius: BorderRadius.circular(6.0),
                           child: Container(
-                            width: 70, height: 70, color: Colors.white, 
+                            width: 70,
+                            height: 70,
+                            color: Colors.white,
                             child: CachedNetworkImage(
                               imageUrl: _getImageUrl(legoSet.imgUrl),
                               fit: BoxFit.contain,
-                              placeholder: (context, url) => const Padding(padding: EdgeInsets.all(15.0), child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orange)),
-                              errorWidget: (context, url, error) => const Icon(Icons.broken_image, color: Colors.grey),
+                              placeholder: (context, url) => const Padding(
+                                padding: EdgeInsets.all(15.0),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.orange,
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => const Icon(
+                                Icons.broken_image,
+                                color: Colors.grey,
+                              ),
                             ),
                           ),
                         ),
-                        title: Text(legoSet.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15), maxLines: 2, overflow: TextOverflow.ellipsis),
+                        title: Text(
+                          legoSet.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         subtitle: Padding(
                           padding: const EdgeInsets.only(top: 6.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Set: ${legoSet.setNum} • Año: ${legoSet.year}', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                              Text(
+                                'Set: ${legoSet.setNum} • Año: ${legoSet.year}',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 13,
+                                ),
+                              ),
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  const Icon(Icons.extension, size: 14, color: Colors.orange),
+                                  const Icon(
+                                    Icons.extension,
+                                    size: 14,
+                                    color: Colors.orange,
+                                  ),
                                   const SizedBox(width: 4),
-                                  Text('${legoSet.numParts} piezas', style: const TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.w500)),
+                                  Text(
+                                    '${legoSet.numParts} piezas',
+                                    style: const TextStyle(
+                                      color: Colors.orange,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ],
                           ),
                         ),
-                        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                        trailing: const Icon(
+                          Icons.chevron_right,
+                          color: Colors.grey,
+                        ),
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => SetDetailsScreen(legoSet: legoSet)));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  SetDetailsScreen(legoSet: legoSet),
+                            ),
+                          );
                         },
                       ),
                     );
@@ -361,8 +467,11 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
   // VISTA 2: LISTA DE MINIFIGURAS
   // ===============================================
   Widget _buildMinifigsList() {
-    if (_isLoadingMinifigs) return const Center(child: CircularProgressIndicator(color: Colors.orange));
-    
+    if (_isLoadingMinifigs)
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.orange),
+      );
+
     return Column(
       children: [
         Padding(
@@ -371,33 +480,57 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
             children: [
               Text(
                 '$_totalMinifigsCount MINIFIGURAS ENCONTRADAS',
-                style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.0,
+                ),
               ),
             ],
           ),
         ),
         Expanded(
           child: _minifigs.isEmpty
-              ? const Center(child: Text('No se encontraron minifiguras', style: TextStyle(color: Colors.white54)))
+              ? const Center(
+                  child: Text(
+                    'No se encontraron minifiguras',
+                    style: TextStyle(color: Colors.white54),
+                  ),
+                )
               : ListView.builder(
-                  itemCount: _minifigs.length + (_nextMinifigsPageUrl != null ? 1 : 0),
+                  itemCount:
+                      _minifigs.length + (_nextMinifigsPageUrl != null ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == _minifigs.length) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         child: Center(
                           child: _isLoadingMoreMinifigs
-                              ? const CircularProgressIndicator(color: Colors.orange)
+                              ? const CircularProgressIndicator(
+                                  color: Colors.orange,
+                                )
                               : OutlinedButton.icon(
-                                  icon: const Icon(Icons.add_circle_outline, color: Colors.orange),
-                                  label: const Text('Cargar más minifiguras', style: TextStyle(color: Colors.orange)),
+                                  icon: const Icon(
+                                    Icons.add_circle_outline,
+                                    color: Colors.orange,
+                                  ),
+                                  label: const Text(
+                                    'Cargar más minifiguras',
+                                    style: TextStyle(color: Colors.orange),
+                                  ),
                                   onPressed: () {
                                     _minifigsPage++;
                                     _loadMinifigs();
                                   },
                                   style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(color: Colors.orange),
-                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                    side: const BorderSide(
+                                      color: Colors.orange,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
                                   ),
                                 ),
                         ),
@@ -407,45 +540,92 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                     final fig = _minifigs[index];
                     return Card(
                       color: const Color(0xFF2A2A2A),
-                      margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 6.0,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       child: ListTile(
                         contentPadding: const EdgeInsets.all(8.0),
                         leading: ClipRRect(
                           borderRadius: BorderRadius.circular(6.0),
                           child: Container(
-                            width: 70, height: 70, color: Colors.white, 
+                            width: 70,
+                            height: 70,
+                            color: Colors.white,
                             child: CachedNetworkImage(
                               imageUrl: _getImageUrl(fig.imageUrl),
                               fit: BoxFit.contain,
-                              placeholder: (context, url) => const Padding(padding: EdgeInsets.all(15.0), child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orange)),
-                              errorWidget: (context, url, error) => const Icon(Icons.face, color: Colors.black),
+                              memCacheWidth: 200,
+                              placeholder: (context, url) => const Padding(
+                                padding: EdgeInsets.all(15.0),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.orange,
+                                ),
+                              ),
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.face, color: Colors.black),
                             ),
                           ),
                         ),
-                        title: Text(fig.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15), maxLines: 2, overflow: TextOverflow.ellipsis),
+                        title: Text(
+                          fig.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         subtitle: Padding(
                           padding: const EdgeInsets.only(top: 6.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('ID: ${fig.figNum}', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                              Text(
+                                'ID: ${fig.figNum}',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 13,
+                                ),
+                              ),
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  const Icon(Icons.extension, size: 14, color: Colors.orange),
+                                  const Icon(
+                                    Icons.extension,
+                                    size: 14,
+                                    color: Colors.orange,
+                                  ),
                                   const SizedBox(width: 4),
-                                  Text('${fig.numParts} piezas', style: const TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.w500)),
+                                  Text(
+                                    '${fig.numParts} piezas',
+                                    style: const TextStyle(
+                                      color: Colors.orange,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ],
                           ),
                         ),
-                        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                        trailing: const Icon(
+                          Icons.chevron_right,
+                          color: Colors.grey,
+                        ),
                         onTap: () {
                           Navigator.push(
-                            context, 
-                            MaterialPageRoute(builder: (context) => MinifigDetailsScreen(minifigure: fig))
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  MinifigDetailsScreen(minifigure: fig),
+                            ),
                           );
                         },
                       ),
@@ -462,12 +642,18 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF2D2D2D),
-        title: const Text('Añadir a Colección', style: TextStyle(color: Colors.white)),
-        content: Text('¿Quieres añadir a ${fig.name} como pieza suelta a tu cartera?', style: const TextStyle(color: Colors.white70)),
+        title: const Text(
+          'Añadir a Colección',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          '¿Quieres añadir a ${fig.name} como pieza suelta a tu cartera?',
+          style: const TextStyle(color: Colors.white70),
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context), 
-            child: const Text('Cancelar', style: TextStyle(color: Colors.grey))
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
@@ -475,9 +661,12 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
               final res = await apiService.addMinifigToCollection(fig.figNum);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(res['message']), backgroundColor: res['success'] ? Colors.green : Colors.red),
+                SnackBar(
+                  content: Text(res['message']),
+                  backgroundColor: res['success'] ? Colors.green : Colors.red,
+                ),
               );
-            }, 
+            },
             child: const Text('Añadir', style: TextStyle(color: Colors.white)),
           ),
         ],

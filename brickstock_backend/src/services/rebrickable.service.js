@@ -15,6 +15,15 @@ let allThemesCache = [];
 // Caché para Sets individuales (Vital para cargar la Colección y Wishlist al instante)
 // Formato: { "42115-1": { timestamp: 162..., data: { ... } } }
 const setsCache = {};
+
+// --- AÑADIDO: Nuevos diccionarios de caché para evitar el límite de la API ---
+const setMinifigsCache = {}; 
+const minifigSetsCache = {};
+const minifigDetailsCache = {};
+const queryCache = {}; // Para las búsquedas generales (getAllSets, getAllMinifigs)
+const QUERY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos para búsquedas
+// ----------------------------------------------------------------------------
+
 // ==========================================
 
 // Configuración base de Axios para no repetir headers
@@ -84,7 +93,14 @@ const getSetsByTheme = async (themeId, page = 1, search = '') => {
             url += `&search=${encodeURIComponent(search)}`;
         }
 
+        // AÑADIDO: Mini-caché de 5 min para evitar repetir la misma página al hacer scroll
+        const currentTime = Date.now();
+        if (queryCache[url] && (currentTime - queryCache[url].timestamp < QUERY_CACHE_TTL_MS)) {
+            return queryCache[url].data;
+        }
+
         const response = await apiClient.get(url);
+        queryCache[url] = { timestamp: currentTime, data: response.data }; // AÑADIDO
         return response.data; 
     } catch (error) {
         console.error("Error en Rebrickable Service (getSetsByTheme):", error.message);
@@ -154,12 +170,18 @@ const getSetByNum = async (setNum) => {
 };
 
 const getSetMinifigs = async (setNum) => {
+  // AÑADIDO: Chequeo de caché
+  const currentTime = Date.now();
+  if (setMinifigsCache[setNum] && (currentTime - setMinifigsCache[setNum].timestamp < CACHE_TTL_MS)) {
+      return setMinifigsCache[setNum].data;
+  }
+
   try {
     const response = await apiClient.get(`/sets/${setNum}/minifigs/`);
     
     // TFG: Mapeamos los datos. Como la API v3 trata a las minifiguras 
     // como "sets" con el prefijo "fig-", la respuesta es plana.
-    return response.data.results.map(item => ({
+    const result = response.data.results.map(item => ({
       // Usamos el fallback (||) por si acaso la API decide cambiar 
       // y enviarnos fig_num en el futuro (programación defensiva).
       figNum: item.set_num || item.fig_num,
@@ -167,19 +189,31 @@ const getSetMinifigs = async (setNum) => {
       imageUrl: item.set_img_url || item.fig_url || '', 
       quantity: item.quantity || 1
     }));
+
+    // AÑADIDO: Guardar en caché
+    setMinifigsCache[setNum] = { timestamp: currentTime, data: result };
+    return result;
+
   } catch (error) {
     console.error(`Error fetching minifigs for set ${setNum} from Rebrickable:`, error.message);
+    if (setMinifigsCache[setNum]) return setMinifigsCache[setNum].data; // AÑADIDO: Salvavidas
     throw error;
   }
 };
 
 const getMinifigSets = async (figNum) => {
+  // AÑADIDO: Chequeo de caché
+  const currentTime = Date.now();
+  if (minifigSetsCache[figNum] && (currentTime - minifigSetsCache[figNum].timestamp < CACHE_TTL_MS)) {
+      return minifigSetsCache[figNum].data;
+  }
+
   try {
     // La API de Rebrickable usa la ruta /minifigs/{fig_num}/sets/
     const response = await apiClient.get(`/minifigs/${figNum}/sets/`);
     
     // Mapeamos los datos simulando la estructura que espera tu modelo LegoSet de Flutter
-    return response.data.results.map(item => {
+    const result = response.data.results.map(item => {
       const setData = item.set || item; 
 
       return {
@@ -191,11 +225,18 @@ const getMinifigSets = async (figNum) => {
         imageUrl: setData.set_img_url || ''
       };
     });
+
+    // AÑADIDO: Guardar en caché
+    minifigSetsCache[figNum] = { timestamp: currentTime, data: result };
+    return result;
+
   } catch (error) {
     console.error(`Error fetching sets for minifig ${figNum}:`, error.message);
+    if (minifigSetsCache[figNum]) return minifigSetsCache[figNum].data; // AÑADIDO: Salvavidas
     throw error;
   }
 };
+
 const getAllSets = async (page = 1, search = '') => {
     try {
         let url = `/sets/?page_size=20&ordering=-year&page=${page}`;
@@ -204,13 +245,21 @@ const getAllSets = async (page = 1, search = '') => {
             url += `&search=${encodeURIComponent(search)}`;
         }
 
+        // AÑADIDO: Mini-caché para la consulta
+        const currentTime = Date.now();
+        if (queryCache[url] && (currentTime - queryCache[url].timestamp < QUERY_CACHE_TTL_MS)) {
+            return queryCache[url].data;
+        }
+
         const response = await apiClient.get(url);
+        queryCache[url] = { timestamp: currentTime, data: response.data }; // AÑADIDO
         return response.data; 
     } catch (error) {
         console.error("Error en Rebrickable Service (getAllSets):", error.message);
         throw error;
     }
 };
+
 // Obtener lista paginada de minifiguras (para el buscador del Frontend)
 const getAllMinifigs = async (page = 1, search = '') => {
     try {
@@ -218,7 +267,15 @@ const getAllMinifigs = async (page = 1, search = '') => {
         if (search && search.trim() !== '') {
             url += `&search=${encodeURIComponent(search)}`;
         }
+
+        // AÑADIDO: Mini-caché para la consulta
+        const currentTime = Date.now();
+        if (queryCache[url] && (currentTime - queryCache[url].timestamp < QUERY_CACHE_TTL_MS)) {
+            return queryCache[url].data;
+        }
+
         const response = await apiClient.get(url);
+        queryCache[url] = { timestamp: currentTime, data: response.data }; // AÑADIDO
         return response.data;
     } catch (error) {
         console.error("Error en Rebrickable Service (getAllMinifigs):", error.message);
@@ -228,11 +285,19 @@ const getAllMinifigs = async (page = 1, search = '') => {
 
 // Obtener detalles de una minifigura concreta
 const getMinifigDetails = async (figNum) => {
+    // AÑADIDO: Chequeo de caché
+    const currentTime = Date.now();
+    if (minifigDetailsCache[figNum] && (currentTime - minifigDetailsCache[figNum].timestamp < CACHE_TTL_MS)) {
+        return minifigDetailsCache[figNum].data;
+    }
+
     try {
         const response = await apiClient.get(`/minifigs/${figNum}/`);
+        minifigDetailsCache[figNum] = { timestamp: currentTime, data: response.data }; // AÑADIDO
         return response.data;
     } catch (error) {
         console.error(`Error en Rebrickable Service (getMinifigDetails - ${figNum}):`, error.message);
+        if (minifigDetailsCache[figNum]) return minifigDetailsCache[figNum].data; // AÑADIDO: Salvavidas
         throw error;
     }
 };

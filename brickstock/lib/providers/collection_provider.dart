@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/collection_item.dart';
-import '../models/minifigure.dart'; 
+import '../models/minifigure.dart';
 
 class CollectionProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
 
   List<CollectionItem> _collection = [];
-  List<Minifigure> _minifigs = []; 
+  List<Minifigure> _minifigs = [];
 
   bool _isLoading = false;
 
@@ -16,7 +16,10 @@ class CollectionProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
 
   double get totalCollectionValue {
-    return _collection.fold(0.0, (sum, item) => sum + (item.purchasePrice * item.quantity));
+    return _collection.fold(
+      0.0,
+      (sum, item) => sum + (item.purchasePrice * item.quantity),
+    );
   }
 
   int get totalSets {
@@ -27,7 +30,10 @@ class CollectionProvider with ChangeNotifier {
     return _minifigs.fold(0, (sum, item) => sum + item.quantity);
   }
 
-  Future<void> loadCollection() async {
+  Future<void> loadCollection({bool forceRefresh = false}) async {
+    if (_collection.isNotEmpty && _minifigs.isNotEmpty && !forceRefresh) {
+      return; //evita recargas innesaria en coleccion
+    }
     _isLoading = true;
     notifyListeners();
 

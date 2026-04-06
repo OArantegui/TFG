@@ -35,6 +35,15 @@ const apiClient = axios.create({
     }
 });
 
+const getThemeById = async (themeId) => {
+    try {
+        const response = await axios.get(`${BASE_URL}/themes/${themeId}/`, { headers: getHeaders() });
+        return response.data;
+    } catch (error) {
+        throw new Error(`Error al obtener el tema ${themeId}`);
+    }
+};
+
 const getThemes = async (page = 1, search = '', sort = 'name_asc') => {
     const currentTime = Date.now();
     const pageSize = 20;
@@ -311,5 +320,6 @@ module.exports = {
     getMinifigSets,
     getAllSets,
     getAllMinifigs,
-    getMinifigDetails
+    getMinifigDetails,
+    getThemeById
 };

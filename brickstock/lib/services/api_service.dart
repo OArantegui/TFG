@@ -489,4 +489,17 @@ class ApiService {
     }
     return null;
   }
+
+  Future<String> getThemeName(int themeId) async {
+    try {
+      final response = await http.get(Uri.parse('${ApiService.baseUrl}/lego/themes/$themeId'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['data']['name'] ?? 'Tema $themeId';
+      }
+    } catch (e) {
+      debugPrint('Error fetching theme name: $e');
+    }
+    return 'Tema $themeId';
+  }
 }

@@ -56,7 +56,9 @@ exports.getUserWishlist = async (req, res) => {
                 targetPrice: item.targetPrice,
                 name: setDetails.name || 'Set Desconocido',
                 imgUrl: setDetails.imageUrl || 'https://via.placeholder.com/150',
-                numParts: setDetails.pieces || 0
+                numParts: setDetails.pieces || 0,
+                year: setDetails.year || 0,
+                themeId: setDetails.theme_id || 0
             };
         }));
 

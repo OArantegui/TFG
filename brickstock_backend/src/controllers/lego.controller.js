@@ -173,6 +173,15 @@ const getSetMarketData = async (req, res) => {
     }
 };
 
+const getThemeById = async (req, res) => {
+    try {
+        const theme = await rebrickableService.getThemeById(req.params.id);
+        res.status(200).json({ success: true, data: theme });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener tema' });
+    }
+};
+
 
 module.exports = {
     getThemes,
@@ -184,5 +193,6 @@ module.exports = {
     getAllSets,
     getMinifigs,
     getMinifigDetails,
-    getSetMarketData
+    getSetMarketData,
+    getThemeById
 };

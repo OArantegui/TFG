@@ -46,8 +46,15 @@ exports.getUserWishlist = async (req, res) => {
 
         const enrichedList = await Promise.all(list.map(async (item) => {
             let setDetails = {};
+            let themeName = 'Desconocido'; // NUEVO
             try {
                 setDetails = await rebrickableService.getSetByNum(item.setNum); 
+                // NUEVO: Obtenemos el nombre del tema
+                const themeId = setDetails.theme_id || setDetails.themeId;
+                if (themeId) {
+                    const themeData = await rebrickableService.getThemeById(themeId);
+                    themeName = themeData.name || 'Desconocido';
+                }
             } catch (err) {}
 
             return {
@@ -58,7 +65,8 @@ exports.getUserWishlist = async (req, res) => {
                 imgUrl: setDetails.imageUrl || 'https://via.placeholder.com/150',
                 numParts: setDetails.pieces || 0,
                 year: setDetails.year || 0,
-                themeId: setDetails.theme_id || 0
+                themeId: setDetails.theme_id || 0,
+                themeName: themeName
             };
         }));
 

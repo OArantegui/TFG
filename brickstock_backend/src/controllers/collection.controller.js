@@ -83,9 +83,17 @@ exports.getUserCollection = async (req, res) => {
         // 2. Enriquecemos cada item con datos de Rebrickable (Patrón BFF)
         const enrichedCollection = await Promise.all(collection.map(async (item) => {
             let setDetails = {};
+            let themeName = 'Desconocido'; // NUEVO
             try {
                 // Llamamos a nuestra caché/servicio de Rebrickable.
                 setDetails = await rebrickableService.getSetByNum(item.setNum); 
+                
+                // NUEVO: Obtenemos el nombre del tema
+                const themeId = setDetails.theme_id || setDetails.themeId;
+                if (themeId) {
+                    const themeData = await rebrickableService.getThemeById(themeId);
+                    themeName = themeData.name || 'Desconocido';
+                }
             } catch (err) {
                 console.error(`Error obteniendo detalles del set ${item.setNum}`);
             }
@@ -97,11 +105,11 @@ exports.getUserCollection = async (req, res) => {
                 purchasePrice: item.purchasePrice,
                 currentPrice: item.purchasePrice, 
                 name: setDetails.name || 'Set Desconocido',
-                
                 imgUrl: setDetails.imageUrl || 'https://via.placeholder.com/150',
                 numParts: setDetails.pieces || 0,
                 year: setDetails.year || 0,
-                themeId: setDetails.theme_id || 0
+                themeId: setDetails.theme_id || 0,
+                themeName: themeName
             };
         }));
 

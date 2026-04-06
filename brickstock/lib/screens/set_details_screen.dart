@@ -475,7 +475,14 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                             children: [
                               _buildDetailItem(Icons.tag, 'Número', widget.legoSet.setNum),
                               const SizedBox(height: 15),
-                              _buildDetailItem(Icons.category, 'Tema', widget.legoSet.themeId.toString()),
+                              FutureBuilder<String>(
+                                future: ApiService().getThemeName(widget.legoSet.themeId),
+                                builder: (context, snapshot) {
+                                  // Si aún está cargando, mostramos un texto temporal o el ID
+                                  final themeName = snapshot.hasData ? snapshot.data! : 'Cargando...';
+                                  return _buildDetailItem(Icons.category, 'Tema', themeName);
+                                },
+                              ),
                             ],
                           ),
                         ),

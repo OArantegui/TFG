@@ -35,12 +35,21 @@ const apiClient = axios.create({
     }
 });
 
+// Usamos un pequeño caché en memoria para no saturar Rebrickable
+const themeDetailsCache = {};
+
 const getThemeById = async (themeId) => {
+    // Si ya lo buscamos antes, lo devolvemos al instante
+    if (themeDetailsCache[themeId]) return themeDetailsCache[themeId];
+
     try {
-        const response = await axios.get(`${BASE_URL}/themes/${themeId}/`, { headers: getHeaders() });
+        // Usamos nuestro apiClient configurado
+        const response = await apiClient.get(`/themes/${themeId}/`);
+        themeDetailsCache[themeId] = response.data;
         return response.data;
     } catch (error) {
-        throw new Error(`Error al obtener el tema ${themeId}`);
+        console.error(`Error al obtener el tema ${themeId}:`, error.message);
+        return { name: `Tema ${themeId}` }; // Fallback de seguridad
     }
 };
 

@@ -45,6 +45,7 @@ class CollectionItem {
   // Añadimos las variables que faltaban
   final int year;
   final int themeId;
+  final String themeName;
 
   CollectionItem({
     required this.id,
@@ -57,6 +58,7 @@ class CollectionItem {
     required this.currentPrice,
     required this.year,
     required this.themeId,
+    required this.themeName,
   });
 
   factory CollectionItem.fromJson(Map<String, dynamic> json) {
@@ -72,6 +74,7 @@ class CollectionItem {
       // Leemos el JSON. Si no viene (por si acaso), ponemos 0 por defecto
       year: json['year'] ?? 0,
       themeId: json['themeId'] ?? 0,
+      themeName: json['themeName'] ?? 'Desconocido',
     );
   }
 }

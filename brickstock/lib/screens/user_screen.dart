@@ -22,6 +22,7 @@ class _UserScreenState extends State<UserScreen> {
   final _authService = AuthService();
   final _apiService = ApiService();
   bool _isLoading = false;
+  bool _isPasswordUnlocked = false;
 
   late Future<List<Achievement>> _achievementsFuture;
   late Future<Map<String, dynamic>> _userStatsFuture; // Nuevo Future para las estadísticas
@@ -96,12 +97,97 @@ class _UserScreenState extends State<UserScreen> {
         const SnackBar(content: Text('Error al guardar. Puede que el email o usuario ya existan.'), backgroundColor: Colors.red),
       );
     }
+    _isPasswordUnlocked = false;
   }
 
   void _logout() async {
     await _authService.logout();
     if (!mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
+  }
+
+  void _solicitarPasswordActual() {
+    // Si ya lo desbloqueó antes, le dejamos escribir normalmente
+    if (_isPasswordUnlocked) return;
+
+    final currentPassController = TextEditingController();
+    bool isVerifying = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Obliga a interactuar con los botones
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setStateDialog) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFF2D2D2D),
+            title: const Row(
+              children: [
+                Icon(Icons.security, color: Colors.orange),
+                SizedBox(width: 10),
+                Text('Seguridad', style: TextStyle(color: Colors.white)),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Por favor, introduce tu contraseña actual para desbloquear la edición de contraseña.',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: currentPassController,
+                  obscureText: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'Contraseña Actual',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.lock_outline, color: Colors.grey),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+              ),
+              ElevatedButton(
+                onPressed: isVerifying ? null : () async {
+                  if (currentPassController.text.isEmpty) return;
+                  
+                  // Mostramos el circulito de carga en el botón
+                  setStateDialog(() => isVerifying = true);
+                  
+                  final isValid = await _authService.verifyCurrentPassword(currentPassController.text);
+                  
+                  if (!mounted) return;
+                  setStateDialog(() => isVerifying = false);
+                  
+                  if (isValid) {
+                    setState(() {
+                      _isPasswordUnlocked = true; // ¡Desbloqueamos los campos!
+                    });
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Campos de contraseña desbloqueados'), backgroundColor: Colors.green),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Contraseña incorrecta'), backgroundColor: Colors.red),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                child: isVerifying 
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
+                    : const Text('Verificar', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        }
+      ),
+    );
   }
 
   @override
@@ -344,14 +430,33 @@ class _UserScreenState extends State<UserScreen> {
                       TextFormField(
                         controller: _passwordController,
                         obscureText: true,
-                        decoration: const InputDecoration(labelText: 'Nueva Contraseña', border: OutlineInputBorder()),
+                        readOnly: !_isPasswordUnlocked, // Solo lectura si no está desbloqueado
+                        onTap: _solicitarPasswordActual, // ¡Dispara el pop-up!
+                        decoration: InputDecoration(
+                          labelText: 'Nueva Contraseña', 
+                          border: const OutlineInputBorder(),
+                          // Un icono visual para que sepa si está bloqueado o abierto
+                          suffixIcon: Icon(
+                            _isPasswordUnlocked ? Icons.lock_open : Icons.lock, 
+                            color: _isPasswordUnlocked ? Colors.green : Colors.grey,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 15),
 
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: true,
-                        decoration: const InputDecoration(labelText: 'Confirmar Nueva Contraseña', border: OutlineInputBorder()),
+                        readOnly: !_isPasswordUnlocked, // Solo lectura si no está desbloqueado
+                        onTap: _solicitarPasswordActual, // ¡Dispara el pop-up!
+                        decoration: InputDecoration(
+                          labelText: 'Confirmar Nueva Contraseña', 
+                          border: const OutlineInputBorder(),
+                          suffixIcon: Icon(
+                            _isPasswordUnlocked ? Icons.lock_open : Icons.lock, 
+                            color: _isPasswordUnlocked ? Colors.green : Colors.grey,
+                          ),
+                        ),
                         validator: (val) {
                           if (_passwordController.text.isNotEmpty && val != _passwordController.text) {
                             return 'Las contraseñas no coinciden';

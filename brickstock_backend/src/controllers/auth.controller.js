@@ -210,4 +210,25 @@ const logout = async (req, res) => {
     }
 };
 
-module.exports = { register, login, updateUser, refreshToken, logout };
+const verifyCurrentPassword = async (req, res) => {
+    try {
+        const { currentPassword } = req.body;
+        const userId = req.user.id;
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+        // Comparamos la contraseña enviada con el hash guardado en MongoDB
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        
+        if (isMatch) {
+            return res.status(200).json({ success: true, message: 'Contraseña correcta' });
+        } else {
+            return res.status(400).json({ success: false, message: 'Contraseña incorrecta' });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error del servidor' });
+    }
+};
+
+module.exports = { register, login, updateUser, refreshToken, logout, verifyCurrentPassword };

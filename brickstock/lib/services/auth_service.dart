@@ -215,4 +215,26 @@ class AuthService {
       return false;
     }
   }
+
+  Future<bool> verifyCurrentPassword(String currentPassword) async {
+    try {
+      final token = await getAccessToken();
+      final response = await http.post(
+        Uri.parse('${ApiService.baseUrl}/auth/verify-password'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'currentPassword': currentPassword}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false; // Si devuelve 400 (incorrecta), caemos aquí
+    } catch (e) {
+      return false;
+    }
+  }
 }

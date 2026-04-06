@@ -446,8 +446,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                           color: Colors.grey,
                         ),
                         onTap: () {
-                          Navigator.push(
-                            context,
+                          Navigator.of(context, rootNavigator: true).push(
                             MaterialPageRoute(
                               builder: (context) =>
                                   SetDetailsScreen(legoSet: legoSet),
@@ -620,8 +619,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                           color: Colors.grey,
                         ),
                         onTap: () {
-                          Navigator.push(
-                            context,
+                          Navigator.of(context, rootNavigator: true).push(                            
                             MaterialPageRoute(
                               builder: (context) =>
                                   MinifigDetailsScreen(minifigure: fig),

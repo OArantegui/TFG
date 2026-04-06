@@ -49,11 +49,6 @@ class HomeScreen extends StatelessWidget {
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               const Text(
-                'PANEL DE CONTROL',
-                style: TextStyle(letterSpacing: 1.5, fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey),
-              ),
-              const SizedBox(height: 8),
-              const Text(
                 'Inicio',
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white, height: 1.1),
               ),

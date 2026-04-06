@@ -474,4 +474,19 @@ class ApiService {
       return false;
     }
   }
+
+  // Obtener datos de mercado simulados (Precio Base, Actual e Histórico)
+  Future<Map<String, dynamic>?> getSetMarketData(String setNum) async {
+    try {
+      final uri = Uri.parse('$baseUrl/lego/sets/$setNum/market-data');
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+    } catch (e) {
+      debugPrint('Error fetching market data: $e');
+    }
+    return null;
+  }
 }

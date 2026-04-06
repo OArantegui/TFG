@@ -1,4 +1,4 @@
-import 'dart:io'; // Para detectar plataforma
+/*import 'dart:io'; // Para detectar plataforma
 import 'dart:math'; // Para Random
 import 'package:cached_network_image/cached_network_image.dart'; // <--- NUEVO: Para caché y mejor rendimiento
 import 'package:flutter/foundation.dart'; // Para kIsWeb
@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../models/lego_set.dart';
 import '../services/api_service.dart';
 import '../widgets/minifigures_bottom_sheet.dart';
+import '../widgets/market_data_widget.dart';
 
 class SetDetailsScreen extends StatefulWidget {
   final LegoSet legoSet;
@@ -20,7 +21,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
   late PageController _pageController;
 
   // Lista dinámica de precios que generaremos
-  List<Map<String, dynamic>> _mockPrices = [];
+  //List<Map<String, dynamic>> _mockPrices = [];
 
   // Lista de imágenes
   final List<String> _extraImages = [];
@@ -33,7 +34,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
     _extraImages.add(widget.legoSet.imgUrl);
 
     //Generacion precios
-    _generateSimulatedPrices();
+    //_generateSimulatedPrices();
   }
 
   // Función refactorizada aplicando DRY
@@ -44,7 +45,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
     return originalUrl;
   }
 
-  void _generateSimulatedPrices() {
+  /*void _generateSimulatedPrices() {
     // REGLA DE ORO: Precio estimado ~ 0.10€ por pieza
     int parts = widget.legoSet.numParts > 0 ? widget.legoSet.numParts : 100;
     double basePrice = parts * 0.10;
@@ -81,7 +82,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
             'https://www.google.com/search?q=lego+${widget.legoSet.setNum}+${storeName.replaceAll(' ', '+')}',
       };
     }).toList();
-  }
+  }*/
 
   @override
   void dispose() {
@@ -89,7 +90,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
     super.dispose();
   }
 
-  void _showHistoryChart(BuildContext context) {
+  /*void _showHistoryChart(BuildContext context) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -120,7 +121,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
         ],
       ),
     );
-  }
+  }*/
 
   void _showMinifiguresBottomSheet(BuildContext context, String setNum) {
     showModalBottomSheet(
@@ -220,7 +221,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                   const SizedBox(height: 10),
 
                   // Tabla de precios
-                  ..._mockPrices.map((priceData) {
+                  /*..._mockPrices.map((priceData) {
                     final bool isCheapest = priceData['price'] == minPrice;
                     return Card(
                       elevation: isCheapest ? 4 : 1,
@@ -267,7 +268,9 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                         },
                       ),
                     );
-                  }).toList(),
+                  }).toList(),*/
+                  // Tu nuevo widget encapsulado hace todo el trabajo
+                  MarketDataWidget(setNum: widget.legoSet.setNum),
 
                   const SizedBox(height: 20),
 
@@ -443,6 +446,310 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                   }
                   // ====================================================
 
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(result['message'] ?? 'Error al guardar.'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Añadir a Colección'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}*/
+import 'package:flutter/foundation.dart'; // Para kIsWeb
+import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart'; // Para caché y mejor rendimiento
+import '../models/lego_set.dart';
+import '../services/api_service.dart';
+import '../widgets/minifigures_bottom_sheet.dart';
+import '../widgets/market_data_widget.dart';
+
+class SetDetailsScreen extends StatefulWidget {
+  final LegoSet legoSet;
+
+  const SetDetailsScreen({super.key, required this.legoSet});
+
+  @override
+  State<SetDetailsScreen> createState() => _SetDetailsScreenState();
+}
+
+class _SetDetailsScreenState extends State<SetDetailsScreen> {
+  late PageController _pageController;
+
+  // Lista de imágenes
+  final List<String> _extraImages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Generacion imagen principal
+    _extraImages.add(widget.legoSet.imgUrl);
+  }
+
+  // Función refactorizada aplicando DRY
+  String _getImageUrl(String originalUrl) {
+    if (kIsWeb) {
+      return ApiService().getProxyUrl(originalUrl);
+    }
+    return originalUrl;
+  }
+
+  @override
+  void dispose() {
+    // Si llegas a instanciar _pageController, asegúrate de inicializarlo en initState.
+    // De lo contrario, esto dará error. Lo dejamos por si lo usas en el futuro.
+    // _pageController.dispose();
+    super.dispose();
+  }
+
+  void _showMinifiguresBottomSheet(BuildContext context, String setNum) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, 
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext context) {
+        return MinifiguresBottomSheet(setNum: setNum);
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('BrickStock')),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // --- IMAGEN PRINCIPAL DEL SET ---
+            SizedBox(
+              height: 300,
+              width: double.infinity,
+              child: CachedNetworkImage(
+                imageUrl: _getImageUrl(widget.legoSet.imgUrl), 
+                fit: BoxFit.contain,
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(color: Colors.orange),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: const Color(0xFF2A2A2A),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(
+                        Icons.image_not_supported,
+                        size: 50,
+                        color: Colors.grey,
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        "Imagen no disponible",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // --- INFO Y PRECIOS ---
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.legoSet.name,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    'Set ${widget.legoSet.setNum} | ${widget.legoSet.year} | ${widget.legoSet.numParts} piezas',
+                    style: TextStyle(color: Colors.grey[700], fontSize: 16),
+                  ),
+
+                  // TFG: Tu nuevo widget encapsulado hace todo el trabajo de pintar la gráfica y los precios
+                  MarketDataWidget(setNum: widget.legoSet.setNum),
+
+                  const SizedBox(height: 20),
+
+                  // --- BOTÓN AÑADIR A DESEADOS ---
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(
+                        Icons.favorite_border,
+                        color: Colors.pinkAccent,
+                      ),
+                      label: const Text('Añadir a deseados'),
+                      onPressed: () async {
+                        // Dejamos el precio a 0.0 de momento
+                        final double priceToSave = 0.0;
+                        
+                        final result = await ApiService().addToWishlist(
+                          widget.legoSet.setNum,
+                          priceToSave,
+                        );
+
+                        if (result['warning'] == true) {
+                          // SUPERAMOS EL PRESUPUESTO: Mostramos Alerta
+                          if (!mounted) return;
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('⚠️ Límite Excedido'),
+                              content: Text(result['message']),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text('Cancelar'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    Navigator.pop(ctx);
+                                    // Forzamos la inserción (force: true)
+                                    await ApiService().addToWishlist(
+                                      widget.legoSet.setNum,
+                                      priceToSave,
+                                      force: true,
+                                    );
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Añadido ignorando el límite'),
+                                          backgroundColor: Colors.orange,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: const Text(
+                                    'Ignorar y Añadir',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        } else if (result['success'] == true) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('¡Añadido a deseados!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(result['message'] ?? 'Error'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.all(16),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // --- NUEVO BOTÓN MINIFIGURAS (IZQUIERDA) ---
+            FloatingActionButton(
+              heroTag: 'btn_minifigs_${widget.legoSet.setNum}', 
+              onPressed: () => _showMinifiguresBottomSheet(context, widget.legoSet.setNum),
+              child: const Icon(Icons.smart_toy), 
+              tooltip: 'Ver Minifiguras',
+            ),
+
+            // --- TU BOTÓN ACTUAL DE COLECCIÓN (DERECHA) ---
+            FloatingActionButton.extended(
+              heroTag: 'btn_collection_${widget.legoSet.setNum}', 
+              onPressed: () async {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Guardando en MongoDB... ⏳')),
+                );
+
+                // Dejamos el precio en 0.0 temporalmente al guardar en BD
+                final double priceToSave = 0.0;
+
+                final result = await ApiService().addToCollection(
+                  widget.legoSet.setNum,
+                  priceToSave,
+                );
+
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+                if (result['success'] == true) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('¡${widget.legoSet.name} añadido a tu colección! 🚀'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+
+                  // === TFG: INTERCEPTOR DE GAMIFICACIÓN EN FLUTTER ===
+                  if (result['newAchievements'] != null && result['newAchievements'].isNotEmpty) {
+                    final achievementData = result['newAchievements'][0]; 
+                    
+                    if (!mounted) return;
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        title: const Row(
+                          children: [
+                            Icon(Icons.stars, color: Colors.amber, size: 30),
+                            SizedBox(width: 10),
+                            Text('¡Nuevo Logro!'),
+                          ],
+                        ),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              achievementData['name'],
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              achievementData['description'],
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text('¡Genial!', style: TextStyle(color: Colors.orange)),
+                          )
+                        ],
+                      ),
+                    );
+                  }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

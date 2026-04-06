@@ -96,7 +96,7 @@ class _MainLayoutState extends State<MainLayout> {
                   unselectedIconTheme: const IconThemeData(color: Colors.grey),
                   destinations: [
                     NavigationRailDestination(
-                      icon: Image.asset('assets/brickstock_logo.png', width: 24, height: 24, color: Colors.grey), 
+                      icon: Image.asset('assets/brickstock_logo.png', width: 24, height: 24), 
                       selectedIcon: Image.asset('assets/brickstock_logo.png', width: 24, height: 24), 
                       label: const Text('Inicio')),
                     const NavigationRailDestination(
@@ -176,7 +176,7 @@ class _MainLayoutState extends State<MainLayout> {
                     onDestinationSelected: _onItemTapped,
                     destinations: [
                       NavigationDestination(
-                        icon: Image.asset('assets/brickstock_logo.png', width: 24, height: 24, color: Colors.grey), 
+                        icon: Image.asset('assets/brickstock_logo.png', width: 24, height: 24), 
                         selectedIcon: Image.asset('assets/brickstock_logo.png', width: 24, height: 24), 
                         label: 'Inicio'),
                       const NavigationDestination(

@@ -13,4 +13,6 @@ router.get('/sets', legoController.getAllSets);
 router.get('/minifigs', legoController.getMinifigs);
 router.get('/minifigs/:figNum', legoController.getMinifigDetails);
 
+router.get('/sets/:setId/market-data', legoController.getSetMarketData);
+
 module.exports = router;

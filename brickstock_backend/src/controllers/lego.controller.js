@@ -1,5 +1,6 @@
 const axios = require('axios');
 const rebrickableService = require('../services/rebrickable.service');
+const marketService = require('../services/market.service');
 
 const getThemes = async (req, res) => {
     try {
@@ -151,6 +152,27 @@ const getMinifigDetails = async (req, res) => {
     }
 };
 
+const getSetMarketData = async (req, res) => {
+    try {
+        const { setId } = req.params;
+        
+        // 1. Obtenemos los detalles reales del set desde Rebrickable
+        const setDetails = await rebrickableService.getSetDetails(setId);
+        
+        // 2. Generamos los datos de mercado simulados
+        const marketData = marketService.generateMockMarketData(
+            setId, 
+            setDetails.num_parts, 
+            setDetails.year
+        );
+
+        res.status(200).json(marketData);
+    } catch (error) {
+        console.error(`Error al obtener mercado para ${req.params.setId}:`, error.message);
+        res.status(500).json({ message: 'Error al calcular datos de mercado' });
+    }
+};
+
 
 module.exports = {
     getThemes,
@@ -161,5 +183,6 @@ module.exports = {
     getMinifigSets,
     getAllSets,
     getMinifigs,
-    getMinifigDetails
+    getMinifigDetails,
+    getSetMarketData
 };

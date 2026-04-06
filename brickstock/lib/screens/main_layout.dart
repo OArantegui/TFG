@@ -95,10 +95,10 @@ class _MainLayoutState extends State<MainLayout> {
                   selectedIconTheme: const IconThemeData(color: Colors.orange),
                   unselectedIconTheme: const IconThemeData(color: Colors.grey),
                   destinations: [
-                    const NavigationRailDestination(
-                      icon: Icon(Icons.dashboard_outlined), 
-                      selectedIcon: Icon(Icons.dashboard), 
-                      label: Text('Inicio')),
+                    NavigationRailDestination(
+                      icon: Image.asset('assets/brickstock_logo.png', width: 24, height: 24, color: Colors.grey), 
+                      selectedIcon: Image.asset('assets/brickstock_logo.png', width: 24, height: 24), 
+                      label: const Text('Inicio')),
                     const NavigationRailDestination(
                       icon: Icon(Icons.search_outlined), 
                       selectedIcon: Icon(Icons.search), 
@@ -175,9 +175,9 @@ class _MainLayoutState extends State<MainLayout> {
                     selectedIndex: _selectedIndex,
                     onDestinationSelected: _onItemTapped,
                     destinations: [
-                      const NavigationDestination(
-                        icon: Icon(Icons.dashboard_outlined, color: Colors.grey), 
-                        selectedIcon: Icon(Icons.dashboard, color: Colors.orange), 
+                      NavigationDestination(
+                        icon: Image.asset('assets/brickstock_logo.png', width: 24, height: 24, color: Colors.grey), 
+                        selectedIcon: Image.asset('assets/brickstock_logo.png', width: 24, height: 24), 
                         label: 'Inicio'),
                       const NavigationDestination(
                         icon: Icon(Icons.search_outlined, color: Colors.grey), 

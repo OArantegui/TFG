@@ -308,91 +308,106 @@ class _UserScreenState extends State<UserScreen> {
 
                   const SizedBox(height: 32),
                   
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('Tus Insignias', style: TextStyle(fontSize: 18, color: Colors.orange, fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // TFG: Grid de insignias reactivo
+                  // TFG: Grid de insignias reactivo y con contador
                   FutureBuilder<List<Achievement>>(
                     future: _achievementsFuture,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator(color: Colors.orange));
+                        return const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Tus Insignias (...)', style: TextStyle(fontSize: 18, color: Colors.orange, fontWeight: FontWeight.bold)),
+                            SizedBox(height: 10),
+                            Center(child: CircularProgressIndicator(color: Colors.orange)),
+                          ],
+                        );
                       }
                       if (snapshot.hasError) {
                         return const Text('Error al cargar insignias', style: TextStyle(color: Colors.grey));
                       }
 
                       final achievements = snapshot.data ?? [];
+                      // Calculamos cuántas están desbloqueadas
+                      final unlockedCount = achievements.where((a) => a.isUnlocked).length;
+                      final totalCount = achievements.length;
                       
-                      return GridView.builder(
-                        shrinkWrap: true, 
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3, 
-                          childAspectRatio: 0.7,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                        ),
-                        itemCount: achievements.length,
-                        itemBuilder: (context, index) {
-                          final ach = achievements[index];
-                          
-                          // TFG: Definimos colores y opacidades según estado (reactivo)
-                          final Color iconColor = ach.isUnlocked ? Colors.amber : Colors.grey[600]!;
-                          final Color backgroundColor = ach.isUnlocked ? Colors.orange.withOpacity(0.2) : const Color(0xFF2D2D2D);
-                          final double textOpacity = ach.isUnlocked ? 1.0 : 0.4;
-
-                          return Tooltip(
-                            message: ach.description,
-                            child: Column( // <-- TFG: Columna principal para Círculo + Texto
-                              children: [
-                                // --- EL MEDALLÓN CIRCULAR (Nativo Material) ---
-                                CircleAvatar(
-                                  radius: 35, // Tamaño del círculo
-                                  backgroundColor: backgroundColor,
-                                  // Borde sutil
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: ach.isUnlocked ? Colors.orange.withOpacity(0.5) : Colors.white10,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Center(
-                                      child: Icon(
-                                        ach.iconData,
-                                        size: 35, // Tamaño del icono dentro
-                                        color: iconColor,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                
-                                const SizedBox(height: 10), // Espacio entre círculo y texto
-
-                                // --- EL TEXTO DEBAJO ---
-                                Opacity( // Usamos opacidad para el texto bloqueado
-                                  opacity: textOpacity,
-                                  child: Text(
-                                    ach.name,
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2, // Máximo 2 líneas para que no rompa el grid
-                                    overflow: TextOverflow.ellipsis, // Si es muy largo, pone "..."
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: ach.isUnlocked ? FontWeight.bold : FontWeight.normal,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Título dinámico
+                          Text(
+                            'Tus Insignias ($unlockedCount/$totalCount)', 
+                            style: const TextStyle(fontSize: 18, color: Colors.orange, fontWeight: FontWeight.bold)
+                          ),
+                          const SizedBox(height: 10),
+                          GridView.builder(
+                            shrinkWrap: true, 
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3, 
+                              childAspectRatio: 0.7,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
                             ),
-                          );
-                        },
+                            itemCount: achievements.length,
+                            itemBuilder: (context, index) {
+                              final ach = achievements[index];
+                              
+                              // TFG: Definimos colores y opacidades según estado (reactivo)
+                              final Color iconColor = ach.isUnlocked ? Colors.amber : Colors.grey[600]!;
+                              final Color backgroundColor = ach.isUnlocked ? Colors.orange.withOpacity(0.2) : const Color(0xFF2D2D2D);
+                              final double textOpacity = ach.isUnlocked ? 1.0 : 0.4;
+
+                              return Tooltip(
+                                message: ach.description,
+                                child: Column(
+                                  children: [
+                                    // --- EL MEDALLÓN CIRCULAR (Nativo Material) ---
+                                    CircleAvatar(
+                                      radius: 35, // Tamaño del círculo
+                                      backgroundColor: backgroundColor,
+                                      // Borde sutil
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: ach.isUnlocked ? Colors.orange.withOpacity(0.5) : Colors.white10,
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: Icon(
+                                            ach.iconData,
+                                            size: 35, // Tamaño del icono dentro
+                                            color: iconColor,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    
+                                    const SizedBox(height: 10), // Espacio entre círculo y texto
+
+                                    // --- EL TEXTO DEBAJO ---
+                                    Opacity( // Usamos opacidad para el texto bloqueado
+                                      opacity: textOpacity,
+                                      child: Text(
+                                        ach.name,
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2, // Máximo 2 líneas para que no rompa el grid
+                                        overflow: TextOverflow.ellipsis, // Si es muy largo, pone "..."
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: ach.isUnlocked ? FontWeight.bold : FontWeight.normal,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       );
                     },
                   ),

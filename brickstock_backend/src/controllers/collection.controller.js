@@ -123,7 +123,7 @@ exports.getUserCollection = async (req, res) => {
 // DELETE: Borrar set de la colección
 exports.deleteCollectionItem = async (req, res) => {
     try {
-        // Buscamos por ID de la colección Y por userId por seguridad (evita que un usuario borre items de otro)
+        // 1. Buscamos y eliminamos el set de la colección principal
         const deletedItem = await Collection.findOneAndDelete({ 
             _id: req.params.id, 
             userId: req.user.id 
@@ -133,11 +133,45 @@ exports.deleteCollectionItem = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Set no encontrado en tu colección' });
         }
 
+        // AUTO-ELIMINAR MINIFIGURAS ASOCIADAS
+        try {
+            // 2. Preguntamos a Rebrickable qué minifiguras traía exactamente el set que acabamos de borrar
+            const minifigs = await rebrickableService.getSetMinifigs(deletedItem.setNum);
+            
+            if (minifigs && minifigs.length > 0) {
+                for (const fig of minifigs) {
+                    // Buscamos si el usuario tiene esta minifigura en su base de datos
+                    let existingFig = await MinifigCollection.findOne({ userId: req.user.id, figNum: fig.figNum });
+                    
+                    if (existingFig) {
+                        // Calculamos cuántas hay que restar (las que trae el set * la cantidad de sets que borramos)
+                        const figsToRemove = (fig.quantity || 1) * deletedItem.quantity;
+                        
+                        existingFig.quantity -= figsToRemove;
+
+                        if (existingFig.quantity <= 0) {
+                            // Si al restar se queda en 0 (o menos), la borramos por completo de la colección
+                            await MinifigCollection.findByIdAndDelete(existingFig._id);
+                        } else {
+                            // Si le siguen quedando copias (ej. la consiguió por separado o tiene otro set que la incluye)
+                            await existingFig.save();
+                        }
+                    }
+                }
+            }
+        } catch (figError) {
+            // No bloqueamos el borrado principal si esto falla, pero lo registramos
+            console.error("Error al auto-eliminar minifiguras del set:", figError.message);
+        }
+        // ==========================================================
+
+        // 3. Sincronizamos los logros por si ha bajado de nivel
         const totalSets = await Collection.countDocuments({ userId: req.user.id });
         await achievementService.syncCollectionAchievements(req.user.id, totalSets);
 
-        res.status(200).json({ success: true, message: 'Set borrado de la colección' });
+        res.status(200).json({ success: true, message: 'Set y sus minifiguras asociados borrados de la colección' });
     } catch (error) {
+        console.error("Error al borrar el set:", error);
         res.status(500).json({ success: false, message: 'Error al borrar', error: error.message });
     }
 };

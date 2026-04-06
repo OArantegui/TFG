@@ -202,8 +202,11 @@ class _ThemesScreenState extends State<ThemesScreen> {
                             GridView.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(), // El scroll lo hace el ListView padre
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2, childAspectRatio: 1.1, crossAxisSpacing: 16, mainAxisSpacing: 16,
+                              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                                maxCrossAxisExtent: 250, // Ancho máximo deseado por tarjeta en píxeles
+                                childAspectRatio: 1.1, 
+                                crossAxisSpacing: 16, 
+                                mainAxisSpacing: 16,
                               ),
                               itemCount: _themes.length,
                               itemBuilder: (context, index) {

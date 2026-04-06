@@ -19,6 +19,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<HomeProvider>();
+    
+    final screenWidth = MediaQuery.of(context).size.width;
+    int navColumns = screenWidth > 800 ? 4 : (screenWidth > 600 ? 3 : 2);
 
     return CustomScrollView(
       slivers: [
@@ -58,7 +61,7 @@ class HomeScreen extends StatelessWidget {
               GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(), // El scroll lo maneja el CustomScrollView
-                crossAxisCount: 2,
+                crossAxisCount: navColumns,
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
                 childAspectRatio: 1.3,

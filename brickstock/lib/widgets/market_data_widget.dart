@@ -59,10 +59,10 @@ class MarketDataWidget extends StatelessWidget {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: Colors.orangeAccent, 
+            color: Colors.greenAccent, 
             barWidth: 4,
             dotData: const FlDotData(show: true),
-            belowBarData: BarAreaData(show: true, color: Colors.orangeAccent.withOpacity(0.15)),
+            belowBarData: BarAreaData(show: true, color: Colors.greenAccent.withOpacity(0.15)),
           ),
         ],
         titlesData: FlTitlesData(

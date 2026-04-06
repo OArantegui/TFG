@@ -108,7 +108,7 @@ exports.getUserCollection = async (req, res) => {
                 imgUrl: setDetails.imageUrl || 'https://via.placeholder.com/150',
                 numParts: setDetails.pieces || 0,
                 year: setDetails.year || 0,
-                themeId: setDetails.theme_id || 0,
+                themeId: setDetails.themeId || setDetails.theme_id || 0,
                 themeName: themeName
             };
         }));

@@ -502,4 +502,21 @@ class ApiService {
     }
     return 'Tema $themeId';
   }
+
+  // Obtener datos de mercado globales de TODA la colección del usuario
+  Future<Map<String, dynamic>?> getCollectionMarketData() async {
+    try {
+      // Usamos tu wrapper seguro que maneja el refresco de tokens
+      final response = await _authRequest('GET', '/collection/market-data');
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        debugPrint('Error en market data colección: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Error fetching collection market data: $e');
+    }
+    return null;
+  }
 }

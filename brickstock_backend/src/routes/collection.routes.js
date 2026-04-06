@@ -17,6 +17,8 @@ router.post('/',
 // [GET] Ver colección
 router.get('/', verifyJWT, collectionController.getUserCollection);
 
+router.get('/market-data', verifyJWT, collectionController.getCollectionMarketData);
+
 // [PUT] Modificar set en la colección
 router.put('/:id', 
     verifyJWT, 

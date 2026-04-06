@@ -2,6 +2,7 @@ const Collection = require('../models/collection.model');
 const MinifigCollection = require('../models/minifig_collection.model');
 const rebrickableService = require('../services/rebrickable.service');
 const achievementService = require('../services/achievement.service');
+const marketService = require('../services/market.service');
 
 
 // POST: Añadir un nuevo set a la cartera
@@ -220,5 +221,75 @@ exports.removeMinifigFromCollection = async (req, res) => {
     } catch (error) {
         console.error("Error al eliminar minifigura:", error);
         res.status(500).json({ success: false, message: 'Error al eliminar', error: error.message });
+    }
+};
+// GET: Obtener los datos de mercado agregados de toda la colección
+exports.getCollectionMarketData = async (req, res) => {
+    try {
+        // CORRECCIÓN: Usamos req.user.id igual que en el resto de tus funciones
+        const userId = req.user.id; 
+        
+        // CORRECCIÓN: Buscamos por el campo 'userId' que es el que usa tu modelo
+        const collectionItems = await Collection.find({ userId: userId });
+
+        // Si la colección está vacía, devolvemos todo a 0
+        if (!collectionItems || collectionItems.length === 0) {
+            return res.status(200).json({
+                totalRetailPrice: 0,
+                currentMarketValue: 0,
+                history: []
+            });
+        }
+
+        let totalRetail = 0;
+        let totalMarket = 0;
+        const historyMap = {};
+
+        // Recorremos cada set de la colección para calcular y sumar
+        await Promise.all(collectionItems.map(async (item) => {
+            try {
+                // Sacamos piezas y año reales
+                const setDetails = await rebrickableService.getSetByNum(item.setNum);
+                
+                // Generamos su curva de mercado individual
+                const marketData = marketService.generateMockMarketData(
+                    item.setNum,
+                    setDetails.pieces,
+                    setDetails.year
+                );
+
+                const qty = item.quantity || 1; // Multiplicador por si tiene varios iguales
+
+                // Sumamos a los totales globales
+                totalRetail += (marketData.estimatedRetailPrice * qty);
+                totalMarket += (marketData.currentMarketValue * qty);
+
+                // Sumamos cada mes a la gráfica global
+                marketData.history.forEach(point => {
+                    if (!historyMap[point.month]) {
+                        historyMap[point.month] = 0;
+                    }
+                    historyMap[point.month] += (point.price * qty);
+                });
+            } catch (error) {
+                console.error(`Error calculando mercado para ${item.setNum}:`, error.message);
+            }
+        }));
+
+        // Convertimos el diccionario de meses en un array ordenado para Flutter
+        const historyArray = Object.keys(historyMap).map(month => ({
+            month: month,
+            price: parseFloat(historyMap[month].toFixed(2))
+        })).sort((a, b) => a.month.localeCompare(b.month)); // Orden cronológico
+
+        res.status(200).json({
+            totalRetailPrice: parseFloat(totalRetail.toFixed(2)),
+            currentMarketValue: parseFloat(totalMarket.toFixed(2)),
+            history: historyArray
+        });
+
+    } catch (error) {
+        console.error('Error en getCollectionMarketData:', error);
+        res.status(500).json({ message: 'Error al calcular mercado de la colección' });
     }
 };

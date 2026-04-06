@@ -156,13 +156,13 @@ const getSetMarketData = async (req, res) => {
     try {
         const { setId } = req.params;
         
-        // 1. Obtenemos los detalles reales del set desde Rebrickable
-        const setDetails = await rebrickableService.getSetDetails(setId);
+        // CORRECCIÓN 1: Usamos getSetByNum, que es como se llama en tu servicio
+        const setDetails = await rebrickableService.getSetByNum(setId);
         
-        // 2. Generamos los datos de mercado simulados
+        // CORRECCIÓN 2: Le pasamos setDetails.pieces en lugar de num_parts
         const marketData = marketService.generateMockMarketData(
             setId, 
-            setDetails.num_parts, 
+            setDetails.pieces, 
             setDetails.year
         );
 

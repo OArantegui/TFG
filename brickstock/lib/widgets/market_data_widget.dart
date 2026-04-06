@@ -1,12 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../services/api_service.dart';
 
 class MarketDataWidget extends StatelessWidget {
   final String setNum;
   final Future<Map<String, dynamic>?> marketDataFuture;
 
-  const MarketDataWidget({super.key, required this.setNum,required this.marketDataFuture});
+  const MarketDataWidget({
+    super.key, 
+    required this.setNum,
+    required this.marketDataFuture,
+  });
+
+  // Función para convertir el número de mes en letras (Abreviado)
+  String _getMonthName(String monthNumber) {
+    switch (monthNumber) {
+      case '01': return 'Ene';
+      case '02': return 'Feb';
+      case '03': return 'Mar';
+      case '04': return 'Abr';
+      case '05': return 'May';
+      case '06': return 'Jun';
+      case '07': return 'Jul';
+      case '08': return 'Ago';
+      case '09': return 'Sep';
+      case '10': return 'Oct';
+      case '11': return 'Nov';
+      case '12': return 'Dic';
+      default: return '';
+    }
+  }
 
   Widget _buildChart(List<dynamic> history) {
     List<FlSpot> spots = [];
@@ -31,7 +53,7 @@ class MarketDataWidget extends StatelessWidget {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: Colors.greenAccent, // Un verde más brillante para destacar
+            color: Colors.greenAccent, 
             barWidth: 4,
             isStrokeCapRound: true,
             dotData: const FlDotData(show: true),
@@ -48,23 +70,22 @@ class MarketDataWidget extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
-              // TFG: Importante para evitar etiquetas repetidas (1.5, 2.5...)
               interval: 1, 
               getTitlesWidget: (value, meta) {
-                // Solo pintamos si es un índice entero válido
                 if (value == value.toInt() && value >= 0 && value < history.length) {
                   int index = value.toInt();
                   String monthStr = history[index]['month'].toString().split('-')[1];
+                  
+                  // TFG: Aquí usamos nuestra nueva función
                   return Padding(
                     padding: const EdgeInsets.only(top: 8.0),
-                    child: Text('Mes $monthStr', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                    child: Text(_getMonthName(monthStr), style: const TextStyle(fontSize: 10, color: Colors.grey)),
                   );
                 }
                 return const Text('');
               },
             ),
           ),
-          // Opcional: Mostrar los precios en el eje Y a la izquierda
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -87,7 +108,7 @@ class MarketDataWidget extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         title: const Text('Histórico de Precios'),
         content: SizedBox(
-          height: 300, // Un poco más alto para que quepa bien la gráfica
+          height: 300, 
           width: 400,
           child: Column(
             children: [
@@ -112,11 +133,9 @@ class MarketDataWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Detectamos si el tema es oscuro para ajustar colores
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return FutureBuilder<Map<String, dynamic>?>(
-      //future: ApiService().getSetMarketData(setNum),
       future: marketDataFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -140,13 +159,12 @@ class MarketDataWidget extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- HEADER DE LA SECCIÓN CON EL BOTÓN ---
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'Comparativa de Precios',
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 TextButton.icon(
                   icon: const Icon(Icons.show_chart),
@@ -156,13 +174,10 @@ class MarketDataWidget extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-
-            // --- TARJETAS DE RESUMEN ---
             Row(
               children: [
                 Expanded(
                   child: Card(
-                    // Ajuste de color dinámico para modo claro/oscuro
                     color: isDarkMode ? Colors.blue.withOpacity(0.2) : Colors.blue.shade50,
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),

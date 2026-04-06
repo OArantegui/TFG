@@ -148,16 +148,6 @@ class _CollectionScreenState extends State<CollectionScreen> {
               ),
             ),
             title: Text(item.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis),
-            /*subtitle: Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Set: ${item.setNum} • ${item.numParts} pz', style: const TextStyle(color: Colors.grey, fontSize: 13)),
-                  Text('Cantidad: ${item.quantity} • ${item.purchasePrice}€', style: const TextStyle(color: Colors.orange, fontSize: 13)),
-                ],
-              ),
-            ),*/
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 4.0),
               child: Column(

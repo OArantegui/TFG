@@ -11,9 +11,14 @@ class CollectionProvider with ChangeNotifier {
 
   bool _isLoading = false;
 
+  // TFG: Variable para almacenar el Future de los datos de mercado globales
+  Future<Map<String, dynamic>?>? _collectionMarketDataFuture;
+
   List<CollectionItem> get collection => _collection;
   List<Minifigure> get minifigs => _minifigs;
   bool get isLoading => _isLoading;
+
+  Future<Map<String, dynamic>?>? get collectionMarketDataFuture => _collectionMarketDataFuture;
 
   double get totalCollectionValue {
     return _collection.fold(
@@ -45,6 +50,8 @@ class CollectionProvider with ChangeNotifier {
 
       _collection = results[0] as List<CollectionItem>;
       _minifigs = results[1] as List<Minifigure>;
+
+      _collectionMarketDataFuture = _apiService.getCollectionMarketData();
     } catch (e) {
       debugPrint('Error al cargar la cartera completa: $e');
     } finally {
@@ -57,6 +64,8 @@ class CollectionProvider with ChangeNotifier {
     bool success = await _apiService.deleteFromCollection(id);
     if (success) {
       _collection.removeWhere((item) => item.id == id);
+
+      _collectionMarketDataFuture = _apiService.getCollectionMarketData();
       notifyListeners();
     }
     return success;

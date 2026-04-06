@@ -106,7 +106,7 @@ class MarketDataWidget extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Histórico de Precios'),
+        title: const Text('Evolución de Mercado'),
         content: SizedBox(
           height: 300, 
           width: 400,

@@ -178,7 +178,13 @@ class MarketDataWidget extends StatelessWidget {
                           ),
                         ),
                     ]
-                  )
+                  ),
+                
+                TextButton.icon(
+                  icon: const Icon(Icons.show_chart, size: 18, color: Colors.orange),
+                  label: Text(buttonLabel, style: const TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.bold)),
+                  onPressed: () => _showHistoryChartModal(context, history),
+                ),
               ],
             ),
             

@@ -155,13 +155,28 @@ class MarketDataWidget extends StatelessWidget {
               mainAxisAlignment: showTitle ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
               children: [
                 if (showTitle)
-                  Text('ANÁLISIS DE MERCADO', style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.grey, fontWeight: FontWeight.bold)),
-                
-                TextButton.icon(
-                  icon: const Icon(Icons.show_chart, size: 18, color: Colors.orange),
-                  label: Text(buttonLabel, style: const TextStyle(color: Colors.orange, fontSize: 13, fontWeight: FontWeight.bold)),
-                  onPressed: () => _showHistoryChartModal(context, history),
-                ),
+                  Row(
+                    children: [
+                      Text('VALOR ACTUAL', style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.grey, fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 8),
+                      // TFG: NUEVA ETIQUETA DE ESTADO (Descatalogado / Activo)
+                      if (data['isRetired'] != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: data['isRetired'] ? Colors.redAccent.withOpacity(0.2) : Colors.green.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: data['isRetired'] ? Colors.redAccent : Colors.green, width: 0.5),
+                          ),
+                          child: Text(
+                            data['isRetired'] ? 'DESCATALOGADO' : 'EN TIENDAS',
+                            style: TextStyle(
+                              color: data['isRetired'] ? Colors.redAccent : Colors.green,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
               ],
             ),
             

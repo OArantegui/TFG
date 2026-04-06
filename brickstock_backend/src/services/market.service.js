@@ -14,10 +14,24 @@ const generateMockMarketData = (setId, numParts, year) => {
     const setYear = year || currentYear;
     const age = Math.max(0, currentYear - setYear);
     
+    // Por norma general, un set dura 2 años en tiendas
+    const isRetired = age > 3;
+
     let currentMarketValue = basePrice * Math.pow(1.03, age);
 
-    // 4. Añadir variabilidad única para cada set (basado en la semilla)
-    const variability = (seed % 20) / 100; // Variación del 0% al 19%
+    if (!isRetired) {
+        // EN TIENDAS: El valor de mercado suele ser el retail con algún descuento ocasional
+        // Generamos un "descuento" aleatorio pero fijo por set entre 0% y 15%
+        const discount = (seed % 15) / 100; 
+        currentMarketValue = basePrice * (1 - discount);
+    } else {
+        // DESCATALOGADO: Pegan un salto por escasez (+15%) y luego suben un ~7% anual
+        const yearsRetired = age - 2;
+        currentMarketValue = basePrice * 1.15 * Math.pow(1.07, yearsRetired);
+    }
+
+    // Añadir un poco de "ruido" de mercado único para cada set (-5% a +5%)
+    const variability = ((seed % 10) - 5) / 100; 
     currentMarketValue = currentMarketValue * (1 + variability);
 
     // 5. Generar la evolución de los últimos 6 meses para tu gráfica

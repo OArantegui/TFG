@@ -177,6 +177,8 @@ class MarketDataWidget extends StatelessWidget {
                             ),
                           ),
                         ),
+                    ]
+                  )
               ],
             ),
             

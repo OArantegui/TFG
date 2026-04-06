@@ -19,7 +19,8 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
   final List<String> _extraImages = [];
   
   Future<Map<String, dynamic>?>? _marketDataFuture;
-  double _currentMarketValue = 0.0; 
+  double _currentMarketValue = 0.0;
+  double _estimatedRetailPrice = 0.0;
 
   @override
   void initState() {
@@ -32,6 +33,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
       if (mounted && data != null) {
         setState(() {
           _currentMarketValue = (data['currentMarketValue'] as num).toDouble();
+          _estimatedRetailPrice = (data['estimatedRetailPrice'] as num).toDouble();
         });
       }
     });
@@ -210,7 +212,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                       ),
                       label: const Text('Añadir a deseados'),
                       onPressed: () async {
-                        final double priceToSave = _currentMarketValue; 
+                        final double priceToSave = _estimatedRetailPrice; 
                         
                         final result = await ApiService().addToWishlist(
                           widget.legoSet.setNum,

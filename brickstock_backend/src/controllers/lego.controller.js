@@ -1,5 +1,6 @@
 const axios = require('axios');
 const rebrickableService = require('../services/rebrickable.service');
+const bricksetService = require('../services/brickset.service'); // SERVICIO BRICKSET
 const marketService = require('../services/market.service');
 
 const getThemes = async (req, res) => {
@@ -15,7 +16,6 @@ const getThemes = async (req, res) => {
     }
 };
 
-// ¡Cambiado a 'const' para mantener la consistencia con tu código!
 const getSetsByTheme = async (req, res) => {
     try {
         const themeId = req.params.themeId; 
@@ -133,7 +133,7 @@ const getMinifigDetails = async (req, res) => {
     try {
         const { figNum } = req.params;
 
-        // TFG: Ejecutamos ambas peticiones a Rebrickable en paralelo para reducir el tiempo de respuesta (Latencia)
+        // Ejecutamos ambas peticiones a Rebrickable en paralelo para reducir el tiempo de respuesta (Latencia)
         const [details, sets] = await Promise.all([
             rebrickableService.getMinifigDetails(figNum),
             rebrickableService.getMinifigSets(figNum)
@@ -152,14 +152,14 @@ const getMinifigDetails = async (req, res) => {
     }
 };
 
-const getSetMarketData = async (req, res) => {
+/*const getSetMarketData = async (req, res) => {
     try {
         const { setId } = req.params;
         
-        // CORRECCIÓN 1: Usamos getSetByNum, que es como se llama en tu servicio
+        // Usamos getSetByNum, que es como se llama en tu servicio
         const setDetails = await rebrickableService.getSetByNum(setId);
         
-        // CORRECCIÓN 2: Le pasamos setDetails.pieces en lugar de num_parts
+        // Le pasamos setDetails.pieces en lugar de num_parts
         const marketData = marketService.generateMockMarketData(
             setId, 
             setDetails.pieces, 
@@ -170,6 +170,96 @@ const getSetMarketData = async (req, res) => {
     } catch (error) {
         console.error(`Error al obtener mercado para ${req.params.setId}:`, error.message);
         res.status(500).json({ message: 'Error al calcular datos de mercado' });
+    }
+};*/
+const getSetMarketData = async (req, res) => {
+    try {
+        const { setId } = req.params;
+        
+        // 1. Llamada en paralelo: Rebrickable (piezas/año) + Brickset (precio/estado)
+        const [setDetails, bricksetData] = await Promise.all([
+            rebrickableService.getSetByNum(setId),
+            bricksetService.getSetDetails(setId).catch(() => null) // Si Brickset falla, no rompe la app
+        ]);
+
+        if (!setDetails) {
+            return res.status(404).json({ message: 'Set no encontrado en Rebrickable' });
+        }
+
+        // 2. Extraer precios reales
+        let rrp = null;
+        if (bricksetData && bricksetData.LEGOCom && bricksetData.LEGOCom.EU) {
+            rrp = bricksetData.LEGOCom.EU.retailPrice;
+        } else if (bricksetData && bricksetData.LEGOCom && bricksetData.LEGOCom.US) {
+            rrp = bricksetData.LEGOCom.US.retailPrice;
+        }
+        
+        const availability = bricksetData ? bricksetData.availability : null;
+
+        // 3. Generar mercado inyectando la pura verdad
+        const marketData = marketService.generateMockMarketData(
+            setId, 
+            setDetails.pieces, 
+            setDetails.year,
+            rrp,
+            availability
+        );
+
+        res.status(200).json(marketData);
+    } catch (error) {
+        console.error(`Error al obtener mercado para ${req.params.setId}:`, error.message);
+        res.status(500).json({ message: 'Error al calcular datos de mercado' });
+    }
+};
+
+const scanBarcode = async (req, res) => {
+    try {
+        const { barcode } = req.params;
+
+        // 1. Buscar el código en Brickset
+        const setId = await bricksetService.getSetByBarcode(barcode);
+
+        if (!setId) {
+            return res.status(404).json({ message: 'No se ha encontrado ningún set con este código' });
+        }
+
+        // 2. Si lo encuentra, devolvemos el set completo (Rebrickable + Brickset)
+        const [setDetails, bricksetData] = await Promise.all([
+            rebrickableService.getSetByNum(setId),
+            bricksetService.getSetDetails(setId).catch(() => null)
+        ]);
+
+        if (!setDetails) {
+            return res.status(404).json({ message: 'Set encontrado por código, pero sin datos visuales' });
+        }
+
+        let rrp = null;
+        if (bricksetData && bricksetData.LEGOCom && bricksetData.LEGOCom.EU) {
+            rrp = bricksetData.LEGOCom.EU.retailPrice;
+        } else if (bricksetData && bricksetData.LEGOCom && bricksetData.LEGOCom.US) {
+            rrp = bricksetData.LEGOCom.US.retailPrice;
+        }
+        
+        const availability = bricksetData ? bricksetData.availability : null;
+
+        const marketData = marketService.generateMockMarketData(
+            setId,
+            setDetails.pieces,
+            setDetails.year,
+            rrp,
+            availability
+        );
+
+        // Devolvemos el set unificado para que tu app Flutter pueda mostrar la pantalla de detalles
+        res.status(200).json({
+            ...setDetails,
+            officialRrp: rrp,
+            availability: availability,
+            marketData: marketData
+        });
+    } catch (error) {
+        console.error('Error en scanBarcode:', error.message);
+        res.status(500).json({ message: 'Error al escanear el código de barras' });
     }
 };
 
@@ -194,5 +284,6 @@ module.exports = {
     getMinifigs,
     getMinifigDetails,
     getSetMarketData,
+    scanBarcode,
     getThemeById
 };

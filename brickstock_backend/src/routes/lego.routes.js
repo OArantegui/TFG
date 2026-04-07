@@ -16,4 +16,6 @@ router.get('/themes/:id', legoController.getThemeById);
 
 router.get('/sets/:setId/market-data', legoController.getSetMarketData);
 
+router.get('/scan/:barcode', legoController.scanBarcode);
+
 module.exports = router;

@@ -190,6 +190,22 @@ const getSetMarketData = async (req, res) => {
         let rrp = null;
         let availability = null;
 
+        if (bricksetData) {
+            availability = bricksetData.availability;
+
+            if (bricksetData.LEGOCom) {
+                // Como es un Map de Mongoose, debemos usar .get('DE') en lugar de .DE
+                const deData = bricksetData.LEGOCom.get ? bricksetData.LEGOCom.get('DE') : bricksetData.LEGOCom.DE;
+                const usData = bricksetData.LEGOCom.get ? bricksetData.LEGOCom.get('US') : bricksetData.LEGOCom.US;
+
+                if (deData) {
+                    rrp = deData.retailPrice;
+                } else if (usData) {
+                    rrp = usData.retailPrice;
+                }
+            }
+        }
+
         // 3. Generar mercado inyectando la pura verdad
         const marketData = marketService.generateMockMarketData(
             setId, 

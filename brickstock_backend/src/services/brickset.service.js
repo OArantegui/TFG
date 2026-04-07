@@ -20,6 +20,7 @@ const mapBricksetData = (rawSet) => {
         themeGroup: rawSet.themeGroup,
         subtheme: rawSet.subtheme,
         category: rawSet.category,
+        availability: rawSet.availability,
         released: rawSet.released,
         pieces: rawSet.pieces,
         minifigs: rawSet.minifigs,

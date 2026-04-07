@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { register, login, updateUser, refreshToken, logout, verifyCurrentPassword } = require('../controllers/auth.controller');
+const { register, login, updateUser, refreshToken, logout, verifyCurrentPassword, updateAvatar } = require('../controllers/auth.controller');
 
 const { verifyJWT } = require('../middlewares/auth.middleware');
 
@@ -13,5 +13,6 @@ router.post('/logout', logout);
 
 router.put('/profile', verifyJWT, updateUser);
 router.post('/verify-password', verifyJWT, verifyCurrentPassword);
+router.put('/avatar', verifyJWT, updateAvatar);
 
 module.exports = router;

@@ -231,4 +231,21 @@ const verifyCurrentPassword = async (req, res) => {
     }
 };
 
-module.exports = { register, login, updateUser, refreshToken, logout, verifyCurrentPassword };
+const updateAvatar = async (req, res) => {
+  try {
+    const userId = req.user.id; // Asumiendo que el middleware de auth inyecta el req.user
+    const { avatar } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { avatar },
+      { new: true }
+    ).select('-password'); // Devolvemos el usuario sin la contraseña
+
+    res.status(200).json({ success: true, user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error al actualizar el avatar' });
+  }
+};
+
+module.exports = { register, login, updateUser, refreshToken, logout, verifyCurrentPassword, updateAvatar };

@@ -9,7 +9,11 @@ const userSchema = new mongoose.Schema({
     unlockedAchievements: [{
       achievement: { type: mongoose.Schema.Types.ObjectId, ref: 'Achievement' },
       unlockedAt: { type: Date, default: Date.now }
-  }]
+    }],
+    avatar: {
+      type: String,
+      default: 'assets/avatars/lego-default.jpg' // Avatar por defecto
+    }
 }, {
     timestamps: true // Guarda automáticamente la fecha de creación
 });

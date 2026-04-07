@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../models/achievement.dart';
 import '../widgets/wishlist_summary_card.dart'; // Importamos el componente reutilizable
 import 'login_screen.dart';
+import '../widgets/avatar_picker_dialog.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -28,6 +29,7 @@ class _UserScreenState extends State<UserScreen> {
   late Future<Map<String, dynamic>> _userStatsFuture; // Nuevo Future para las estadísticas
 
   String _currentUsername = "Coleccionista";
+  String _currentAvatar = 'assets/avatars/lego-default.jpg';
 
   @override
   void initState() {
@@ -67,6 +69,7 @@ class _UserScreenState extends State<UserScreen> {
     final userData = await _authService.getUserData();
     setState(() {
       _currentUsername = userData['username'] ?? 'Coleccionista';
+      _currentAvatar = userData['avatar'] ?? 'assets/avatars/lego-default.jpg';
       _usernameController.text = userData['username'] ?? '';
       _emailController.text = userData['email'] ?? '';
     });
@@ -231,10 +234,46 @@ class _UserScreenState extends State<UserScreen> {
               padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
               child: Column(
                 children: [
-                  const CircleAvatar(
-                    radius: 40,
-                    backgroundColor: Colors.orange,
-                    child: Icon(Icons.person, size: 50, color: Colors.white),
+                  Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundImage: AssetImage(_currentAvatar),
+                        backgroundColor: const Color(0xFF2D2D2D),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AvatarPickerDialog(
+                              onAvatarSelected: (avatarPath) async {
+                                // 1. Lo cambiamos visualmente al instante
+                                setState(() {
+                                  _currentAvatar = avatarPath;
+                                });
+                                
+                                // 2. Lo guardamos en la base de datos usando el nuevo método
+                                final success = await _authService.updateAvatar(avatarPath);
+                                if (success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Avatar actualizado'), backgroundColor: Colors.green),
+                                  );
+                                }
+                              },
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: Colors.orange,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.edit, color: Colors.black, size: 18),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   Text(

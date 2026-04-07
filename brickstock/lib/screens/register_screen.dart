@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart'; // Navegaremos aquí si ya tiene cuenta
+import '../widgets/avatar_picker_dialog.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -24,6 +25,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // Variables para controlar la visibilidad de las contraseñas
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+
+  String _selectedAvatar = 'assets/avatars/lego-default.jpg';
 
   // Método para liberar los controladores de la memoria cuando se cierra la pantalla
   @override
@@ -57,6 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _usernameController.text.trim(),
       _emailController.text.trim(),
       _passwordController.text.trim(),
+      _selectedAvatar,
     );
 
     if (!mounted) return;
@@ -97,7 +101,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.person_add, size: 80, color: Colors.blueGrey),
+                Center(
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundImage: AssetImage(_selectedAvatar),
+                        backgroundColor: const Color(0xFF2D2D2D),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AvatarPickerDialog(
+                              onAvatarSelected: (avatarPath) {
+                                // Al elegir uno, actualizamos la vista al instante
+                                setState(() {
+                                  _selectedAvatar = avatarPath;
+                                });
+                              },
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: Colors.orange,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.edit, color: Colors.black, size: 20),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 30),
 
                 TextFormField(

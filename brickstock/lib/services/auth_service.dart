@@ -65,10 +65,11 @@ class AuthService {
   }
 
   // Métodos de UserData (Se quedan igual, en SharedPreferences)
-  Future<void> saveUserData(String username, String email) async {
+  Future<void> saveUserData(String username, String email, String avatar) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', username);
     await prefs.setString('email', email);
+    await prefs.setString('avatar', avatar);
   }
 
   Future<Map<String, String>> getUserData() async {
@@ -76,6 +77,7 @@ class AuthService {
     return {
       'username': prefs.getString('username') ?? '',
       'email': prefs.getString('email') ?? '',
+      'avatar': prefs.getString('avatar') ?? 'assets/avatars/lego-default.jpg',
     };
   }
 
@@ -90,7 +92,6 @@ class AuthService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': password}),
       );
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final accessToken = data['accessToken'];
@@ -100,7 +101,7 @@ class AuthService {
         if (accessToken != null && refreshToken != null) {
           await saveTokens(accessToken, refreshToken);
           if (user != null) {
-            await saveUserData(user['username'], user['email']);
+            await saveUserData(user['username'], user['email'], user['avatar'] ?? 'assets/avatars/lego-default.jpg');
           }
           
           //Guardamos la decisión del usuario
@@ -118,12 +119,12 @@ class AuthService {
   }
 
   // Registro: Ahora también guardamos los dos tokens igual que en login
-  Future<bool> register(String username, String email, String password, {bool keepSignedIn = true}) async {
+  Future<bool> register(String username, String email, String password, String avatar, {bool keepSignedIn = true}) async {
     try {
       final response = await http.post(
         Uri.parse('${ApiService.baseUrl}/auth/register'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': username, 'email': email, 'password': password}),
+        body: jsonEncode({'username': username, 'email': email, 'password': password, 'avatar': avatar}),
       );
 
       if (response.statusCode == 201) {
@@ -134,7 +135,7 @@ class AuthService {
 
          if (accessToken != null && refreshToken != null) {
            await saveTokens(accessToken, refreshToken);
-           if (user != null) await saveUserData(user['username'], user['email']);
+           if (user != null) await saveUserData(user['username'], user['email'], user['avatar'] ?? avatar);
            
            // Guardamos la decisión
            final prefs = await SharedPreferences.getInstance();
@@ -206,7 +207,7 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['user'] != null) {
-          await saveUserData(data['user']['username'], data['user']['email']);
+          await saveUserData(data['user']['username'], data['user']['email'], data['user']['avatar']);
         }
         return true;
       }
@@ -233,6 +234,30 @@ class AuthService {
         return data['success'] == true;
       }
       return false; // Si devuelve 400 (incorrecta), caemos aquí
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> updateAvatar(String avatarPath) async {
+    try {
+      final token = await getAccessToken();
+      final response = await http.put(
+        Uri.parse('${ApiService.baseUrl}/auth/avatar'), 
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'avatar': avatarPath}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // Actualiza los datos locales (asegúrate de que tu saveUserData acepta 3 parámetros)
+        await saveUserData(data['user']['username'], data['user']['email'], data['user']['avatar']);
+        return true;
+      }
+      return false;
     } catch (e) {
       return false;
     }

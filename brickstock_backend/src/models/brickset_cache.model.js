@@ -9,6 +9,7 @@ const bricksetCacheSchema = new mongoose.Schema({
     themeGroup: { type: String },
     subtheme: { type: String },
     category: { type: String },
+    availability: { type: String },
     released: { type: Boolean },
     pieces: { type: Number },
     minifigs: { type: Number },

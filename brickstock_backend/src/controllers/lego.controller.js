@@ -188,13 +188,7 @@ const getSetMarketData = async (req, res) => {
 
         // 2. Extraer precios reales
         let rrp = null;
-        if (bricksetData && bricksetData.LEGOCom && bricksetData.LEGOCom.EU) {
-            rrp = bricksetData.LEGOCom.EU.retailPrice;
-        } else if (bricksetData && bricksetData.LEGOCom && bricksetData.LEGOCom.US) {
-            rrp = bricksetData.LEGOCom.US.retailPrice;
-        }
-        
-        const availability = bricksetData ? bricksetData.availability : null;
+        let availability = null;
 
         // 3. Generar mercado inyectando la pura verdad
         const marketData = marketService.generateMockMarketData(
@@ -234,13 +228,23 @@ const scanBarcode = async (req, res) => {
         }
 
         let rrp = null;
-        if (bricksetData && bricksetData.LEGOCom && bricksetData.LEGOCom.EU) {
-            rrp = bricksetData.LEGOCom.EU.retailPrice;
-        } else if (bricksetData && bricksetData.LEGOCom && bricksetData.LEGOCom.US) {
-            rrp = bricksetData.LEGOCom.US.retailPrice;
+        let availability = null;
+
+        if (bricksetData) {
+            // Convertimos el documento de Mongo a un objeto normal para leerlo fácil
+            const bData = bricksetData.toJSON ? bricksetData.toJSON() : bricksetData;
+            
+            availability = bData.availability;
+
+            if (bData.LEGOCom) {
+                // Buscamos 'DE' (Euros), y si no 'US' (Dólares)
+                if (bData.LEGOCom.DE) {
+                    rrp = bData.LEGOCom.DE.retailPrice;
+                } else if (bData.LEGOCom.US) {
+                    rrp = bData.LEGOCom.US.retailPrice;
+                }
+            }
         }
-        
-        const availability = bricksetData ? bricksetData.availability : null;
 
         const marketData = marketService.generateMockMarketData(
             setId,

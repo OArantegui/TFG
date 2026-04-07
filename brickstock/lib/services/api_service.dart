@@ -519,4 +519,28 @@ class ApiService {
     }
     return null;
   }
+  
+  // --------------------------------------------------------
+  // NUEVO: ESCÁNER DE CÓDIGO DE BARRAS (BRICKSET + REBRICKABLE)
+  // --------------------------------------------------------
+  Future<Map<String, dynamic>?> scanBarcode(String barcode) async {
+    try {
+      // Apuntamos al nuevo endpoint de tu backend en Render
+      final uri = Uri.parse('${ApiService.baseUrl}/lego/scan/$barcode');
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        // Devuelve el JSON con el setDetails, rrp, availability y marketData
+        return json.decode(response.body); 
+      } else if (response.statusCode == 404) {
+        // Si el backend devuelve 404, significa que el código no es de LEGO o no existe
+        return null;
+      } else {
+        throw Exception('Error del servidor al escanear: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error en scanBarcode: $e');
+      throw Exception('Error de red al conectar con el escáner.');
+    }
+  }
 }

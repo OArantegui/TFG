@@ -13,8 +13,9 @@ import 'elements_list_screen.dart';
 class HomeScreen extends StatelessWidget {
   // Recibimos la función de navegación desde MainLayout
   final Function(int) onNavigate;
+  final String userAvatar;
 
-  const HomeScreen({super.key, required this.onNavigate});
+  const HomeScreen({super.key, required this.onNavigate, required this.userAvatar});
 
   @override
   Widget build(BuildContext context) {
@@ -36,11 +37,18 @@ class HomeScreen extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange, letterSpacing: 1.2)
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.account_circle, color: Colors.grey, size: 28),
-              // El índice 5 corresponde al Perfil / Ajustes en MainLayout
-              onPressed: () => onNavigate(5), 
-              tooltip: 'Perfil',
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: GestureDetector(
+                onTap: () => onNavigate(5), // Vamos al perfil
+                child: Center(
+                  child: CircleAvatar(
+                    radius: 16, // Tamaño para que encaje bien en la AppBar
+                    backgroundImage: AssetImage(userAvatar), // Usamos la variable recibida
+                    backgroundColor: const Color(0xFF2D2D2D),
+                  ),
+                ),
+              ),
             ),
             const SizedBox(width: 8),
           ],

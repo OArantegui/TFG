@@ -21,6 +21,7 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _selectedIndex = 0;
   String _username = "Perfil";
+  String _avatar = "assets/avatars/lego-default.jpg";
   bool _isBottomBarVisible = true;
 
   final GlobalKey<NavigatorState> _exploreNavKey = GlobalKey<NavigatorState>();
@@ -28,14 +29,15 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   void initState() {
     super.initState();
-    _loadUsername();
+    _loadUserData();
   }
 
-  void _loadUsername() async {
+  void _loadUserData() async {
     final userData = await AuthService().getUserData();
     if (mounted) {
       setState(() {
-        _username = userData['username'] ?? 'Perfil'; 
+        _username = userData['username'] ?? 'Perfil';
+        _avatar = userData['avatar'] ?? 'assets/avatars/lego-default.jpg';
       });
     }
   }
@@ -53,7 +55,7 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> screens = [
-      ChangeNotifierProvider(create: (_) => HomeProvider(), child: HomeScreen(onNavigate: _onItemTapped)),
+      ChangeNotifierProvider(create: (_) => HomeProvider(), child: HomeScreen(onNavigate: _onItemTapped, userAvatar: _avatar)),
       const ElementsListScreen(customTitle: 'Buscar Sets'),
       PopScope(
         canPop: false,
@@ -116,9 +118,24 @@ class _MainLayoutState extends State<MainLayout> {
                       selectedIcon: Icon(Icons.favorite_border), 
                       label: Text('Deseados')),
                     NavigationRailDestination(
-                      icon: const Icon(Icons.account_circle), 
-                      selectedIcon: const Icon(Icons.account_circle), 
-                      label: Text(_username)),
+                      // Reemplazamos el Icon por un CircleAvatar
+                      icon: CircleAvatar(
+                        radius: 12,
+                        backgroundImage: AssetImage(_avatar),
+                      ), 
+                      selectedIcon: CircleAvatar(
+                        radius: 12,
+                        backgroundImage: AssetImage(_avatar),
+                        // Añadimos un borde naranja cuando esté seleccionado para mantener la coherencia visual
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.orange, width: 2),
+                          ),
+                        ),
+                      ), 
+                      label: Text(_username),
+                    ),
                   ],
                 ),
                 const VerticalDivider(thickness: 1, width: 1, color: Colors.white10),
@@ -196,9 +213,23 @@ class _MainLayoutState extends State<MainLayout> {
                         selectedIcon: Icon(Icons.favorite, color: Colors.orange), 
                         label: 'Deseados'),
                       NavigationDestination(
-                        icon: const Icon(Icons.account_circle, color: Colors.grey), 
-                        selectedIcon: const Icon(Icons.account_circle, color: Colors.orange), 
-                        label: _username),
+                        // Reemplazamos el Icon genérico
+                        icon: CircleAvatar(
+                          radius: 12,
+                          backgroundImage: AssetImage(_avatar),
+                        ), 
+                        selectedIcon: CircleAvatar(
+                          radius: 14, // Un poco más grande al estar seleccionado
+                          backgroundImage: AssetImage(_avatar),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.orange, width: 2),
+                            ),
+                          ),
+                        ), 
+                        label: _username,
+                      ),
                     ],
                   ),
                 )

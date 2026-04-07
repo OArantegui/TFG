@@ -5,10 +5,11 @@ class AvatarPickerDialog extends StatelessWidget {
   
   // Lista de tus avatares
   final List<String> avatars = [
-    'assets/avatars/lego_1.png',
-    'assets/avatars/lego_2.png',
-    'assets/avatars/lego_3.png',
-    'assets/avatars/lego_4.png',
+    'assets/avatars/avatar-harrypoter.jpg',
+    'assets/avatars/avatar-ironman.jpg',
+    'assets/avatars/avatar-vader.jpg',
+    'assets/avatars/avatar-lambo.jpg',
+    'assets/avatars/lego-default.jpg',
   ];
 
   AvatarPickerDialog({Key? key, required this.onAvatarSelected}) : super(key: key);

@@ -8637,7 +8637,7 @@ a5Z:function a5Z(){},
 a5W:function a5W(){},
 a62:function a62(){},
 lr:function lr(){},
-aO3(a){return new A.uK(a,A.b(["assets/avatars/lego_1.png","assets/avatars/lego_2.png","assets/avatars/lego_3.png","assets/avatars/lego_4.png"],t.s),null)},
+aO3(a){return new A.uK(a,A.b(["assets/avatars/avatar-harrypoter.jpg","assets/avatars/avatar-ironman.jpg","assets/avatars/avatar-vader.jpg","assets/avatars/avatar-lambo.jpg","assets/avatars/lego-default.jpg"],t.s),null)},
 uK:function uK(a,b,c){this.c=a
 this.d=b
 this.a=c},
@@ -49897,7 +49897,7 @@ case 2:return A.z(o.at(-1),r)}})
 return A.B($async$uu,r)}}
 A.uK.prototype={
 G(a){var s=null
-return A.pQ(s,s,A.cJ(A.aKh(B.Wz,new A.a6m(this),4,s,!0),s,17976931348623157e292),s,B.a2o)}}
+return A.pQ(s,s,A.cJ(A.aKh(B.Wz,new A.a6m(this),5,s,!0),s,17976931348623157e292),s,B.a2o)}}
 A.a6m.prototype={
 $2(a,b){var s=null,r=this.a
 return A.m0(s,A.NC(B.p9,new A.nq(r.d[b],s,s),s,s),B.a3,!1,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,new A.a6l(r,b,a),s,s,s,s,s,s,!1,B.c6)},

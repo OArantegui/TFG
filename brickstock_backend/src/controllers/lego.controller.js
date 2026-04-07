@@ -305,7 +305,7 @@ const scanBarcode = async (req, res) => {
         // Desempaquetamos por si tu servicio de Rebrickable los mete dentro de un "data: {}"
         const actualSet = setDetails.data ? setDetails.data : setDetails;
         
-        const safeImgUrl = actualSet.set_img_url || actualSet.imgUrl || actualSet.image || '';
+        const safeImgUrl = actualSet.set_img_url || actualSet.imageUrl || actualSet.imgUrl || actualSet.image || '';       
         // Buscamos las piezas y el año sea cual sea el nombre que tengan en tu servicio
         const safePieces = actualSet.num_parts || actualSet.pieces || 0;
         const safeYear = actualSet.year || actualSet.año || new Date().getFullYear();
@@ -322,16 +322,12 @@ const scanBarcode = async (req, res) => {
         // 5. CONSTRUIR EL JSON BLINDADO PARA FLUTTER
         const responseData = {
             // Forzamos los nombres exactos que espera LegoSet.fromJson
-            set_num: actualSet.set_num || actualSet.id || setId,
+            set_num: actualSet.set_num || actualSet._id || actualSet.id || setId,
             name: actualSet.name || actualSet.nombre || 'Desconocido',
             year: safeYear,
             theme_id: actualSet.theme_id || actualSet.themeId || 0,
             num_parts: safePieces,
             set_img_url: safeImgUrl,
-
-            //Aseguramos que el factory lo pilla
-            imgUrl: safeImgUrl,   
-            imageUrl: safeImgUrl,
             
             // Nuestros datos inyectados de Brickset
             officialRrp: rrp,

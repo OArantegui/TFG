@@ -225,7 +225,7 @@ const getSetMarketData = async (req, res) => {
     }
 };
 
-const scanBarcode = async (req, res) => {
+/*const scanBarcode = async (req, res) => {
     try {
         const { barcode } = req.params;
 
@@ -283,6 +283,83 @@ const scanBarcode = async (req, res) => {
             availability: availability,
             marketData: marketData
         });
+    } catch (error) {
+        console.error('Error en scanBarcode:', error.message);
+        res.status(500).json({ message: 'Error al escanear el código de barras' });
+    }
+};*/
+const scanBarcode = async (req, res) => {
+    try {
+        const { barcode } = req.params;
+
+        // 1. Buscar el código en Brickset
+        const setId = await bricksetService.getSetByBarcode(barcode);
+
+        if (!setId) {
+            return res.status(404).json({ message: 'No se ha encontrado ningún set con este código' });
+        }
+
+        // 2. Obtener datos combinados (Si falla Rebrickable, evitamos que rompa)
+        const [setDetails, bricksetData] = await Promise.all([
+            rebrickableService.getSetByNum(setId).catch(() => null),
+            bricksetService.getSetDetails(setId).catch(() => null)
+        ]);
+
+        if (!setDetails) {
+            return res.status(404).json({ message: 'Set encontrado por código, pero sin datos visuales en Rebrickable' });
+        }
+
+        // 3. Extraer precios y fechas
+        let rrp = null;
+        let availability = null;
+        let exitDate = null;
+
+        if (bricksetData) {
+            availability = bricksetData.availability;
+            exitDate = bricksetData.exitDate;
+
+            if (bricksetData.LEGOCom) {
+                const deData = bricksetData.LEGOCom.get ? bricksetData.LEGOCom.get('DE') : bricksetData.LEGOCom.DE;
+                const usData = bricksetData.LEGOCom.get ? bricksetData.LEGOCom.get('US') : bricksetData.LEGOCom.US;
+                if (deData) rrp = deData.retailPrice;
+                else if (usData) rrp = usData.retailPrice;
+            }
+        }
+
+        // 4. NORMALIZACIÓN DE DATOS
+        // Desempaquetamos por si tu servicio de Rebrickable los mete dentro de un "data: {}"
+        const actualSet = setDetails.data ? setDetails.data : setDetails;
+        
+        // Buscamos las piezas y el año sea cual sea el nombre que tengan en tu servicio
+        const safePieces = actualSet.num_parts || actualSet.pieces || 0;
+        const safeYear = actualSet.year || actualSet.año || new Date().getFullYear();
+
+        const marketData = marketService.generateMockMarketData(
+            setId,
+            safePieces,
+            safeYear,
+            rrp,
+            availability,
+            exitDate
+        );
+
+        // 5. CONSTRUIR EL JSON BLINDADO PARA FLUTTER
+        const responseData = {
+            // Forzamos los nombres exactos que espera LegoSet.fromJson
+            set_num: actualSet.set_num || actualSet.id || setId,
+            name: actualSet.name || actualSet.nombre || 'Desconocido',
+            year: safeYear,
+            theme_id: actualSet.theme_id || actualSet.themeId || 0,
+            num_parts: safePieces,
+            set_img_url: actualSet.set_img_url || actualSet.imgUrl || actualSet.image || '',
+            
+            // Nuestros datos inyectados de Brickset
+            officialRrp: rrp,
+            availability: availability,
+            marketData: marketData
+        };
+
+        res.status(200).json(responseData);
     } catch (error) {
         console.error('Error en scanBarcode:', error.message);
         res.status(500).json({ message: 'Error al escanear el código de barras' });

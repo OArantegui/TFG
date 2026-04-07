@@ -225,69 +225,6 @@ const getSetMarketData = async (req, res) => {
     }
 };
 
-/*const scanBarcode = async (req, res) => {
-    try {
-        const { barcode } = req.params;
-
-        // 1. Buscar el código en Brickset
-        const setId = await bricksetService.getSetByBarcode(barcode);
-
-        if (!setId) {
-            return res.status(404).json({ message: 'No se ha encontrado ningún set con este código' });
-        }
-
-        // 2. Si lo encuentra, devolvemos el set completo (Rebrickable + Brickset)
-        const [setDetails, bricksetData] = await Promise.all([
-            rebrickableService.getSetByNum(setId),
-            bricksetService.getSetDetails(setId).catch(() => null)
-        ]);
-
-        if (!setDetails) {
-            return res.status(404).json({ message: 'Set encontrado por código, pero sin datos visuales' });
-        }
-
-        let rrp = null;
-        let availability = null;
-        let exitDate = null;
-
-        if (bricksetData) {
-            // Convertimos el documento de Mongo a un objeto normal para leerlo fácil
-            const bData = bricksetData.toJSON ? bricksetData.toJSON() : bricksetData;
-            
-            availability = bData.availability;
-            exitDate = bData.exitDate;
-
-            if (bData.LEGOCom) {
-                // Buscamos 'DE' (Euros), y si no 'US' (Dólares)
-                if (bData.LEGOCom.DE) {
-                    rrp = bData.LEGOCom.DE.retailPrice;
-                } else if (bData.LEGOCom.US) {
-                    rrp = bData.LEGOCom.US.retailPrice;
-                }
-            }
-        }
-
-        const marketData = marketService.generateMockMarketData(
-            setId,
-            setDetails.pieces,
-            setDetails.year,
-            rrp,
-            availability,
-            exitDate
-        );
-
-        // Devolvemos el set unificado para que tu app Flutter pueda mostrar la pantalla de detalles
-        res.status(200).json({
-            ...setDetails,
-            officialRrp: rrp,
-            availability: availability,
-            marketData: marketData
-        });
-    } catch (error) {
-        console.error('Error en scanBarcode:', error.message);
-        res.status(500).json({ message: 'Error al escanear el código de barras' });
-    }
-};*/
 const scanBarcode = async (req, res) => {
     try {
         const { barcode } = req.params;

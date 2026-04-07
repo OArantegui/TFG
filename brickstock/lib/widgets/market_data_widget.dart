@@ -157,9 +157,7 @@ class MarketDataWidget extends StatelessWidget {
                 if (showTitle)
                   Row(
                     children: [
-                      Text('VALOR ACTUAL', style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.grey, fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 8),
-                      // TFG: NUEVA ETIQUETA DE ESTADO (Descatalogado / Activo)
+                      //ETIQUETA DE ESTADO (Descatalogado / Activo)
                       if (data['isRetired'] != null)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

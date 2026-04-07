@@ -105,7 +105,7 @@ const getSetByBarcode = async (barcode) => {
             params: {
                 apiKey: API_KEY,
                 userHash: '',
-                params: JSON.stringify({ barcode: barcode })
+                params: JSON.stringify({ query: barcode })
             }
         });
 

@@ -328,6 +328,10 @@ const scanBarcode = async (req, res) => {
             theme_id: actualSet.theme_id || actualSet.themeId || 0,
             num_parts: safePieces,
             set_img_url: safeImgUrl,
+
+            //Aseguramos que el factory lo pilla
+            imgUrl: safeImgUrl,   
+            imageUrl: safeImgUrl,
             
             // Nuestros datos inyectados de Brickset
             officialRrp: rrp,

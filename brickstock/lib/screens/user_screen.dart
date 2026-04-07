@@ -30,9 +30,6 @@ class _UserScreenState extends State<UserScreen> {
   late Future<List<Achievement>> _achievementsFuture;
   late Future<Map<String, dynamic>> _userStatsFuture; // Nuevo Future para las estadísticas
 
-  String _currentUsername = "Coleccionista";
-  String _currentAvatar = 'assets/avatars/lego-default.jpg';
-
   @override
   void initState() {
     super.initState();
@@ -70,8 +67,6 @@ class _UserScreenState extends State<UserScreen> {
   void _cargarDatosUsuario() async {
     final userData = await _authService.getUserData();
     setState(() {
-      _currentUsername = userData['username'] ?? 'Coleccionista';
-      _currentAvatar = userData['avatar'] ?? 'assets/avatars/lego-default.jpg';
       _usernameController.text = userData['username'] ?? '';
       _emailController.text = userData['email'] ?? '';
     });
@@ -97,6 +92,7 @@ class _UserScreenState extends State<UserScreen> {
       _passwordController.clear();
       _confirmPasswordController.clear();
       _cargarDatosUsuario();
+      Provider.of<UserProvider>(context, listen: false).loadUserData();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error al guardar. Puede que el email o usuario ya existan.'), backgroundColor: Colors.red),
@@ -241,7 +237,7 @@ class _UserScreenState extends State<UserScreen> {
                     children: [
                       CircleAvatar(
                         radius: 40,
-                        backgroundImage: AssetImage(_currentAvatar),
+                        backgroundImage: AssetImage(context.watch<UserProvider>().avatar),
                         backgroundColor: const Color(0xFF2D2D2D),
                       ),
                       GestureDetector(
@@ -258,9 +254,9 @@ class _UserScreenState extends State<UserScreen> {
                                   Provider.of<UserProvider>(context, listen: false).updateAvatar(avatarPath);
                                   
                                   // 3. Actualizamos visualmente la propia pantalla
-                                  setState(() {
+                                  /*setState(() {
                                     _currentAvatar = avatarPath;
-                                  });
+                                  });*/
 
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('Avatar actualizado con éxito')),
@@ -283,7 +279,7 @@ class _UserScreenState extends State<UserScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    _currentUsername,
+                    context.watch<UserProvider>().username,
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   const SizedBox(height: 24),

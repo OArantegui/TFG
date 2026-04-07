@@ -21,8 +21,6 @@ class MainLayout extends StatefulWidget {
 
 class _MainLayoutState extends State<MainLayout> {
   int _selectedIndex = 0;
-  String _username = "Perfil";
-  String _avatar = "assets/avatars/lego-default.jpg";
   bool _isBottomBarVisible = true;
 
   final GlobalKey<NavigatorState> _exploreNavKey = GlobalKey<NavigatorState>();
@@ -30,17 +28,6 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
-  }
-
-  void _loadUserData() async {
-    final userData = await AuthService().getUserData();
-    if (mounted) {
-      setState(() {
-        _username = userData['username'] ?? 'Perfil';
-        _avatar = userData['avatar'] ?? 'assets/avatars/lego-default.jpg';
-      });
-    }
   }
   
   void _onItemTapped(int index) {
@@ -59,9 +46,10 @@ class _MainLayoutState extends State<MainLayout> {
     //Escuchamos el avatar en tiempo real
     final userProvider = context.watch<UserProvider>();
     final avatarRealTime = userProvider.avatar;
+    final usernameRealTime = userProvider.username;
 
     final List<Widget> screens = [
-      ChangeNotifierProvider(create: (_) => HomeProvider(), child: HomeScreen(onNavigate: _onItemTapped, userAvatar: _avatar)),
+      ChangeNotifierProvider(create: (_) => HomeProvider(), child: HomeScreen(onNavigate: _onItemTapped)),
       const ElementsListScreen(customTitle: 'Buscar Sets'),
       PopScope(
         canPop: false,
@@ -131,7 +119,7 @@ class _MainLayoutState extends State<MainLayout> {
                       ), 
                       selectedIcon: CircleAvatar(
                         radius: 12,
-                        backgroundImage: AssetImage(_avatar),
+                        backgroundImage: AssetImage(avatarRealTime),
                         // Añadimos un borde naranja cuando esté seleccionado para mantener la coherencia visual
                         child: Container(
                           decoration: BoxDecoration(
@@ -140,7 +128,7 @@ class _MainLayoutState extends State<MainLayout> {
                           ),
                         ),
                       ), 
-                      label: Text(_username),
+                      label: Text(usernameRealTime),
                     ),
                   ],
                 ),
@@ -222,7 +210,7 @@ class _MainLayoutState extends State<MainLayout> {
                         // Reemplazamos el Icon genérico
                         icon: CircleAvatar(
                           radius: 12,
-                          backgroundImage: AssetImage(_avatar),
+                          backgroundImage: AssetImage(avatarRealTime),
                         ), 
                         selectedIcon: CircleAvatar(
                           radius: 14, // Un poco más grande al estar seleccionado
@@ -234,7 +222,7 @@ class _MainLayoutState extends State<MainLayout> {
                             ),
                           ),
                         ), 
-                        label: _username,
+                        label: usernameRealTime,
                       ),
                     ],
                   ),

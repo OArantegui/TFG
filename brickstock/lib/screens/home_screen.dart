@@ -14,9 +14,8 @@ import '../providers/user_provider.dart';
 class HomeScreen extends StatelessWidget {
   // Recibimos la función de navegación desde MainLayout
   final Function(int) onNavigate;
-  final String userAvatar;
 
-  const HomeScreen({super.key, required this.onNavigate, required this.userAvatar});
+  const HomeScreen({super.key, required this.onNavigate});
 
   @override
   Widget build(BuildContext context) {

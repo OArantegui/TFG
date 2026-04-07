@@ -9,6 +9,7 @@ import '../widgets/nav_card.dart'; // Nuestro nuevo componente
 import 'set_details_screen.dart';
 import 'elements_list_screen.dart';
 import '../providers/user_provider.dart';
+import 'scanner_screen.dart';
 
 // Cambiamos a StatelessWidget porque el estado lo maneja el HomeProvider
 class HomeScreen extends StatelessWidget {
@@ -25,123 +26,142 @@ class HomeScreen extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     int navColumns = screenWidth > 800 ? 4 : (screenWidth > 600 ? 3 : 2);
 
-    return CustomScrollView(
-      slivers: [
-        // CABECERA DINÁMICA: Desaparece al bajar, aparece al subir
-        SliverAppBar(
-          floating: true,
-          snap: true,
-          backgroundColor: const Color(0xFF1E1E1E),
-          elevation: 0,
-          title: const Text(
-            'BRICKSTOCK', 
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange, letterSpacing: 1.2)
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: GestureDetector(
-                onTap: () => onNavigate(5), // Vamos al perfil
-                child: Center(
-                  child: CircleAvatar(
-                    radius: 16, // Tamaño para que encaje bien en la AppBar
-                    backgroundImage: AssetImage(userProvider.avatar), // Usamos la variable recibida
-                    backgroundColor: const Color(0xFF2D2D2D),
+    return Scaffold(
+      backgroundColor: Colors.transparent, // Mantiene el fondo oscuro de tu app
+      
+      // 2. AÑADIMOS EL BOTÓN FLOTANTE
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ScannerScreen()),
+          );
+        },
+        icon: const Icon(Icons.qr_code_scanner),
+        label: const Text('Escanear Set', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.orange, // A juego con los detalles de tu app
+        foregroundColor: Colors.white,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Lo centra abajo
+
+      body: CustomScrollView(
+        slivers: [
+          // CABECERA DINÁMICA: Desaparece al bajar, aparece al subir
+          SliverAppBar(
+            floating: true,
+            snap: true,
+            backgroundColor: const Color(0xFF1E1E1E),
+            elevation: 0,
+            title: const Text(
+              'BRICKSTOCK', 
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange, letterSpacing: 1.2)
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: GestureDetector(
+                  onTap: () => onNavigate(5), // Vamos al perfil
+                  child: Center(
+                    child: CircleAvatar(
+                      radius: 16, // Tamaño para que encaje bien en la AppBar
+                      backgroundImage: AssetImage(userProvider.avatar), // Usamos la variable recibida
+                      backgroundColor: const Color(0xFF2D2D2D),
+                    ),
                   ),
                 ),
               ),
+              const SizedBox(width: 8),
+            ],
+          ),
+
+          // CONTENIDO PRINCIPAL
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                const Text(
+                  'Inicio',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white, height: 1.1),
+                ),
+                const SizedBox(height: 30),
+
+                // BOTONES DE NAVEGACIÓN
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(), // El scroll lo maneja el CustomScrollView
+                  crossAxisCount: navColumns,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 1.3,
+                  children: [
+                    NavCard(
+                      title: 'Buscar', 
+                      icon: Icons.search, 
+                      onTap: () => onNavigate(1) // Índice 1: Buscar
+                    ),
+                    NavCard(
+                      title: 'Temas', 
+                      icon: Icons.list_alt, 
+                      onTap: () => onNavigate(2) // Índice 2: Temas
+                    ),
+                    NavCard(
+                      title: 'Colección', 
+                      icon: Icons.shelves, 
+                      onTap: () => onNavigate(3) // Índice 3: Colección
+                    ),
+                    NavCard(
+                      title: 'Deseados', 
+                      icon: Icons.favorite_border, 
+                      onTap: () => onNavigate(4) // Índice 4: Deseados
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 40),
+
+                // CABECERA DE DESTACADOS
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        provider.featuredTheme != null
+                            ? 'DESTACADOS (${provider.featuredTheme!.name})'
+                            : 'DESTACADOS',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (provider.featuredTheme != null)
+                      TextButton(
+                        onPressed: () {
+                          // Aquí usamos push normal porque es una vista específica filtrada, no la pestaña general
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ElementsListScreen(theme: provider.featuredTheme!),
+                            ),
+                          );
+                        },
+                        child: const Text('Ver todos', style: TextStyle(color: Colors.grey)),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+              ]),
             ),
-            const SizedBox(width: 8),
-          ],
-        ),
-
-        // CONTENIDO PRINCIPAL
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              const Text(
-                'Inicio',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white, height: 1.1),
-              ),
-              const SizedBox(height: 30),
-
-              // BOTONES DE NAVEGACIÓN
-              GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(), // El scroll lo maneja el CustomScrollView
-                crossAxisCount: navColumns,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 1.3,
-                children: [
-                  NavCard(
-                    title: 'Buscar', 
-                    icon: Icons.search, 
-                    onTap: () => onNavigate(1) // Índice 1: Buscar
-                  ),
-                  NavCard(
-                    title: 'Temas', 
-                    icon: Icons.list_alt, 
-                    onTap: () => onNavigate(2) // Índice 2: Temas
-                  ),
-                  NavCard(
-                    title: 'Colección', 
-                    icon: Icons.shelves, 
-                    onTap: () => onNavigate(3) // Índice 3: Colección
-                  ),
-                  NavCard(
-                    title: 'Deseados', 
-                    icon: Icons.favorite_border, 
-                    onTap: () => onNavigate(4) // Índice 4: Deseados
-                  ),
-                ],
-              ),
-              const SizedBox(height: 40),
-
-              // CABECERA DE DESTACADOS
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      provider.featuredTheme != null
-                          ? 'DESTACADOS (${provider.featuredTheme!.name})'
-                          : 'DESTACADOS',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (provider.featuredTheme != null)
-                    TextButton(
-                      onPressed: () {
-                        // Aquí usamos push normal porque es una vista específica filtrada, no la pestaña general
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ElementsListScreen(theme: provider.featuredTheme!),
-                          ),
-                        );
-                      },
-                      child: const Text('Ver todos', style: TextStyle(color: Colors.grey)),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 10),
-            ]),
           ),
-        ),
 
-        // CARRUSEL DE DESTACADOS INTEGRADO EN SLIVER
-        SliverToBoxAdapter(
-          child: SizedBox(
-            height: 250, // Altura fija para el carrusel horizontal
-            child: _buildCarouselContent(provider),
+          // CARRUSEL DE DESTACADOS INTEGRADO EN SLIVER
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 250, // Altura fija para el carrusel horizontal
+              child: _buildCarouselContent(provider),
+            ),
           ),
-        ),
-        
-        // Espacio extra al final para que no se pegue al borde inferior
-        const SliverToBoxAdapter(child: SizedBox(height: 40)), 
-      ],
+          
+          // Espacio extra al final para que no se pegue al borde inferior
+          const SliverToBoxAdapter(child: SizedBox(height: 40)), 
+        ],
+      )
     );
   }
 

@@ -66,7 +66,7 @@ module.exports = {
 const crypto = require('crypto');
 
 // AÑADIDO: Nuevos parámetros 'rrp' (Precio Oficial) y 'availability' (Estado)
-const generateMockMarketData = (setId, numParts, year, rrp, availability) => {
+const generateMockMarketData = (setId, numParts, year, rrp, availability, exitDate) => {
     // 1. Semilla determinista (se mantiene igual, es una genialidad para tu TFG)
     const hash = crypto.createHash('md5').update(setId).digest('hex');
     const seed = parseInt(hash.substring(0, 8), 16);
@@ -78,17 +78,21 @@ const generateMockMarketData = (setId, numParts, year, rrp, availability) => {
     
     // 3. ESTADO DEL SET (Descatalogado o En tiendas):
     let isRetired = false;
-    const currentYear = new Date().getFullYear();
+    const currentDate = new Date(); // Fecha de hoy
+    const currentYear = currentDate.getFullYear();
     const setYear = year || currentYear;
     const age = Math.max(0, currentYear - setYear);
 
-    if (availability) {
-        // Normalizamos el texto de Brickset a minúsculas
+    if (exitDate) {
+        // Si tenemos la fecha oficial de retirada, comprobamos si ya ha pasado
+        const exit = new Date(exitDate);
+        isRetired = currentDate > exit; 
+    } else if (availability) {
+        // Fallback 1: Por si algún set raro no tiene fecha pero dice "Retired"
         const availLower = availability.toLowerCase();
-        // En Brickset, un set descatalogado tiene estado "retired"
         isRetired = availLower.includes('retired'); 
     } else {
-        // Fallback de emergencia si falla la API de Brickset
+        // Fallback 2: Nuestra regla de seguridad antigua
         isRetired = age > 3; 
     }
 

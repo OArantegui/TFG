@@ -189,9 +189,11 @@ const getSetMarketData = async (req, res) => {
         // 2. Extraer precios reales
         let rrp = null;
         let availability = null;
+        let exitDate = null;
 
         if (bricksetData) {
             availability = bricksetData.availability;
+            exitDate = bricksetData.exitDate;
 
             if (bricksetData.LEGOCom) {
                 // Como es un Map de Mongoose, debemos usar .get('DE') en lugar de .DE
@@ -212,7 +214,8 @@ const getSetMarketData = async (req, res) => {
             setDetails.pieces, 
             setDetails.year,
             rrp,
-            availability
+            availability,
+            exitDate
         );
 
         res.status(200).json(marketData);
@@ -245,12 +248,14 @@ const scanBarcode = async (req, res) => {
 
         let rrp = null;
         let availability = null;
+        let exitDate = null;
 
         if (bricksetData) {
             // Convertimos el documento de Mongo a un objeto normal para leerlo fácil
             const bData = bricksetData.toJSON ? bricksetData.toJSON() : bricksetData;
             
             availability = bData.availability;
+            exitDate = bData.exitDate;
 
             if (bData.LEGOCom) {
                 // Buscamos 'DE' (Euros), y si no 'US' (Dólares)
@@ -267,7 +272,8 @@ const scanBarcode = async (req, res) => {
             setDetails.pieces,
             setDetails.year,
             rrp,
-            availability
+            availability,
+            exitDate
         );
 
         // Devolvemos el set unificado para que tu app Flutter pueda mostrar la pantalla de detalles

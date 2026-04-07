@@ -29,7 +29,7 @@ const getSetsByTheme = async (req, res) => {
     }
 };
 
-const getImageProxy = async (req, res) => {
+/*const getImageProxy = async (req, res) => {
     const { url } = req.query; 
     
     if (!url) {
@@ -43,7 +43,7 @@ const getImageProxy = async (req, res) => {
             responseType: 'stream',
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+                'Accept': 'image/webp,image/apng,image/*,* QUITAR ESPACIO EN CASO DE USAR/*;q=0.8',
                 'Accept-Encoding': 'gzip, deflate, br'
             }
         });
@@ -56,6 +56,44 @@ const getImageProxy = async (req, res) => {
     } catch (error) {
         console.error("Error proxy imagen:", error.message);
         res.status(404).send('Imagen no encontrada');
+    }
+};*/
+const getImageProxy = async (req, res) => {
+    const { url } = req.query; 
+    
+    if (!url) return res.status(400).send('Falta la URL');
+
+    try {
+        // Descargamos la imagen entera en memoria (arraybuffer) en lugar de stream
+        const response = await axios.get(url, {
+            responseType: 'arraybuffer',
+            timeout: 8000, 
+            headers: {
+                // Cabeceras exactas de Google Chrome actual para saltar el Firewall
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+                'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
+                'Referer': 'https://rebrickable.com/',
+                'Sec-Ch-Ua': '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+                'Sec-Ch-Ua-Mobile': '?0',
+                'Sec-Ch-Ua-Platform': '"Windows"',
+                'Sec-Fetch-Dest': 'image',
+                'Sec-Fetch-Mode': 'no-cors',
+                'Sec-Fetch-Site': 'cross-site'
+            }
+        });
+
+        // Configuración de CORS manual para Flutter Web
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET');
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache de 24h
+        res.setHeader('Content-Type', response.headers['content-type']);
+        
+        // Enviamos el buffer de memoria directamente
+        res.send(response.data);
+    } catch (error) {
+        console.error("❌ Fallo en Proxy de Imagen Rebrickable:", error.message);
+        res.redirect('https://via.placeholder.com/300x200?text=Imagen+No+Disponible');
     }
 };
 
@@ -267,6 +305,7 @@ const scanBarcode = async (req, res) => {
         // Desempaquetamos por si tu servicio de Rebrickable los mete dentro de un "data: {}"
         const actualSet = setDetails.data ? setDetails.data : setDetails;
         
+        const safeImgUrl = actualSet.set_img_url || actualSet.imgUrl || actualSet.image || '';
         // Buscamos las piezas y el año sea cual sea el nombre que tengan en tu servicio
         const safePieces = actualSet.num_parts || actualSet.pieces || 0;
         const safeYear = actualSet.year || actualSet.año || new Date().getFullYear();
@@ -288,7 +327,7 @@ const scanBarcode = async (req, res) => {
             year: safeYear,
             theme_id: actualSet.theme_id || actualSet.themeId || 0,
             num_parts: safePieces,
-            set_img_url: actualSet.set_img_url || actualSet.imgUrl || actualSet.image || '',
+            set_img_url: safeImgUrl,
             
             // Nuestros datos inyectados de Brickset
             officialRrp: rrp,

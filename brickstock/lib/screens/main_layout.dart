@@ -10,6 +10,7 @@ import 'elements_list_screen.dart';
 import '../services/auth_service.dart';
 import '../providers/home_provider.dart';
 import '../providers/collection_provider.dart';
+import '../providers/user_provider.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -54,6 +55,11 @@ class _MainLayoutState extends State<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
+
+    //Escuchamos el avatar en tiempo real
+    final userProvider = context.watch<UserProvider>();
+    final avatarRealTime = userProvider.avatar;
+
     final List<Widget> screens = [
       ChangeNotifierProvider(create: (_) => HomeProvider(), child: HomeScreen(onNavigate: _onItemTapped, userAvatar: _avatar)),
       const ElementsListScreen(customTitle: 'Buscar Sets'),
@@ -121,7 +127,7 @@ class _MainLayoutState extends State<MainLayout> {
                       // Reemplazamos el Icon por un CircleAvatar
                       icon: CircleAvatar(
                         radius: 12,
-                        backgroundImage: AssetImage(_avatar),
+                        backgroundImage: AssetImage(avatarRealTime),
                       ), 
                       selectedIcon: CircleAvatar(
                         radius: 12,
@@ -220,7 +226,7 @@ class _MainLayoutState extends State<MainLayout> {
                         ), 
                         selectedIcon: CircleAvatar(
                           radius: 14, // Un poco más grande al estar seleccionado
-                          backgroundImage: AssetImage(_avatar),
+                          backgroundImage: AssetImage(avatarRealTime),
                           child: Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,

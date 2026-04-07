@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart'; // Para PointerDeviceKind
+import 'package:provider/provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_layout.dart';
 import 'services/auth_service.dart';
+import 'providers/user_provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(//Envolvemos la app para que el usuario esté disponible en todas las pantallas
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()..loadUserData()),
+      ],
+      child: const MyApp(),
+    ),
+    );
 }
 
 // [NUEVO] Esta clase habilita el arrastre con ratón en Web/PC

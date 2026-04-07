@@ -8,6 +8,7 @@ import '../providers/home_provider.dart';
 import '../widgets/nav_card.dart'; // Nuestro nuevo componente
 import 'set_details_screen.dart';
 import 'elements_list_screen.dart';
+import '../providers/user_provider.dart';
 
 // Cambiamos a StatelessWidget porque el estado lo maneja el HomeProvider
 class HomeScreen extends StatelessWidget {
@@ -20,6 +21,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<HomeProvider>();
+    final userProvider = context.watch<UserProvider>();
     
     final screenWidth = MediaQuery.of(context).size.width;
     int navColumns = screenWidth > 800 ? 4 : (screenWidth > 600 ? 3 : 2);
@@ -44,7 +46,7 @@ class HomeScreen extends StatelessWidget {
                 child: Center(
                   child: CircleAvatar(
                     radius: 16, // Tamaño para que encaje bien en la AppBar
-                    backgroundImage: AssetImage(userAvatar), // Usamos la variable recibida
+                    backgroundImage: AssetImage(userProvider.avatar), // Usamos la variable recibida
                     backgroundColor: const Color(0xFF2D2D2D),
                   ),
                 ),

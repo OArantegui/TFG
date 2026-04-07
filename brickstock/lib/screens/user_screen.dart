@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../models/achievement.dart';
 import '../widgets/wishlist_summary_card.dart'; // Importamos el componente reutilizable
 import 'login_screen.dart';
 import '../widgets/avatar_picker_dialog.dart';
+import '../providers/user_provider.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -248,16 +250,20 @@ class _UserScreenState extends State<UserScreen> {
                             context: context,
                             builder: (context) => AvatarPickerDialog(
                               onAvatarSelected: (avatarPath) async {
-                                // 1. Lo cambiamos visualmente al instante
-                                setState(() {
-                                  _currentAvatar = avatarPath;
-                                });
-                                
-                                // 2. Lo guardamos en la base de datos usando el nuevo método
+                                // 1. Guardamos en el servidor
                                 final success = await _authService.updateAvatar(avatarPath);
+                                
                                 if (success) {
+                                  // 2. ¡AVISAMOS AL PROVIDER DEL CAMBIO!
+                                  Provider.of<UserProvider>(context, listen: false).updateAvatar(avatarPath);
+                                  
+                                  // 3. Actualizamos visualmente la propia pantalla
+                                  setState(() {
+                                    _currentAvatar = avatarPath;
+                                  });
+
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Avatar actualizado'), backgroundColor: Colors.green),
+                                    const SnackBar(content: Text('Avatar actualizado con éxito')),
                                   );
                                 }
                               },

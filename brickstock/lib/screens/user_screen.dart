@@ -21,14 +21,15 @@ class _UserScreenState extends State<UserScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   final _authService = AuthService();
   final _apiService = ApiService();
   bool _isLoading = false;
   bool _isPasswordUnlocked = false;
 
   late Future<List<Achievement>> _achievementsFuture;
-  late Future<Map<String, dynamic>> _userStatsFuture; // Nuevo Future para las estadísticas
+  late Future<Map<String, dynamic>>
+  _userStatsFuture; // Nuevo Future para las estadísticas
 
   @override
   void initState() {
@@ -87,7 +88,10 @@ class _UserScreenState extends State<UserScreen> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ajustes guardados correctamente'), backgroundColor: Colors.green),
+        const SnackBar(
+          content: Text('Ajustes guardados correctamente'),
+          backgroundColor: Colors.green,
+        ),
       );
       _passwordController.clear();
       _confirmPasswordController.clear();
@@ -95,7 +99,12 @@ class _UserScreenState extends State<UserScreen> {
       Provider.of<UserProvider>(context, listen: false).loadUserData();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al guardar. Puede que el email o usuario ya existan.'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text(
+            'Error al guardar. Puede que el email o usuario ya existan.',
+          ),
+          backgroundColor: Colors.red,
+        ),
       );
     }
     _isPasswordUnlocked = false;
@@ -104,7 +113,9 @@ class _UserScreenState extends State<UserScreen> {
   void _logout() async {
     await _authService.logout();
     if (!mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
   }
 
   void _solicitarPasswordActual() {
@@ -151,42 +162,70 @@ class _UserScreenState extends State<UserScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(color: Colors.grey),
+                ),
               ),
               ElevatedButton(
-                onPressed: isVerifying ? null : () async {
-                  if (currentPassController.text.isEmpty) return;
-                  
-                  // Mostramos el circulito de carga en el botón
-                  setStateDialog(() => isVerifying = true);
-                  
-                  final isValid = await _authService.verifyCurrentPassword(currentPassController.text);
-                  
-                  if (!mounted) return;
-                  setStateDialog(() => isVerifying = false);
-                  
-                  if (isValid) {
-                    setState(() {
-                      _isPasswordUnlocked = true; // ¡Desbloqueamos los campos!
-                    });
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Campos de contraseña desbloqueados'), backgroundColor: Colors.green),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Contraseña incorrecta'), backgroundColor: Colors.red),
-                    );
-                  }
-                },
+                onPressed: isVerifying
+                    ? null
+                    : () async {
+                        if (currentPassController.text.isEmpty) return;
+
+                        // Mostramos el circulito de carga en el botón
+                        setStateDialog(() => isVerifying = true);
+
+                        final isValid = await _authService
+                            .verifyCurrentPassword(currentPassController.text);
+
+                        if (!mounted) return;
+                        setStateDialog(() => isVerifying = false);
+
+                        if (isValid) {
+                          setState(() {
+                            _isPasswordUnlocked =
+                                true; // ¡Desbloqueamos los campos!
+                          });
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Campos de contraseña desbloqueados',
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Contraseña incorrecta'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                child: isVerifying 
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
-                    : const Text('Verificar', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                child: isVerifying
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.black,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Verificar',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ],
           );
-        }
+        },
       ),
     );
   }
@@ -195,7 +234,10 @@ class _UserScreenState extends State<UserScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mi Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Mi Perfil',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
         actions: [
@@ -206,7 +248,7 @@ class _UserScreenState extends State<UserScreen> {
               //Destruimos la sesión en la BBDD y en el almacenamiento local
               await AuthService().logout();
 
-              //Comprobación de seguridad nativa de Flutter: 
+              //Comprobación de seguridad nativa de Flutter:
               // Asegurarnos de que esta pantalla sigue existiendo antes de intentar navegar
               if (!context.mounted) return;
 
@@ -215,10 +257,11 @@ class _UserScreenState extends State<UserScreen> {
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => const LoginScreen()),
-                (Route<dynamic> route) => false, // Esto le dice a Flutter: "Elimina todas las rutas"
+                (Route<dynamic> route) =>
+                    false, // Esto le dice a Flutter: "Elimina todas las rutas"
               );
             },
-          )
+          ),
         ],
       ),
       backgroundColor: const Color(0xFF121212),
@@ -229,7 +272,10 @@ class _UserScreenState extends State<UserScreen> {
             // --- SECCIÓN 1: CABECERA Y ESTADÍSTICAS ---
             Container(
               color: const Color(0xFF1E1E1E),
-              padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(
+                vertical: 24.0,
+                horizontal: 16.0,
+              ),
               child: Column(
                 children: [
                   Stack(
@@ -237,29 +283,42 @@ class _UserScreenState extends State<UserScreen> {
                     children: [
                       CircleAvatar(
                         radius: 40,
-                        backgroundImage: AssetImage(context.watch<UserProvider>().avatar),
+                        backgroundImage: AssetImage(
+                          context.watch<UserProvider>().avatar,
+                        ),
                         backgroundColor: const Color(0xFF2D2D2D),
                       ),
                       GestureDetector(
                         onTap: () {
                           showDialog(
                             context: context,
-                            builder: (context) => AvatarPickerDialog(
+                            builder: (dialogContext) => AvatarPickerDialog(
                               onAvatarSelected: (avatarPath) async {
                                 // 1. Guardamos en el servidor
-                                final success = await _authService.updateAvatar(avatarPath);
-                                
+                                final success = await _authService.updateAvatar(
+                                  avatarPath,
+                                );
+
+                                if (!context.mounted) return;
+
                                 if (success) {
                                   // 2. ¡AVISAMOS AL PROVIDER DEL CAMBIO!
-                                  Provider.of<UserProvider>(context, listen: false).updateAvatar(avatarPath);
-                                  
+                                  Provider.of<UserProvider>(
+                                    context,
+                                    listen: false,
+                                  ).updateAvatar(avatarPath);
+
                                   // 3. Actualizamos visualmente la propia pantalla
                                   /*setState(() {
                                     _currentAvatar = avatarPath;
                                   });*/
 
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Avatar actualizado con éxito')),
+                                    const SnackBar(
+                                      content: Text(
+                                        'Avatar actualizado con éxito',
+                                      ),
+                                    ),
                                   );
                                 }
                               },
@@ -272,7 +331,11 @@ class _UserScreenState extends State<UserScreen> {
                             color: Colors.orange,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.edit, color: Colors.black, size: 18),
+                          child: const Icon(
+                            Icons.edit,
+                            color: Colors.black,
+                            size: 18,
+                          ),
                         ),
                       ),
                     ],
@@ -280,7 +343,11 @@ class _UserScreenState extends State<UserScreen> {
                   const SizedBox(height: 16),
                   Text(
                     context.watch<UserProvider>().username,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -289,14 +356,21 @@ class _UserScreenState extends State<UserScreen> {
                     future: _userStatsFuture,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator(color: Colors.orange));
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.orange,
+                          ),
+                        );
                       }
                       if (snapshot.hasError) {
-                        return const Text('Error al cargar estadísticas', style: TextStyle(color: Colors.grey));
+                        return const Text(
+                          'Error al cargar estadísticas',
+                          style: TextStyle(color: Colors.grey),
+                        );
                       }
 
                       final stats = snapshot.data!;
-                      
+
                       return Column(
                         children: [
                           Row(
@@ -308,10 +382,27 @@ class _UserScreenState extends State<UserScreen> {
                                     padding: const EdgeInsets.all(16.0),
                                     child: Column(
                                       children: [
-                                        const Icon(Icons.shelves, color: Colors.orange, size: 30),
+                                        const Icon(
+                                          Icons.shelves,
+                                          color: Colors.orange,
+                                          size: 30,
+                                        ),
                                         const SizedBox(height: 8),
-                                        Text('${stats['collectionCount']}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
-                                        const Text('En Colección', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                        Text(
+                                          '${stats['collectionCount']}',
+                                          style: const TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const Text(
+                                          'En Colección',
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 12,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -324,10 +415,27 @@ class _UserScreenState extends State<UserScreen> {
                                     padding: const EdgeInsets.all(16.0),
                                     child: Column(
                                       children: [
-                                        const Icon(Icons.favorite_border, color: Colors.pinkAccent, size: 30),
+                                        const Icon(
+                                          Icons.favorite_border,
+                                          color: Colors.pinkAccent,
+                                          size: 30,
+                                        ),
                                         const SizedBox(height: 8),
-                                        Text('${stats['wishlistCount']}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
-                                        const Text('En Deseados', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                        Text(
+                                          '${stats['wishlistCount']}',
+                                          style: const TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const Text(
+                                          'En Deseados',
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 12,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -340,7 +448,8 @@ class _UserScreenState extends State<UserScreen> {
                           WishlistSummaryCard(
                             totalValue: stats['wishlistTotal'],
                             budget: stats['wishlistBudget'],
-                            onBudgetUpdated: _loadUserStats, // Recargamos las stats al guardar
+                            onBudgetUpdated:
+                                _loadUserStats, // Recargamos las stats al guardar
                           ),
                         ],
                       );
@@ -348,7 +457,7 @@ class _UserScreenState extends State<UserScreen> {
                   ),
 
                   const SizedBox(height: 32),
-                  
+
                   // TFG: Grid de insignias reactivo y con contador
                   FutureBuilder<List<Achievement>>(
                     future: _achievementsFuture,
@@ -357,47 +466,74 @@ class _UserScreenState extends State<UserScreen> {
                         return const Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Tus Insignias (...)', style: TextStyle(fontSize: 18, color: Colors.orange, fontWeight: FontWeight.bold)),
+                            Text(
+                              'Tus Insignias (...)',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.orange,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             SizedBox(height: 10),
-                            Center(child: CircularProgressIndicator(color: Colors.orange)),
+                            Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.orange,
+                              ),
+                            ),
                           ],
                         );
                       }
                       if (snapshot.hasError) {
-                        return const Text('Error al cargar insignias', style: TextStyle(color: Colors.grey));
+                        return const Text(
+                          'Error al cargar insignias',
+                          style: TextStyle(color: Colors.grey),
+                        );
                       }
 
                       final achievements = snapshot.data ?? [];
                       // Calculamos cuántas están desbloqueadas
-                      final unlockedCount = achievements.where((a) => a.isUnlocked).length;
+                      final unlockedCount = achievements
+                          .where((a) => a.isUnlocked)
+                          .length;
                       final totalCount = achievements.length;
-                      
+
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Título dinámico
                           Text(
-                            'Tus Insignias ($unlockedCount/$totalCount)', 
-                            style: const TextStyle(fontSize: 18, color: Colors.orange, fontWeight: FontWeight.bold)
+                            'Tus Insignias ($unlockedCount/$totalCount)',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: Colors.orange,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const SizedBox(height: 10),
                           GridView.builder(
-                            shrinkWrap: true, 
+                            shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3, 
-                              childAspectRatio: 0.7,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
-                            ),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  childAspectRatio: 0.7,
+                                  crossAxisSpacing: 10,
+                                  mainAxisSpacing: 10,
+                                ),
                             itemCount: achievements.length,
                             itemBuilder: (context, index) {
                               final ach = achievements[index];
-                              
+
                               // TFG: Definimos colores y opacidades según estado (reactivo)
-                              final Color iconColor = ach.isUnlocked ? Colors.amber : Colors.grey[600]!;
-                              final Color backgroundColor = ach.isUnlocked ? Colors.orange.withOpacity(0.2) : const Color(0xFF2D2D2D);
-                              final double textOpacity = ach.isUnlocked ? 1.0 : 0.4;
+                              final Color iconColor = ach.isUnlocked
+                                  ? Colors.amber
+                                  : Colors.grey[600]!;
+                              final Color backgroundColor = ach.isUnlocked
+                                  ? Colors.orange.withOpacity(0.2)
+                                  : const Color(0xFF2D2D2D);
+                              final double textOpacity = ach.isUnlocked
+                                  ? 1.0
+                                  : 0.4;
 
                               return Tooltip(
                                 message: ach.description,
@@ -412,7 +548,9 @@ class _UserScreenState extends State<UserScreen> {
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           border: Border.all(
-                                            color: ach.isUnlocked ? Colors.orange.withOpacity(0.5) : Colors.white10,
+                                            color: ach.isUnlocked
+                                                ? Colors.orange.withOpacity(0.5)
+                                                : Colors.white10,
                                             width: 1,
                                           ),
                                         ),
@@ -425,20 +563,26 @@ class _UserScreenState extends State<UserScreen> {
                                         ),
                                       ),
                                     ),
-                                    
-                                    const SizedBox(height: 10), // Espacio entre círculo y texto
 
+                                    const SizedBox(
+                                      height: 10,
+                                    ), // Espacio entre círculo y texto
                                     // --- EL TEXTO DEBAJO ---
-                                    Opacity( // Usamos opacidad para el texto bloqueado
+                                    Opacity(
+                                      // Usamos opacidad para el texto bloqueado
                                       opacity: textOpacity,
                                       child: Text(
                                         ach.name,
                                         textAlign: TextAlign.center,
-                                        maxLines: 2, // Máximo 2 líneas para que no rompa el grid
-                                        overflow: TextOverflow.ellipsis, // Si es muy largo, pone "..."
+                                        maxLines:
+                                            2, // Máximo 2 líneas para que no rompa el grid
+                                        overflow: TextOverflow
+                                            .ellipsis, // Si es muy largo, pone "..."
                                         style: TextStyle(
                                           fontSize: 12,
-                                          fontWeight: ach.isUnlocked ? FontWeight.bold : FontWeight.normal,
+                                          fontWeight: ach.isUnlocked
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
                                           color: Colors.white,
                                         ),
                                       ),
@@ -458,7 +602,13 @@ class _UserScreenState extends State<UserScreen> {
 
             // --- SECCIÓN 2: FORMULARIO DE AJUSTES (Acordeón) ---
             ExpansionTile(
-              title: const Text('Ajustes de Cuenta', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              title: const Text(
+                'Ajustes de Cuenta',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               leading: const Icon(Icons.settings, color: Colors.grey),
               childrenPadding: const EdgeInsets.all(16.0),
               children: [
@@ -467,34 +617,46 @@ class _UserScreenState extends State<UserScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text('Deja en blanco la contraseña si no quieres cambiarla.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      const Text(
+                        'Deja en blanco la contraseña si no quieres cambiarla.',
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
                       const SizedBox(height: 20),
 
                       TextFormField(
                         controller: _usernameController,
-                        decoration: const InputDecoration(labelText: 'Nombre de Usuario', border: OutlineInputBorder()),
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre de Usuario',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                       const SizedBox(height: 15),
 
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(labelText: 'Correo Electrónico', border: OutlineInputBorder()),
+                        decoration: const InputDecoration(
+                          labelText: 'Correo Electrónico',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                       const SizedBox(height: 15),
 
                       TextFormField(
                         controller: _passwordController,
                         obscureText: true,
-                        readOnly: !_isPasswordUnlocked, // Solo lectura si no está desbloqueado
+                        readOnly:
+                            !_isPasswordUnlocked, // Solo lectura si no está desbloqueado
                         onTap: _solicitarPasswordActual, // ¡Dispara el pop-up!
                         decoration: InputDecoration(
-                          labelText: 'Nueva Contraseña', 
+                          labelText: 'Nueva Contraseña',
                           border: const OutlineInputBorder(),
                           // Un icono visual para que sepa si está bloqueado o abierto
                           suffixIcon: Icon(
-                            _isPasswordUnlocked ? Icons.lock_open : Icons.lock, 
-                            color: _isPasswordUnlocked ? Colors.green : Colors.grey,
+                            _isPasswordUnlocked ? Icons.lock_open : Icons.lock,
+                            color: _isPasswordUnlocked
+                                ? Colors.green
+                                : Colors.grey,
                           ),
                         ),
                       ),
@@ -503,18 +665,22 @@ class _UserScreenState extends State<UserScreen> {
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: true,
-                        readOnly: !_isPasswordUnlocked, // Solo lectura si no está desbloqueado
+                        readOnly:
+                            !_isPasswordUnlocked, // Solo lectura si no está desbloqueado
                         onTap: _solicitarPasswordActual, // ¡Dispara el pop-up!
                         decoration: InputDecoration(
-                          labelText: 'Confirmar Nueva Contraseña', 
+                          labelText: 'Confirmar Nueva Contraseña',
                           border: const OutlineInputBorder(),
                           suffixIcon: Icon(
-                            _isPasswordUnlocked ? Icons.lock_open : Icons.lock, 
-                            color: _isPasswordUnlocked ? Colors.green : Colors.grey,
+                            _isPasswordUnlocked ? Icons.lock_open : Icons.lock,
+                            color: _isPasswordUnlocked
+                                ? Colors.green
+                                : Colors.grey,
                           ),
                         ),
                         validator: (val) {
-                          if (_passwordController.text.isNotEmpty && val != _passwordController.text) {
+                          if (_passwordController.text.isNotEmpty &&
+                              val != _passwordController.text) {
                             return 'Las contraseñas no coinciden';
                           }
                           return null;
@@ -523,7 +689,11 @@ class _UserScreenState extends State<UserScreen> {
                       const SizedBox(height: 20),
 
                       if (_isLoading)
-                        const Center(child: CircularProgressIndicator(color: Colors.orange))
+                        const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.orange,
+                          ),
+                        )
                       else
                         ElevatedButton.icon(
                           onPressed: _guardarAjustes,
@@ -532,9 +702,9 @@ class _UserScreenState extends State<UserScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange,
                             foregroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(vertical: 15)
+                            padding: const EdgeInsets.symmetric(vertical: 15),
                           ),
-                        )
+                        ),
                     ],
                   ),
                 ),

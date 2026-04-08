@@ -22,13 +22,15 @@ jobs:
           channel: 'stable'
 
       - name: Instalar dependencias
+        working-directory: ./brickstock
         run: flutter pub get
 
       - name: Compilar APK
+        working-directory: ./brickstock
         run: flutter build apk --release
 
       - name: Subir APK para descargar
         uses: actions/upload-artifact@v4
         with:
           name: brickstock-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: brickstock/build/app/outputs/flutter-apk/app-release.apk

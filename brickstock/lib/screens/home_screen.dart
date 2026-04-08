@@ -37,7 +37,7 @@ class HomeScreen extends StatelessWidget {
             MaterialPageRoute(builder: (context) => const ScannerScreen()),
           );
         },
-        icon: const Icon(Icons.qr_code_scanner),
+        icon: const Icon(Icons.barcode_reader),
         label: const Text('Escanear Set', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.orange, // A juego con los detalles de tu app
         foregroundColor: Colors.white,

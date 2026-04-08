@@ -38,18 +38,12 @@ const register = async (req, res) => {
         //Guardamos refresh token
         newUser.refreshTokens.push(refreshToken);
         await newUser.save();
-        
-        /*const token = jwt.sign(
-            { id: newUser._id }, 
-            process.env.JWT_SECRET, 
-            { expiresIn: '30d' } 
-        );*/
 
         res.status(201).json({
             message: 'Usuario creado con éxito',
             accessToken,   // Enviamos el corto
             refreshToken,  // Enviamos el largo
-            user: { id: newUser._id, username: newUser.username, email: newUser.email }
+            user: { id: newUser._id, username: newUser.username, email: newUser.email, avatar: newUser.avatar }
         });
 
     } catch (error) {
@@ -96,7 +90,8 @@ const login = async (req, res) => {
             user: {
                 id: user._id,
                 username: user.username,
-                email: user.email
+                email: user.email,
+                avatar: user.avatar
             }
         });
 
@@ -141,7 +136,7 @@ const updateUser = async (req, res) => {
 
         res.status(200).json({
             message: 'Perfil actualizado',
-            user: { username: updatedUser.username, email: updatedUser.email }
+            user: { username: updatedUser.username, email: updatedUser.email, avatar: updatedUser.avatar }
         });
 
     } catch (error) {

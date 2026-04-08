@@ -207,7 +207,15 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['user'] != null) {
-          await saveUserData(data['user']['username'], data['user']['email'], data['user']['avatar']);
+          // Recuperamos los datos actuales por si el backend no manda el avatar
+          final currentUserData = await getUserData();
+          final currentAvatar = currentUserData['avatar'] ?? 'assets/avatars/lego-default.jpg';
+
+          await saveUserData(
+            data['user']['username'], 
+            data['user']['email'], 
+            data['user']['avatar'] ?? currentAvatar
+          );
         }
         return true;
       }

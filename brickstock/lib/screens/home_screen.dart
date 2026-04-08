@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import '../models/lego_set.dart';
 import '../providers/home_provider.dart';
@@ -37,7 +38,12 @@ class HomeScreen extends StatelessWidget {
             MaterialPageRoute(builder: (context) => const ScannerScreen()),
           );
         },
-        icon: const Icon(Icons.barcode_reader),
+        icon: SvgPicture.asset(
+            'assets/icons/barcode_scan.svg',
+            width: 24, // El tamaño estándar de un icono
+            height: 24,
+            colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+          ),
         label: const Text('Escanear Set', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.orange, // A juego con los detalles de tu app
         foregroundColor: Colors.white,

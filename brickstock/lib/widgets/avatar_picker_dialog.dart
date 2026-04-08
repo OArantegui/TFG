@@ -17,31 +17,46 @@ class AvatarPickerDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Elige tu Avatar de Lego'),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: GridView.builder(
-          shrinkWrap: true,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
+      title: const Text('Elige tu Avatar'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: 600, // Ancho máximo (tamaño típico de un móvil grande)
+          maxHeight: 500, // Alto máximo para que no se estire de más
+        ),
+        // 2. Aquí dentro pones tu GridView o la lista que ya tenías
+        child: SizedBox(
+          width: double.maxFinite, // Ayuda a que el Grid no se encoja a 0
+          child: GridView.builder(
+            shrinkWrap: true, // Importante para que no de error de tamaño infinito
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 110, 
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+            ),
+            itemCount: avatars.length, // Tu lista de avatares
+            itemBuilder: (context, index) {
+              final avatarPath = avatars[index];
+              return GestureDetector(
+                onTap: () {
+                  onAvatarSelected(avatarPath);
+                  Navigator.pop(context);
+                },
+                child: CircleAvatar(
+                  radius: 40,
+                  backgroundImage: AssetImage(avatarPath),
+                  backgroundColor: Colors.transparent,
+                ),
+              );
+            },
           ),
-          itemCount: avatars.length,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onTap: () {
-                onAvatarSelected(avatars[index]);
-                Navigator.pop(context);
-              },
-              child: CircleAvatar(
-                backgroundImage: AssetImage(avatars[index]),
-                backgroundColor: Colors.grey[200],
-              ),
-            );
-          },
         ),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+      ],
     );
   }
 }

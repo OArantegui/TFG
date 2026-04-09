@@ -5,6 +5,7 @@ import '../models/lego_set.dart';
 import '../services/api_service.dart';
 import '../widgets/minifigures_bottom_sheet.dart';
 import '../widgets/market_data_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SetDetailsScreen extends StatefulWidget {
   final LegoSet legoSet;
@@ -89,7 +90,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('BrickStock')),
+      appBar: AppBar(),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -150,10 +151,55 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                   const Divider(),
                   const SizedBox(height: 15),
 
-                  // TFG: NUEVA SECCIÓN DE DETALLES A DOS COLUMNAS
-                  Text(
-                    'Detalles del Set',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  // Row para 'Detalles' en un lado e instrucciones en otro
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Detalles del Set',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      InkWell(
+                        onTap: () async {
+                          // Mostramos un pequeño indicador visual si tarda
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Buscando manual... 🔍'), duration: Duration(seconds: 1)),
+                          );
+                          
+                          final url = await ApiService().getSetInstructions(widget.legoSet.setNum);
+                          
+                          if (url != null && url.isNotEmpty) {
+                            final uri = Uri.parse(url);
+                            // Abre el navegador/visor PDF nativo
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            }
+                          } else {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('No hay manual en PDF disponible para este set.'),
+                                  backgroundColor: Colors.orange,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: Row(
+                          children: [
+                            Icon(Icons.help_outline, size: 18, color: Theme.of(context).colorScheme.primary),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Manual',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 15),
                   

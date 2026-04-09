@@ -543,4 +543,23 @@ class ApiService {
       throw Exception('Error de red al conectar con el escáner.');
     }
   }
+
+  // OBTENER INSTRUCCIONES DE MONTAJE
+  Future<String?> getSetInstructions(String setNum) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiService.baseUrl}/lego/sets/$setNum/instructions'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          return data['url'];
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching instructions: $e');
+    }
+    return null;
+  }
 }

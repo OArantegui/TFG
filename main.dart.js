@@ -8834,7 +8834,7 @@ _.r=!1
 _.x=_.w=1
 _.y=0
 _.z=c
-_.Q="name_asc"
+_.Q="id_desc"
 _.c=_.a=null},
 aN4:function aN4(a){this.a=a},
 aN5:function aN5(a){this.a=a},
@@ -52145,7 +52145,7 @@ s.r=s.f=!1},
 $S:0}
 A.aN9.prototype={
 $1(a){var s=null,r=this.a
-return A.c8(s,A.bE(A.b([new A.aX(B.iW,A.c8(s,s,B.o,s,s,B.Hp,s,5,s,s,s,s,s,40),s),B.a9h,B.d1,r.Bk("Nombre (A - Z)","name_asc",B.tl),r.Bk("Nombre (Z - A)","name_desc",B.tl),r.Bk("M\xe1s recientes","id_desc",B.Qr),r.Bk("M\xe1s cl\xe1sicas","id_asc",B.Qn),B.d2],t.p),B.u,B.n,B.aP),B.o,s,s,B.Hq,s,s,s,s,s,s,s,s)},
+return A.c8(s,A.bE(A.b([new A.aX(B.iW,A.c8(s,s,B.o,s,s,B.Hp,s,5,s,s,s,s,s,40),s),B.a9h,B.d1,r.Bk("Nombre (A - Z)","name_asc",B.tl),r.Bk("Nombre (Z - A)","name_desc",B.tl),r.Bk("M\xe1s recientes","id_desc",B.Qn),r.Bk("M\xe1s cl\xe1sicas","id_asc",B.Qy),B.d2],t.p),B.u,B.n,B.aP),B.o,s,s,B.Hq,s,s,s,s,s,s,s,s)},
 $S:164}
 A.aN3.prototype={
 $0(){var s,r=this.a
@@ -116944,9 +116944,9 @@ B.mR=new A.bl(58286,"MaterialIcons",!1)
 B.tg=new A.bl(58288,"MaterialIcons",!1)
 B.ti=new A.bl(58332,"MaterialIcons",!1)
 B.Qq=new A.bl(58372,"MaterialIcons",!1)
-B.Qr=new A.bl(58408,"MaterialIcons",!1)
 B.mS=new A.bl(58727,"MaterialIcons",!1)
 B.tl=new A.bl(58835,"MaterialIcons",!1)
+B.Qy=new A.bl(58873,"MaterialIcons",!1)
 B.tm=new A.bl(58944,"MaterialIcons",!1)
 B.tn=new A.bl(59069,"MaterialIcons",!1)
 B.to=new A.bl(59070,"MaterialIcons",!1)
@@ -116966,8 +116966,8 @@ B.LU=new A.C(1,0.7725490196078432,0.06666666666666667,0.3843137254901961,B.e)
 B.WO=new A.cL([100,B.N4,200,B.MM,400,B.MF,700,B.LU],t.pl)
 B.nk=new A.u5(B.WO,1,1,0.25098039215686274,0.5058823529411764,B.e)
 B.QH=new A.aY(B.hg,30,B.nk,null,null)
-B.Qy=new A.bl(58821,"MaterialIcons",!1)
-B.mT=new A.aY(B.Qy,null,null,null,null)
+B.Qx=new A.bl(58821,"MaterialIcons",!1)
+B.mT=new A.aY(B.Qx,null,null,null,null)
 B.tj=new A.bl(58460,"MaterialIcons",!0)
 B.QI=new A.aY(B.tj,null,B.F,null,null)
 B.Q8=new A.bl(57423,"MaterialIcons",!1)
@@ -117008,23 +117008,23 @@ B.Nn=new A.C(1,0.8352941176470589,0,0,B.e)
 B.WR=new A.cL([100,B.M0,200,B.Nm,400,B.Jy,700,B.Nn],t.pl)
 B.bW=new A.u5(B.WR,1,1,0.3215686274509804,0.3215686274509804,B.e)
 B.R5=new A.aY(B.Qp,null,B.bW,null,null)
-B.Qu=new A.bl(58704,"MaterialIcons",!1)
-B.R7=new A.aY(B.Qu,null,null,null,null)
-B.Qx=new A.bl(58783,"MaterialIcons",!0)
-B.Ra=new A.aY(B.Qx,18,B.F,null,null)
+B.Qt=new A.bl(58704,"MaterialIcons",!1)
+B.R7=new A.aY(B.Qt,null,null,null,null)
+B.Qw=new A.bl(58783,"MaterialIcons",!0)
+B.Ra=new A.aY(B.Qw,18,B.F,null,null)
 B.Qg=new A.bl(57785,"MaterialIcons",!1)
 B.mV=new A.aY(B.Qg,null,B.bW,null,null)
 B.tb=new A.bl(57882,"MaterialIcons",!1)
 B.Rb=new A.aY(B.tb,18,B.k,null,null)
-B.Qw=new A.bl(58751,"MaterialIcons",!1)
-B.tz=new A.aY(B.Qw,null,B.a9,null,null)
-B.Qs=new A.bl(58560,"MaterialIcons",!1)
-B.Rd=new A.aY(B.Qs,null,B.bW,null,null)
+B.Qv=new A.bl(58751,"MaterialIcons",!1)
+B.tz=new A.aY(B.Qv,null,B.a9,null,null)
+B.Qr=new A.bl(58560,"MaterialIcons",!1)
+B.Rd=new A.aY(B.Qr,null,B.bW,null,null)
 B.t9=new A.bl(57695,"MaterialIcons",!0)
 B.Re=new A.aY(B.t9,null,null,null,null)
 B.Rf=new A.aY(B.tb,20,B.k,null,null)
-B.Qt=new A.bl(58644,"MaterialIcons",!1)
-B.Rg=new A.aY(B.Qt,null,B.F,null,null)
+B.Qs=new A.bl(58644,"MaterialIcons",!1)
+B.Rg=new A.aY(B.Qs,null,B.F,null,null)
 B.Rh=new A.aY(B.ta,null,null,null,null)
 B.mW=new A.aY(B.mS,null,B.F,null,null)
 B.Ri=new A.aY(B.jg,16,B.F,null,null)
@@ -118843,8 +118843,8 @@ B.jQ=new A.zm(0,"pop")
 B.fn=new A.zm(1,"doNotPop")
 B.DB=new A.zm(2,"bubble")
 B.nF=new A.j9(null,null)
-B.Qv=new A.bl(58729,"MaterialIcons",!1)
-B.R6=new A.aY(B.Qv,null,B.F,null,null)
+B.Qu=new A.bl(58729,"MaterialIcons",!1)
+B.R6=new A.aY(B.Qu,null,B.F,null,null)
 B.o6=new A.cy(10,null,null,null)
 B.a9L=new A.ay("Seguridad",null,B.aZ,null,null,null,null,null,null,null)
 B.Tq=s([B.R6,B.o6,B.a9L],t.p)

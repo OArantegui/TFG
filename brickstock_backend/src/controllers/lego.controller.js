@@ -351,6 +351,26 @@ const getThemeById = async (req, res) => {
     }
 };
 
+const getSetInstructions = async (req, res) => {
+    try {
+        const { setId } = req.params;
+        const instructions = await bricksetService.getInstructions(setId);
+
+        // Filtramos solo los manuales de montaje (descartamos booklets e info adicional)
+        const validInstructions = instructions.filter(inst => 
+            inst.URL.includes('core.pdf')
+        );
+
+        // Cogemos el primero si existe
+        const manualUrl = validInstructions.length > 0 ? validInstructions[0].URL : null;
+
+        res.status(200).json({ success: true, url: manualUrl });
+    } catch (error) {
+        console.error(`Error al obtener instrucciones para ${req.params.setId}:`, error.message);
+        res.status(500).json({ success: false, message: 'Error al obtener instrucciones' });
+    }
+};
+
 
 module.exports = {
     getThemes,
@@ -364,5 +384,6 @@ module.exports = {
     getMinifigDetails,
     getSetMarketData,
     scanBarcode,
-    getThemeById
+    getThemeById,
+    getSetInstructions
 };

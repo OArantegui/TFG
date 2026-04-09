@@ -128,7 +128,31 @@ const getSetByBarcode = async (barcode) => {
     }
 };
 
+/**
+ * Obtiene las instrucciones de montaje de un set usando su ID
+ */
+const getInstructions = async (setId) => {
+    try {
+        const response = await axios.get('https://brickset.com/api/v3.asmx/getInstructions', {
+            params: {
+                apiKey: API_KEY,
+                userHash: '', // Público
+                params: JSON.stringify({ setNumber: setId })
+            }
+        });
+
+        if (response.data.status === 'success' && response.data.matches > 0) {
+            return response.data.instructions;
+        }
+        return [];
+    } catch (error) {
+        console.error(`Error en Brickset Service (getInstructions - ${setId}):`, error.message);
+        throw error;
+    }
+};
+
 module.exports = {
     getSetDetails,
-    getSetByBarcode
+    getSetByBarcode,
+    getInstructions
 };

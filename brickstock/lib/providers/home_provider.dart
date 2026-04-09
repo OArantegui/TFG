@@ -31,6 +31,7 @@ class HomeProvider extends ChangeNotifier {
       final List<LegoTheme> themes = themeData.map((e) => LegoTheme(
         id: e['id'],
         name: e['name'],
+        fullName: e['fullName'],
         parentId: e['parent_id']
       )).toList();
 

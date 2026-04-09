@@ -24,7 +24,7 @@ class _ThemesScreenState extends State<ThemesScreen> {
   int _totalCount = 0;
 
   final TextEditingController _searchController = TextEditingController();
-  String _currentSort = 'name_asc';
+  String _currentSort = 'id_desc';
 
   @override
   void initState() {
@@ -101,8 +101,8 @@ class _ThemesScreenState extends State<ThemesScreen> {
               const SizedBox(height: 10),
               _buildSortOption('Nombre (A - Z)', 'name_asc', Icons.sort_by_alpha),
               _buildSortOption('Nombre (Z - A)', 'name_desc', Icons.sort_by_alpha),
-              _buildSortOption('Más recientes', 'id_desc', Icons.new_releases),
-              _buildSortOption('Más clásicas', 'id_asc', Icons.history),
+              _buildSortOption('Más recientes', 'id_desc', Icons.history),
+              _buildSortOption('Más clásicas', 'id_asc', Icons.star),
               const SizedBox(height: 20),
             ],
           ),

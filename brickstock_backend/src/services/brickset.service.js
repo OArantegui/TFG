@@ -133,11 +133,23 @@ const getSetByBarcode = async (barcode) => {
  */
 const getInstructions = async (setId) => {
     try {
+        // 1. Necesitamos el 'setID' interno de Brickset (ej: 34522), no el '75331-1'
+        let cachedSet = await BricksetCache.findOne({ number: setId });
+        
+        // Si por algún motivo no lo tenemos en caché, lo descargamos primero
+        if (!cachedSet) {
+            cachedSet = await getSetDetails(setId);
+            // Si después de buscarlo en la API sigue sin existir, salimos
+            if (!cachedSet) return [];
+        }
+
+        const internalSetID = cachedSet.setID; // Este es el número entero que quiere Brickset
+
+        // 2. Llamada a la API de Brickset con el parámetro directo
         const response = await axios.get('https://brickset.com/api/v3.asmx/getInstructions', {
             params: {
                 apiKey: API_KEY,
-                userHash: '', // Público
-                params: JSON.stringify({ setNumber: setId })
+                setID: internalSetID // <-- Pasado directamente, sin el JSON.stringify
             }
         });
 

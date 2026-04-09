@@ -53,7 +53,7 @@ const getThemeById = async (themeId) => {
     }
 };
 
-const getThemes = async (page = 1, search = '', sort = 'name_asc') => {
+/*const getThemes = async (page = 1, search = '', sort = 'name_asc') => {
     const currentTime = Date.now();
     const pageSize = 20;
 
@@ -79,6 +79,79 @@ const getThemes = async (page = 1, search = '', sort = 'name_asc') => {
         filteredThemes.sort((a, b) => {
             if (sort === 'name_asc') return a.name.localeCompare(b.name);
             if (sort === 'name_desc') return b.name.localeCompare(a.name);
+            if (sort === 'id_asc') return a.id - b.id;
+            if (sort === 'id_desc') return b.id - a.id;
+            return 0;
+        });
+
+        // 4. PAGINACIÓN (Slice)
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        const paginatedThemes = filteredThemes.slice(startIndex, endIndex);
+
+        return {
+            count: filteredThemes.length,
+            page: parseInt(page),
+            totalPages: Math.ceil(filteredThemes.length / pageSize),
+            results: paginatedThemes
+        };
+    } catch (error) {
+        console.error("Error en getThemes:", error.message);
+        throw error;
+    }
+};*/
+
+const getThemes = async (page = 1, search = '', sort = 'name_asc') => {
+    const currentTime = Date.now();
+    const pageSize = 20;
+
+    try {
+        // 1. CACHÉ TOTAL: Pedimos TODOS de golpe (max 1000)
+        if (allThemesCache.length === 0 || (currentTime - lastThemesFetchTime > CACHE_TTL_MS)) {
+            console.log("🌐 [API] Descargando TODOS los temas de Rebrickable...");
+            const response = await apiClient.get('/themes/?page_size=1000');
+            allThemesCache = response.data.results;
+            lastThemesFetchTime = currentTime;
+        }
+
+        // --- NUEVO: CREAR DICCIONARIO Y NOMBRES JERÁRQUICOS ---
+        // Creamos un diccionario para búsquedas ultra rápidas O(1)
+        const themeDict = {};
+        allThemesCache.forEach(t => themeDict[t.id] = t);
+
+        // Función recursiva para obtener la ruta completa (ej: "Town > City > Police")
+        const getFullThemeName = (theme) => {
+            if (!theme) return "";
+            if (!theme.parent_id) return theme.name; // Es un tema raíz
+            
+            const parent = themeDict[theme.parent_id];
+            if (parent) {
+                return `${getFullThemeName(parent)} > ${theme.name}`;
+            }
+            return theme.name;
+        };
+
+        // Enriquecemos todos los temas con su nombre completo
+        const enrichedThemes = allThemesCache.map(theme => ({
+            ...theme,
+            fullName: getFullThemeName(theme)
+        }));
+        // --------------------------------------------------------
+
+        // 2. BÚSQUEDA (Search) - ¡Ahora buscamos en el nombre completo!
+        let filteredThemes = enrichedThemes;
+        if (search && search.trim() !== '') {
+            const searchLower = search.toLowerCase();
+            // Permite buscar por "City" y que salgan sus subtemas
+            filteredThemes = enrichedThemes.filter(theme => 
+                theme.fullName.toLowerCase().includes(searchLower)
+            );
+        }
+
+        // 3. ORDENACIÓN (Sorting) - Ordenamos por el nombre jerárquico
+        filteredThemes.sort((a, b) => {
+            if (sort === 'name_asc') return a.fullName.localeCompare(b.fullName);
+            if (sort === 'name_desc') return b.fullName.localeCompare(a.fullName);
             if (sort === 'id_asc') return a.id - b.id;
             if (sort === 'id_desc') return b.id - a.id;
             return 0;

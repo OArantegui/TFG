@@ -55,6 +55,7 @@ class _ThemesScreenState extends State<ThemesScreen> {
       final List<LegoTheme> newThemes = results.map((e) => LegoTheme(
         id: e['id'], 
         name: e['name'], 
+        fullName: e['fullName'],
         parentId: e['parent_id']
       )).toList();
 
@@ -303,7 +304,17 @@ class _ThemeCardState extends State<_ThemeCard> {
                 alignment: Alignment.centerLeft,
                 child: Padding(
                   padding: const EdgeInsets.only(left: 8.0),
-                  child: Text(widget.theme.name.toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 0.5), maxLines: 3, overflow: TextOverflow.ellipsis),
+                  child: Text(
+                    widget.theme.fullName.toUpperCase(), // Usamos fullName en lugar de name
+                    style: const TextStyle(
+                      color: Colors.white, 
+                      fontWeight: FontWeight.bold, 
+                      fontSize: 13, // Un pelín más pequeño porque el texto será más largo
+                      letterSpacing: 0.5
+                    ), 
+                    maxLines: 3, 
+                    overflow: TextOverflow.ellipsis
+                  ),
                 ),
               ),
             ),

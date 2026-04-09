@@ -131,7 +131,7 @@ const getSetByBarcode = async (barcode) => {
 /**
  * Obtiene las instrucciones de montaje de un set usando su ID
  */
-const getSetInstructions = async (req, res) => {
+const getInstructions = async (req, res) => {
     try {
         const { setId } = req.params;
         const instructions = await bricksetService.getInstructions(setId);

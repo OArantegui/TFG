@@ -179,7 +179,7 @@ class HomeScreen extends StatelessWidget {
     
     if (provider.errorMessage != null) {
       return Center(
-        child: Text(provider.errorMessage!, style: const TextStyle(color: Colors.redAccent)),
+        child: Text('Error al cargar destacados', style: const TextStyle(color: Colors.redAccent)),
       );
     }
 

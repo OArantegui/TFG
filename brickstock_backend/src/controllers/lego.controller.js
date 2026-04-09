@@ -29,35 +29,6 @@ const getSetsByTheme = async (req, res) => {
     }
 };
 
-/*const getImageProxy = async (req, res) => {
-    const { url } = req.query; 
-    
-    if (!url) {
-        return res.status(400).send('Falta el parámetro url');
-    }
-
-    try {
-        const response = await axios({
-            url: url,
-            method: 'GET',
-            responseType: 'stream',
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'image/webp,image/apng,image/*,* QUITAR ESPACIO EN CASO DE USAR/*;q=0.8',
-                'Accept-Encoding': 'gzip, deflate, br'
-            }
-        });
-
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-        res.setHeader('Content-Type', response.headers['content-type']);
-        
-        response.data.pipe(res);
-    } catch (error) {
-        console.error("Error proxy imagen:", error.message);
-        res.status(404).send('Imagen no encontrada');
-    }
-};*/
 const getImageProxy = async (req, res) => {
     const { url } = req.query; 
     
@@ -190,26 +161,6 @@ const getMinifigDetails = async (req, res) => {
     }
 };
 
-/*const getSetMarketData = async (req, res) => {
-    try {
-        const { setId } = req.params;
-        
-        // Usamos getSetByNum, que es como se llama en tu servicio
-        const setDetails = await rebrickableService.getSetByNum(setId);
-        
-        // Le pasamos setDetails.pieces en lugar de num_parts
-        const marketData = marketService.generateMockMarketData(
-            setId, 
-            setDetails.pieces, 
-            setDetails.year
-        );
-
-        res.status(200).json(marketData);
-    } catch (error) {
-        console.error(`Error al obtener mercado para ${req.params.setId}:`, error.message);
-        res.status(500).json({ message: 'Error al calcular datos de mercado' });
-    }
-};*/
 const getSetMarketData = async (req, res) => {
     try {
         const { setId } = req.params;

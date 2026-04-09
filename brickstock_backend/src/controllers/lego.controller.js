@@ -354,17 +354,18 @@ const getThemeById = async (req, res) => {
 const getSetInstructions = async (req, res) => {
     try {
         const { setId } = req.params;
+        // Aquí llama al servicio de arriba
         const instructions = await bricksetService.getInstructions(setId);
 
-        // Filtramos solo los manuales de montaje (descartamos booklets e info adicional)
-        const validInstructions = instructions.filter(inst => 
-            inst.URL.includes('core.pdf')
-        );
+        // Filtramos y extraemos solo las URLs de los manuales (core.pdf)
+        const validUrls = instructions
+            .filter(inst => inst.URL.includes('core.pdf'))
+            .map(inst => inst.URL);
 
-        // Cogemos el primero si existe
-        const manualUrl = validInstructions.length > 0 ? validInstructions[0].URL : null;
+        // Eliminamos posibles duplicados exactos
+        const uniqueUrls = [...new Set(validUrls)];
 
-        res.status(200).json({ success: true, url: manualUrl });
+        res.status(200).json({ success: true, urls: uniqueUrls });
     } catch (error) {
         console.error(`Error al obtener instrucciones para ${req.params.setId}:`, error.message);
         res.status(500).json({ success: false, message: 'Error al obtener instrucciones' });

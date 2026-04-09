@@ -131,23 +131,35 @@ const getSetByBarcode = async (barcode) => {
 /**
  * Obtiene las instrucciones de montaje de un set usando su ID
  */
-const getInstructions = async (req, res) => {
+const getInstructions = async (setId) => {
     try {
-        const { setId } = req.params;
-        const instructions = await bricksetService.getInstructions(setId);
+        // 1. Necesitamos el 'setID' interno de Brickset (ej: 34522), no el '75331-1'
+        let cachedSet = await BricksetCache.findOne({ number: setId });
+        
+        // Si por algún motivo no lo tenemos en caché, lo descargamos primero
+        if (!cachedSet) {
+            cachedSet = await getSetDetails(setId);
+            // Si después de buscarlo en la API sigue sin existir, salimos
+            if (!cachedSet) return [];
+        }
 
-        // Filtramos y extraemos solo las URLs de los manuales (core.pdf)
-        const validUrls = instructions
-            .filter(inst => inst.URL.includes('core.pdf'))
-            .map(inst => inst.URL);
+        const internalSetID = cachedSet.setID; // Este es el número entero que quiere Brickset
 
-        // Eliminamos posibles duplicados exactos en caso de que Brickset mande la misma URL 2 veces
-        const uniqueUrls = [...new Set(validUrls)];
+        // 2. Llamada a la API de Brickset con el parámetro directo
+        const response = await axios.get('https://brickset.com/api/v3.asmx/getInstructions', {
+            params: {
+                apiKey: API_KEY,
+                setID: internalSetID 
+            }
+        });
 
-        res.status(200).json({ success: true, urls: uniqueUrls });
+        if (response.data.status === 'success' && response.data.matches > 0) {
+            return response.data.instructions;
+        }
+        return [];
     } catch (error) {
-        console.error(`Error al obtener instrucciones para ${req.params.setId}:`, error.message);
-        res.status(500).json({ success: false, message: 'Error al obtener instrucciones' });
+        console.error(`Error en Brickset Service (getInstructions - ${setId}):`, error.message);
+        throw error;
     }
 };
 

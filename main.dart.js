@@ -51373,8 +51373,7 @@ q=A.b([new A.IB(B.a8N,p,0,B.bl,!0,!0,l),new A.ID(B.bS,A.b_1(A.aTo(A.b([B.a8D,B.i
 return A.m7(l,B.t,new A.RC(q,B.a7,!1,l,l,B.fI,l,!1,l,0,l,l,B.fr,B.a2,l,l,B.r,B.aJ,l),l,!1,r,B.lq)},
 afy(a){var s,r=null
 if(a.d)return B.bk
-s=a.e
-if(s!=null)return A.dB(A.aN(s,r,r,r,r,B.a4i,r,r),r,r)
+if(a.e!=null)return A.dB(A.aN("Error al cargar destacados",r,r,r,r,B.a4i,r,r),r,r)
 s=a.b.length
 if(s===0)return B.Jf
 return A.aYy(new A.aiS(a),s,B.iX,B.Hk,B.ag,new A.aiT(),!1)}}

@@ -2,14 +2,16 @@
 
 **BrickStock** es una aplicación multiplataforma (móvil y web) diseñada para gestionar carteras de inversión de sets de Lego. Permite a los usuarios consultar el catálogo oficial, gestionar sus colecciones y analizar el valor de mercado de sus activos.
 
+Puedes consultar la versión web aquí: 👉 https://oarantegui.github.io/TFG/ 
+
 Este proyecto es parte del **Trabajo de Fin de Grado (TFG)** del ciclo de Desarrollo de Aplicaciones Multiplataforma (DAM) de Jhon Mario Agudelo y Óscar Arantegui.
 
 ## 🚀 Stack Tecnológico
 
 * **Frontend:** Flutter (Dart).
 * **Backend:** Node.js con Express.
-* **Base de Datos:** PostgreSQL (Próximamente).
-* **API Externa:** Rebrickable API v3.
+* **Base de Datos:** MongoDB con Mongoose.
+* **APIs Externas:** Rebrickable API v3 y Brickset.
 * **Arquitectura:** Cliente-Servidor con patrón BFF (Backend for Frontend).
 
 ## 📂 Estructura del Proyecto
@@ -62,11 +64,6 @@ Para ejecutar este proyecto localmente, necesitas tener instalado:
     ```bash
     flutter run
     ```
-
-## 📝 Notas del Desarrollador
-
-* Si usas el **Emulador de Android**, la app se conectará automáticamente a `10.0.2.2:3000` para hablar con el backend local.
-* Si usas **Web o iOS Simulator**, se conectará a `localhost:3000`.
 
 ---
 *Autores: Jhon Mario Agudelo, Óscar Arantegui*

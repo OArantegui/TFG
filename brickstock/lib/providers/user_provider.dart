@@ -22,4 +22,11 @@ class UserProvider extends ChangeNotifier {
     _avatar = newPath;
     notifyListeners(); // Actualiza al instante Navbar e Inicio
   }
+
+  //Metodo para eliminar los datos de la cache del dispositivo
+  void clearUserData() {
+    _username = "Perfil";
+    _avatar = "assets/avatars/lego-default.jpg";
+    notifyListeners(); // Avisa a la app para que quite los datos de la pantalla
+  }
 }

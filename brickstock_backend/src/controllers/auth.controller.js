@@ -14,7 +14,7 @@ const generateRefreshToken = (userId) => {
 
 const register = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, avatar } = req.body;
 
         // 1. Comprobar si el correo O el username ya existen
         const userExists = await User.findOne({ $or: [{ email }, { username }] });
@@ -28,7 +28,8 @@ const register = async (req, res) => {
         const newUser = new User({
             username,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            avatar: avatar
         });
 
         //Generamos tokens
@@ -74,13 +75,6 @@ const login = async (req, res) => {
 
         user.refreshTokens.push(refreshToken);
         await user.save();
-
-        /* 3. Si todo está bien, crear el pase VIP (Token JWT)
-        const token = jwt.sign(
-            { id: user._id }, 
-            process.env.JWT_SECRET, 
-            { expiresIn: '30d' }
-        );*/
 
         // 4. Enviar los datos al móvil
         res.status(200).json({

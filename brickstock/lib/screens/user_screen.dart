@@ -112,6 +112,7 @@ class _UserScreenState extends State<UserScreen> {
 
   void _logout() async {
     await _authService.logout();
+    Provider.of<UserProvider>(context, listen: false).clearUserData();
     if (!mounted) return;
     Navigator.of(
       context,

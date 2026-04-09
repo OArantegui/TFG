@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import 'main_layout.dart';
 import 'register_screen.dart'; 
+import '../providers/user_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -34,13 +36,14 @@ class _LoginScreenState extends State<LoginScreen> {
     final bool isSuccess = await _authService.login(
       _emailController.text.trim(),
       _passwordController.text.trim(),
-      keepSignedIn: _keepSignedIn, // ¡NUEVO!
+      keepSignedIn: _keepSignedIn, // Checkbox
     );
 
     if (!mounted) return;
     setState(() => _isLoading = false);
 
     if (isSuccess) {
+      await Provider.of<UserProvider>(context, listen: false).loadUserData();
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainLayout()),

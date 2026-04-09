@@ -7,7 +7,7 @@ const getThemes = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const search = req.query.search || '';
-        const sort = req.query.sort || 'name_asc';
+        const sort = req.query.sort || 'id_desc';
 
         const data = await rebrickableService.getThemes(page, search, sort);
         res.status(200).json(data);

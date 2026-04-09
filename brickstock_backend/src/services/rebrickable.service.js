@@ -53,55 +53,7 @@ const getThemeById = async (themeId) => {
     }
 };
 
-/*const getThemes = async (page = 1, search = '', sort = 'name_asc') => {
-    const currentTime = Date.now();
-    const pageSize = 20;
-
-    try {
-        // 1. CACHÉ TOTAL: Si no tenemos temas o caducaron, pedimos TODOS de golpe (max 1000)
-        if (allThemesCache.length === 0 || (currentTime - lastThemesFetchTime > CACHE_TTL_MS)) {
-            console.log("🌐 [API] Descargando TODOS los temas de Rebrickable...");
-            const response = await apiClient.get('/themes/?page_size=1000');
-            allThemesCache = response.data.results;
-            lastThemesFetchTime = currentTime;
-        }
-
-        // 2. BÚSQUEDA (Search)
-        let filteredThemes = allThemesCache;
-        if (search && search.trim() !== '') {
-            const searchLower = search.toLowerCase();
-            filteredThemes = allThemesCache.filter(theme => 
-                theme.name.toLowerCase().includes(searchLower)
-            );
-        }
-
-        // 3. ORDENACIÓN (Sorting)
-        filteredThemes.sort((a, b) => {
-            if (sort === 'name_asc') return a.name.localeCompare(b.name);
-            if (sort === 'name_desc') return b.name.localeCompare(a.name);
-            if (sort === 'id_asc') return a.id - b.id;
-            if (sort === 'id_desc') return b.id - a.id;
-            return 0;
-        });
-
-        // 4. PAGINACIÓN (Slice)
-        const startIndex = (page - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
-        const paginatedThemes = filteredThemes.slice(startIndex, endIndex);
-
-        return {
-            count: filteredThemes.length,
-            page: parseInt(page),
-            totalPages: Math.ceil(filteredThemes.length / pageSize),
-            results: paginatedThemes
-        };
-    } catch (error) {
-        console.error("Error en getThemes:", error.message);
-        throw error;
-    }
-};*/
-
-const getThemes = async (page = 1, search = '', sort = 'name_asc') => {
+const getThemes = async (page = 1, search = '', sort = 'id_desc') => {
     const currentTime = Date.now();
     const pageSize = 20;
 

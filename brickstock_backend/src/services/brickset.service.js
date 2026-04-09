@@ -46,11 +46,21 @@ const getSetDetails = async (setId) => {
         const cachedSet = await BricksetCache.findOne({ number: setId });
         
         if (cachedSet) {
-            console.log(`⚡ [MONGO] Sirviendo precios y estado del set ${setId} desde base de datos`);
-            return cachedSet;
+            // Verificar la edad de la caché
+            const THIRTY_DAYS_IN_MS = 30 * 24 * 60 * 60 * 1000;
+            const cacheAge = Date.now() - new Date(cachedSet.lastUpdatedServer).getTime();
+
+            // Si tiene menos de 30 días, lo servimos desde BD
+            if (cacheAge < THIRTY_DAYS_IN_MS) {
+                console.log(`⚡ [MONGO] Sirviendo set ${setId} desde caché (Válida)`);
+                return cachedSet;
+            }
+            
+            // Si pasamos de aquí, la caché está caducada
+            console.log(`🔄 [CACHE EXPIRADA] El set ${setId} lleva >30 días. Refrescando datos...`);
         }
 
-        // 2. Si no existe, llamamos a la API de Brickset
+        // 2. Si no existe o está caducado, llamamos a la API de Brickset
         console.log(`🌐 [API] Descargando datos reales del set ${setId} desde Brickset...`);
         const response = await axios.get(BASE_URL, {
             params: {
@@ -66,9 +76,17 @@ const getSetDetails = async (setId) => {
             
             // 3. Limpiamos los datos
             const cleanData = mapBricksetData(rawSet);
+            
+            // Actualizamos explícitamente el campo de control
+            cleanData.lastUpdatedServer = Date.now();
 
-            // 4. Lo guardamos en MongoDB para el futuro
-            const savedSet = await BricksetCache.create(cleanData);
+            // 4. Guardamos o actualizamos en MongoDB usando patrón Upsert
+            const savedSet = await BricksetCache.findOneAndUpdate(
+                { number: setId },         // Condición de búsqueda
+                { $set: cleanData },       // Datos a actualizar
+                { new: true, upsert: true } // Opciones: 'new' devuelve el doc actualizado, 'upsert' lo crea si no existe
+            );
+            
             return savedSet;
         } else {
             // Si el set no existe en Brickset, devolvemos null
@@ -95,8 +113,18 @@ const getSetByBarcode = async (barcode) => {
         });
         
         if (cachedSet) {
-            console.log(`⚡ [MONGO] Set encontrado por código de barras: ${cachedSet.number}`);
-            return cachedSet.number; // Devolvemos el ID tipo "42115-1"
+            // Verificar la edad de la caché
+            const THIRTY_DAYS_IN_MS = 30 * 24 * 60 * 60 * 1000;
+            const cacheAge = Date.now() - new Date(cachedSet.lastUpdatedServer).getTime();
+
+            // Si tiene menos de 30 días, lo servimos desde BD
+            if (cacheAge < THIRTY_DAYS_IN_MS) {
+                console.log(`⚡ [MONGO] Set encontrado por código de barras (Caché válida): ${cachedSet.number}`);
+                return cachedSet.number; // Devolvemos el ID tipo "42115-1"
+            }
+            
+            // Si pasamos de aquí, la caché está caducada
+            console.log(`🔄 [CACHE EXPIRADA] El set del código ${barcode} lleva >30 días. Refrescando datos...`);
         }
 
         // 2. Si no está en Mongo, llamamos a la API de Brickset
@@ -112,11 +140,20 @@ const getSetByBarcode = async (barcode) => {
         if (response.data.status === 'success' && response.data.matches > 0) {
             const rawSet = response.data.sets[0];
             
-            // 3. Limpiamos y guardamos el nuevo set descubierto
+            // 3. Limpiamos los datos y actualizamos la marca de tiempo
             const cleanData = mapBricksetData(rawSet);
-            await BricksetCache.create(cleanData);
+            cleanData.lastUpdatedServer = Date.now();
 
-            // 4. Devolvemos el ID del set para que el frontend pueda cargar los detalles
+            // 4. Upsert (Actualizar o Insertar)
+            // IMPORTANTE: Usamos 'cleanData.number' como filtro para que actualice 
+            // el set correcto si ya existía en la base de datos
+            await BricksetCache.findOneAndUpdate(
+                { number: cleanData.number }, // Condición de búsqueda
+                { $set: cleanData },          // Nuevos datos
+                { new: true, upsert: true }   // Insertar si no existe
+            );
+
+            // 5. Devolvemos el ID del set para que el frontend pueda cargar los detalles
             return cleanData.number; 
         } else {
             return null; // Código de barras no encontrado

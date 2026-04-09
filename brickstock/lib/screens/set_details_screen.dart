@@ -187,7 +187,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                         },
                         child: Row(
                           children: [
-                            Icon(Icons.help_outline, size: 18, color: Theme.of(context).colorScheme.primary),
+                            Icon(Icons.help_outline, size: 18, color: Colors.orange),
                             const SizedBox(width: 4),
                             Text(
                               'Manual',

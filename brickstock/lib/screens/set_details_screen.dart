@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart'; 
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart'; 
+import 'package:url_launcher/url_launcher.dart';
 import '../models/lego_set.dart';
 import '../services/api_service.dart';
 import '../widgets/minifigures_bottom_sheet.dart';
 import '../widgets/market_data_widget.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../widgets/instructions_dialog.dart';
 
 class SetDetailsScreen extends StatefulWidget {
   final LegoSet legoSet;
@@ -161,28 +162,36 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                       ),
                       InkWell(
                         onTap: () async {
-                          // Mostramos un pequeño indicador visual si tarda
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Buscando manual... 🔍'), duration: Duration(seconds: 1)),
+                            const SnackBar(content: Text('Buscando manuales... 🔍'), duration: Duration(seconds: 1)),
                           );
                           
-                          final url = await ApiService().getSetInstructions(widget.legoSet.setNum);
+                          // Ahora recibimos una lista
+                          final urls = await ApiService().getSetInstructions(widget.legoSet.setNum);
                           
-                          if (url != null && url.isNotEmpty) {
-                            final uri = Uri.parse(url);
-                            // Abre el navegador/visor PDF nativo
-                            if (await canLaunchUrl(uri)) {
-                              await launchUrl(uri, mode: LaunchMode.externalApplication);
-                            }
-                          } else {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('No hay manual en PDF disponible para este set.'),
-                                  backgroundColor: Colors.orange,
-                                ),
+                          if (!context.mounted) return;
+
+                          if (urls.isNotEmpty) {
+                            if (urls.length == 1) {
+                              // Si solo hay uno, lo abrimos directo por comodidad
+                              final uri = Uri.parse(urls.first);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              }
+                            } else {
+                              // Si hay varios, abrimos nuestro nuevo popup
+                              showDialog(
+                                context: context,
+                                builder: (context) => InstructionsDialog(urls: urls),
                               );
                             }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('No hay manuales en PDF disponibles para este set.'),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
                           }
                         },
                         child: Row(
@@ -192,7 +201,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                             Text(
                               'Manual',
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
+                                color: Colors.orange,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

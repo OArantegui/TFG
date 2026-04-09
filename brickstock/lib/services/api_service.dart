@@ -545,7 +545,7 @@ class ApiService {
   }
 
   // OBTENER INSTRUCCIONES DE MONTAJE
-  Future<String?> getSetInstructions(String setNum) async {
+  Future<List<String>> getSetInstructions(String setNum) async {
     try {
       final response = await http.get(
         Uri.parse('${ApiService.baseUrl}/lego/sets/$setNum/instructions'),
@@ -553,13 +553,14 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data['success'] == true) {
-          return data['url'];
+        // Ahora esperamos la clave 'urls' que es una lista
+        if (data['success'] == true && data['urls'] != null) {
+          return List<String>.from(data['urls']);
         }
       }
     } catch (e) {
       debugPrint('Error fetching instructions: $e');
     }
-    return null;
+    return []; // Devolvemos lista vacía si falla
   }
 }

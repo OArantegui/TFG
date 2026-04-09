@@ -132,7 +132,7 @@ class _ThemesScreenState extends State<ThemesScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
-        title: const Text('Catálogos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Temas', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60.0),
           child: Padding(
@@ -150,7 +150,7 @@ class _ThemesScreenState extends State<ThemesScreen> {
                       style: const TextStyle(color: Colors.white),
                       cursorColor: Colors.orange,
                       decoration: InputDecoration(
-                        hintText: 'Buscar colección y pulsa Enter...',
+                        hintText: 'Busca un tema y pulsa Enter...',
                         hintStyle: const TextStyle(color: Colors.grey),
                         prefixIcon: const Icon(Icons.search, color: Colors.orange),
                         border: InputBorder.none,
@@ -188,7 +188,7 @@ class _ThemesScreenState extends State<ThemesScreen> {
                   child: Row(
                     children: [
                       Text(
-                        '$_totalCount COLECCIONES ENCONTRADAS',
+                        '$_totalCount TEMAS ENCONTRADOS',
                         style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                       ),
                     ],

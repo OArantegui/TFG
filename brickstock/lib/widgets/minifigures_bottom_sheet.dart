@@ -236,7 +236,7 @@ class _MinifiguresBottomSheetState extends State<MinifiguresBottomSheet> {
                       style: const TextStyle(color: Colors.white54)
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-                    // === TFG: INTERCEPTOR 2.0 (Hidratación desde el Bottom Sheet) ===
+                    // Hidratación desde el Bottom Sheet)
                     onTap: () async {
                       showDialog(
                         context: context,

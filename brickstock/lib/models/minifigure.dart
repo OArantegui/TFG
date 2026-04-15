@@ -1,5 +1,5 @@
 class Minifigure {
-  final String? id; // ID de nuestra BBDD (MongoDB)
+  final String? id; // ID de nuestra BBDD
   final String figNum;
   final String name;
   final String imageUrl;
@@ -20,7 +20,7 @@ class Minifigure {
   });
 
   factory Minifigure.fromJson(Map<String, dynamic> json) {
-    // MAGIA TFG: Mapeamos los datos dependiendo de si vienen de Rebrickable o de nuestra API
+    // Mapeamos los datos dependiendo de si vienen de Rebrickable o de nuestra bbdd
     return Minifigure(
       id: json['_id'] ?? json['id'],
       figNum: json['figNum'] ?? json['set_num'] ?? '',

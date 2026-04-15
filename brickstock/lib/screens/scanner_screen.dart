@@ -17,7 +17,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   final MobileScannerController _cameraController = MobileScannerController();
 
   Future<void> _handleBarcode(BarcodeCapture capture) async {
-    // 1. Bloqueo inmediato síncrono para evitar el bucle
+    // Bloqueo inmediato síncrono para evitar el bucle
     if (_isProcessing) return;
     _isProcessing = true;
 
@@ -43,7 +43,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               const SnackBar(content: Text('No se ha encontrado ningún set con este código')),
             );
             
-            // 2. LA MAGIA: Esperamos 3 segundos para que te dé tiempo a apartar la caja
+            // Damos 3 segundos para que no esté escaneando y posiblemente haciendo llamadas a api
             await Future.delayed(const Duration(seconds: 3));
             
             if (mounted) {
@@ -80,15 +80,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Escanear Set'),
-        actions: [
-          IconButton(
-            color: Colors.white,
-            icon: const Icon(Icons.cameraswitch), // Icono estático de girar cámara
-            iconSize: 28.0,
-            tooltip: 'Cambiar cámara',
-            onPressed: () => _cameraController.switchCamera(), // La función sigue existiendo
-          ),
-        ],
       ),
       body: Stack(
         children: [

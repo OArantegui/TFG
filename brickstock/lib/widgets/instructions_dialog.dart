@@ -22,7 +22,6 @@ class InstructionsDialog extends StatelessWidget {
             final url = urls[index];
             
             // Recortamos la URL. Dividimos por '/' y nos quedamos con la última parte.
-            // Ej: https://.../6218872.pdf -> 6218872.pdf
             final fileName = url.split('/').last;
 
             return ListTile(

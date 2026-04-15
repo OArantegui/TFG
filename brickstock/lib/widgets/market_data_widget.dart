@@ -5,7 +5,7 @@ class MarketDataWidget extends StatelessWidget {
   final String setNum;
   final Future<Map<String, dynamic>?> marketDataFuture;
   
-  // TFG: Banderas para reutilizar el widget de forma inteligente
+  // Banderas para reutilizar el widget de forma inteligente
   final bool showCards; 
   final bool showTitle;
   final String buttonLabel;
@@ -157,7 +157,7 @@ class MarketDataWidget extends StatelessWidget {
                 if (showTitle)
                   Row(
                     children: [
-                      //ETIQUETA DE ESTADO (Descatalogado / Activo)
+                      //ETIQUETA DE ESTADO (Descatalogado / En tiendas)
                       if (data['isRetired'] != null)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

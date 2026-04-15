@@ -93,7 +93,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
           (sum, item) => sum + (item['targetPrice'] as num).toDouble(),
         );
 
-        // Lógica de progreso (No permitimos que pase de 1.0 en la barra visualmente)
+        // Lógica de progreso
         double progress = budget > 0 ? totalValue / budget : 0.0;
         bool isOverBudget = progress > 1.0;
         Color statusColor = isOverBudget ? Colors.redAccent : Colors.orange;
@@ -103,7 +103,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
             WishlistSummaryCard(
               totalValue: totalValue,
               budget: budget,
-              onBudgetUpdated: _loadWishlist, // Le pasamos la función para recargar
+              onBudgetUpdated: _loadWishlist, // Carga la lista
             ),
 
             if (items.isEmpty)

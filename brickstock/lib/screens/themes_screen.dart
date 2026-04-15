@@ -32,7 +32,7 @@ class _ThemesScreenState extends State<ThemesScreen> {
     _loadThemes(reset: true);
   }
 
-  // reset: true borra la lista y empieza de la página 1 (ideal para buscar u ordenar)
+  // reset: true borra la lista y empieza de la página 1
   Future<void> _loadThemes({bool reset = false}) async {
     if (reset) {
       setState(() {

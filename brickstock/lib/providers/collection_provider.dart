@@ -11,7 +11,7 @@ class CollectionProvider with ChangeNotifier {
 
   bool _isLoading = false;
 
-  // TFG: Variable para almacenar el Future de los datos de mercado globales
+  // Variable para almacenar el Future de los datos de mercado globales
   Future<Map<String, dynamic>?>? _collectionMarketDataFuture;
 
   List<CollectionItem> get collection => _collection;
@@ -61,27 +61,24 @@ class CollectionProvider with ChangeNotifier {
   }
 
   Future<bool> deleteFromCollection(String id) async {
-    // 1. Mandamos la orden al backend (Node.js borrará el set y sus minifiguras)
+    //Mandamos la orden al backend
     bool success = await _apiService.deleteFromCollection(id);
     
     if (success) {
-      // 2. Borramos el set visualmente de la lista de Flutter al instante
+      //Borramos el set visualmente de la lista de Flutter al instante
       _collection.removeWhere((item) => item.id == id);
 
-      // SINCRONIZACIÓN SILENCIOSA DE MINIFIGURAS 
-      // Como Node.js ha alterado las minifiguras por detrás, pedimos 
-      // la nueva lista actualizada de minifiguras y la sobreescribimos
-      // sin mostrar círculos de carga molestos.
+      //Pedimos la nueva lista actualizada de minifiguras y la sobreescribimos
       try {
         _minifigs = await _apiService.getUserMinifigCollection();
       } catch (e) {
         debugPrint('Error sincronizando minifiguras tras borrar set: $e');
       }
 
-      // 3. Recalculamos la gráfica de mercado global porque hay un set menos
+      //Recalculamos la gráfica de mercado global porque hay un set menos
       _collectionMarketDataFuture = _apiService.getCollectionMarketData();
       
-      // 4. Avisamos a la interfaz para que se repinte entera (incluyendo el contador nuevo)
+      //Avisamos a la interfaz para que se repinte entera (incluyendo el contador nuevo)
       notifyListeners();
     }
     return success;

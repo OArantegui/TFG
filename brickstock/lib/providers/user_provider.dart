@@ -14,19 +14,19 @@ class UserProvider extends ChangeNotifier {
     final data = await _authService.getUserData();
     _username = data['username'] ?? "Perfil";
     _avatar = data['avatar'] ?? "assets/avatars/lego-default.jpg";
-    notifyListeners(); // Avisa a la app para que se dibuje de nuevo
+    notifyListeners(); // Que se dibuje de nuevo
   }
 
-  // Método para actualizar solo el avatar al instante
+  // Actualizar solo el avatar al instante
   void updateAvatar(String newPath) {
     _avatar = newPath;
     notifyListeners(); // Actualiza al instante Navbar e Inicio
   }
 
-  //Metodo para eliminar los datos de la cache del dispositivo
+  //Eliminar los datos de la cache del dispositivo
   void clearUserData() {
     _username = "Perfil";
     _avatar = "assets/avatars/lego-default.jpg";
-    notifyListeners(); // Avisa a la app para que quite los datos de la pantalla
+    notifyListeners(); // Que quite los datos de la pantalla
   }
 }

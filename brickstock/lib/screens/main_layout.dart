@@ -7,7 +7,6 @@ import 'collection_screen.dart';
 import 'wishlist_screen.dart';
 import 'user_screen.dart';
 import 'elements_list_screen.dart';
-import '../services/auth_service.dart';
 import '../providers/home_provider.dart';
 import '../providers/collection_provider.dart';
 import '../providers/user_provider.dart';
@@ -120,7 +119,7 @@ class _MainLayoutState extends State<MainLayout> {
                       selectedIcon: CircleAvatar(
                         radius: 12,
                         backgroundImage: AssetImage(avatarRealTime),
-                        // Añadimos un borde naranja cuando esté seleccionado para mantener la coherencia visual
+                        // Añadimos un borde naranja cuando esté seleccionado
                         child: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
@@ -136,11 +135,10 @@ class _MainLayoutState extends State<MainLayout> {
               ],
 
               Expanded(
-                // === TFG: ESCUCHAMOS LA CLASE BASE 'Notification' ===
                 child: NotificationListener<Notification>(
                   onNotification: (Notification notification) {
                     if (isMobile) {
-                      // 1. Si la lista CAMBIA DE TAMAÑO bruscamente (ej: borrar búsqueda)
+                      // Si la lista cambia de tamaño bruscamente
                       if (notification is ScrollMetricsNotification) {
                         if (notification.metrics.maxScrollExtent <= 0 && !_isBottomBarVisible) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -149,7 +147,7 @@ class _MainLayoutState extends State<MainLayout> {
                         }
                       }
                       
-                      // 2. Si hacemos scroll hasta arriba del todo
+                      // Si hacemos scroll hasta arriba del todo
                       if (notification is ScrollNotification) {
                         if (notification.metrics.pixels <= 0 || notification.metrics.maxScrollExtent <= 0) {
                           if (!_isBottomBarVisible) {
@@ -160,7 +158,7 @@ class _MainLayoutState extends State<MainLayout> {
                         }
                       }
 
-                      // 3. El gesto del dedo (Bajar = Ocultar, Subir = Mostrar)
+                      //El gesto del dedo (Bajar = Ocultar, Subir = Mostrar)
                       if (notification is UserScrollNotification) {
                         if (notification.direction == ScrollDirection.reverse) {
                           if (_isBottomBarVisible) setState(() => _isBottomBarVisible = false);

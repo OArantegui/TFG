@@ -96,7 +96,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
           const SizedBox(height: 15),
           const Divider(color: Colors.white10, height: 1),
           
-          // TFG: Uso inteligente del widget. Solo mostramos el botón centrado.
+          // Uso inteligente del widget. Solo mostramos el botón centrado.
           if (provider.collectionMarketDataFuture != null)
             MarketDataWidget(
               setNum: "GLOBAL",
@@ -257,7 +257,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF2D2D2D),
         title: const Text('Eliminar Set', style: TextStyle(color: Colors.white)),
-        content: const Text('¿Seguro que quieres eliminar este set de tu cartera?', style: TextStyle(color: Colors.white70)),
+        content: const Text('¿Seguro que quieres eliminar este set de tu colección?', style: TextStyle(color: Colors.white70)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: Colors.grey))),
           ElevatedButton(
@@ -279,7 +279,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF2D2D2D),
         title: const Text('Eliminar Minifigura', style: TextStyle(color: Colors.white)),
-        content: const Text('¿Seguro que quieres eliminar esta minifigura de tu cartera?', style: TextStyle(color: Colors.white70)),
+        content: const Text('¿Seguro que quieres eliminar esta minifigura de tu colección?', style: TextStyle(color: Colors.white70)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: Colors.grey))),
           ElevatedButton(

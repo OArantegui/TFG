@@ -17,7 +17,7 @@ void main() {
     );
 }
 
-// [NUEVO] Esta clase habilita el arrastre con ratón en Web/PC
+// Esta clase habilita el arrastre con ratón en Web/PC
 class MyCustomScrollBehavior extends MaterialScrollBehavior {
   @override
   Set<PointerDeviceKind> get dragDevices => {

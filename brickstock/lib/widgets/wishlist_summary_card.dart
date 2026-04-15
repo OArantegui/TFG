@@ -4,7 +4,7 @@ import '../services/api_service.dart';
 class WishlistSummaryCard extends StatelessWidget {
   final double totalValue;
   final double budget;
-  final VoidCallback onBudgetUpdated; // TFG: Callback para recargar el padre
+  final VoidCallback onBudgetUpdated; // Callback para recargar el padre
 
   const WishlistSummaryCard({
     super.key,

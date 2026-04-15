@@ -6,13 +6,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../services/api_service.dart';
 import '../models/lego_set.dart';
 import '../providers/home_provider.dart';
-import '../widgets/nav_card.dart'; // Nuestro nuevo componente
+import '../widgets/nav_card.dart';
 import 'set_details_screen.dart';
 import 'elements_list_screen.dart';
 import '../providers/user_provider.dart';
 import 'scanner_screen.dart';
 
-// Cambiamos a StatelessWidget porque el estado lo maneja el HomeProvider
+// StatelessWidget porque el estado lo maneja el HomeProvider
 class HomeScreen extends StatelessWidget {
   // Recibimos la función de navegación desde MainLayout
   final Function(int) onNavigate;
@@ -28,9 +28,9 @@ class HomeScreen extends StatelessWidget {
     int navColumns = screenWidth > 800 ? 4 : (screenWidth > 600 ? 3 : 2);
 
     return Scaffold(
-      backgroundColor: Colors.transparent, // Mantiene el fondo oscuro de tu app
+      backgroundColor: Colors.transparent, // Mantiene el fondo oscuro
       
-      // 2. AÑADIMOS EL BOTÓN FLOTANTE
+      // BOTÓN FLOTANTE
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -40,12 +40,12 @@ class HomeScreen extends StatelessWidget {
         },
         icon: SvgPicture.asset(
             'assets/icons/barcode_scan.svg',
-            width: 24, // El tamaño estándar de un icono
+            width: 24, // Tamaño estándar de un icono
             height: 24,
             colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
           ),
         label: const Text('Escanear Set', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.orange, // A juego con los detalles de tu app
+        backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Lo centra abajo
@@ -66,7 +66,7 @@ class HomeScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(right: 16.0),
                 child: GestureDetector(
-                  onTap: () => onNavigate(5), // Vamos al perfil
+                  onTap: () => onNavigate(5), // Perfil
                   child: Center(
                     child: CircleAvatar(
                       radius: 16, // Tamaño para que encaje bien en la AppBar
@@ -139,7 +139,7 @@ class HomeScreen extends StatelessWidget {
                     if (provider.featuredTheme != null)
                       TextButton(
                         onPressed: () {
-                          // Aquí usamos push normal porque es una vista específica filtrada, no la pestaña general
+                          // Push normal porque es una vista específica filtrada, no la pestaña general
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -171,7 +171,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Lógica del carrusel adaptada (es idéntica a la que tenías, solo adaptada al nuevo widget)
+  // Lógica del carrusel
   Widget _buildCarouselContent(HomeProvider provider) {
     if (provider.isLoading) {
       return const Center(child: CircularProgressIndicator(color: Colors.orange));
@@ -200,7 +200,7 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// TARJETA DE SET DESTACADO (Mantenida exactamente igual)
+// TARJETA DE SET DESTACADO
 class _FeaturedSetCard extends StatelessWidget {
   final LegoSet legoSet;
 
@@ -268,34 +268,32 @@ class _FeaturedSetCard extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.all(10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.orange,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            '#${legoSet.setNum}',
-                            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          legoSet.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
-                        ),
-                      ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.orange,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '#${legoSet.setNum}',
+                        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10),
+                      ),
                     ),
+                    const SizedBox(height: 6),
+                    Expanded(
+                      child: Text(
+                        legoSet.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
                         const Icon(Icons.calendar_today, size: 12, color: Colors.grey),

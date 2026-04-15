@@ -5,12 +5,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'api_service.dart';
 
 class AuthService {
-  // TFG Info: Usamos Secure Storage para tokens (encriptado) y SharedPreferences para datos no sensibles.
+  //Usamos Secure Storage para tokens y SharedPreferences para datos no sensibles.
   final _secureStorage = const FlutterSecureStorage();
 
-  // ==========================================
-  // 1. GESTIÓN DE TOKENS (SECURE STORAGE)
-  // ==========================================
+  // GESTIÓN DE TOKENS
 
   Future<void> saveTokens(String accessToken, String refreshToken) async {
     await _secureStorage.write(key: 'access_token', value: accessToken);
@@ -64,7 +62,7 @@ class AuthService {
     return token != null && token.isNotEmpty;
   }
 
-  // Métodos de UserData (Se quedan igual, en SharedPreferences)
+  // Métodos de UserData
   Future<void> saveUserData(
     String username,
     String email,
@@ -85,10 +83,7 @@ class AuthService {
     };
   }
 
-  // ==========================================
-  // 2. LLAMADAS AL BACKEND (NODE.JS)
-  // ==========================================
-
+  //Backend
   Future<bool> login(
     String email,
     String password, {
@@ -130,7 +125,7 @@ class AuthService {
     }
   }
 
-  // Registro: Ahora también guardamos los dos tokens igual que en login
+  // Registro
   Future<bool> register(
     String username,
     String email,
@@ -178,9 +173,7 @@ class AuthService {
     }
   }
 
-  // ==========================================
-  // 3. LA MAGIA: REFRESCAR EL TOKEN
-  // ==========================================
+  //REFRESCAR EL TOKEN
 
   /// Pide un nuevo Access Token usando el Refresh Token
   Future<bool> refreshAccessToken() async {
@@ -273,35 +266,12 @@ class AuthService {
         final data = jsonDecode(response.body);
         return data['success'] == true;
       }
-      return false; // Si devuelve 400 (incorrecta), caemos aquí
+      return false; // Si devuelve 400 (incorrecta)
     } catch (e) {
       return false;
     }
   }
 
-  /*Future<bool> updateAvatar(String avatarPath) async {
-    try {
-      final token = await getAccessToken();
-      final response = await http.put(
-        Uri.parse('${ApiService.baseUrl}/auth/avatar'), 
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({'avatar': avatarPath}),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        // Actualiza los datos locales (asegúrate de que tu saveUserData acepta 3 parámetros)
-        await saveUserData(data['user']['username'], data['user']['email'], data['user']['avatar']);
-        return true;
-      }
-      return false;
-    } catch (e) {
-      return false;
-    }
-  }*/
   Future<bool> updateAvatar(String avatarPath) async {
     try {
       String? token = await getAccessToken();
@@ -319,21 +289,21 @@ class AuthService {
         );
       }
 
-      // 1. Primer intento
+      // Primer intento
       var response = await makeRequest(token ?? '');
 
-      // 2. Si el token está caducado, forzamos refresco automático
+      // Si el token está caducado, forzamos refresco automático
       if (response.statusCode == 401 || response.statusCode == 403) {
         print("Token caducado cambiando avatar. Refrescando...");
         bool refreshed = await refreshAccessToken();
         if (refreshed) {
           token = await getAccessToken();
-          // 3. Reintentamos la petición de actualizar avatar con el token nuevo
+          // Reintentamos la petición de actualizar avatar con el token nuevo
           response = await makeRequest(token!);
         }
       }
 
-      // 4. Evaluamos el resultado final
+      // Evaluamos el resultado final
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         // Actualiza los datos locales

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../models/achievement.dart';
-import '../widgets/wishlist_summary_card.dart'; // Importamos el componente reutilizable
+import '../widgets/wishlist_summary_card.dart';
 import 'login_screen.dart';
 import '../widgets/avatar_picker_dialog.dart';
 import '../providers/user_provider.dart';
@@ -36,7 +36,7 @@ class _UserScreenState extends State<UserScreen> {
     super.initState();
     _cargarDatosUsuario();
     _achievementsFuture = _apiService.getMyAchievements();
-    _loadUserStats(); // Cargamos estadísticas al vuelo
+    _loadUserStats(); // Cargamos estadísticas
   }
 
   void _loadUserStats() {
@@ -45,7 +45,7 @@ class _UserScreenState extends State<UserScreen> {
     });
   }
 
-  // TFG: Recopilamos datos de la Colección y Wishlist para el panel de estadísticas
+  // Recopilamos datos de la Colección y Wishlist para el panel de estadísticas
   Future<Map<String, dynamic>> _fetchUserStats() async {
     final collection = await _apiService.getUserCollection();
     final wishlistData = await _apiService.getWishlistData();
@@ -249,17 +249,15 @@ class _UserScreenState extends State<UserScreen> {
               //Destruimos la sesión en la BBDD y en el almacenamiento local
               await AuthService().logout();
 
-              //Comprobación de seguridad nativa de Flutter:
               // Asegurarnos de que esta pantalla sigue existiendo antes de intentar navegar
               if (!context.mounted) return;
 
               //Navegamos al Login pero DESTRUYENDO todo el historial anterior.
-              // Así evitamos que el usuario le dé al botón físico de "Atrás" en Android y vuelva a entrar.
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => const LoginScreen()),
                 (Route<dynamic> route) =>
-                    false, // Esto le dice a Flutter: "Elimina todas las rutas"
+                    false, // Borra las rutas
               );
             },
           ),
@@ -270,7 +268,7 @@ class _UserScreenState extends State<UserScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- SECCIÓN 1: CABECERA Y ESTADÍSTICAS ---
+            //CABECERA Y ESTADÍSTICAS
             Container(
               color: const Color(0xFF1E1E1E),
               padding: const EdgeInsets.symmetric(
@@ -295,7 +293,7 @@ class _UserScreenState extends State<UserScreen> {
                             context: context,
                             builder: (dialogContext) => AvatarPickerDialog(
                               onAvatarSelected: (avatarPath) async {
-                                // 1. Guardamos en el servidor
+                                //Guardamos en el servidor
                                 final success = await _authService.updateAvatar(
                                   avatarPath,
                                 );
@@ -303,16 +301,11 @@ class _UserScreenState extends State<UserScreen> {
                                 if (!context.mounted) return;
 
                                 if (success) {
-                                  // 2. ¡AVISAMOS AL PROVIDER DEL CAMBIO!
+                                  // Avisamos a provider
                                   Provider.of<UserProvider>(
                                     context,
                                     listen: false,
                                   ).updateAvatar(avatarPath);
-
-                                  // 3. Actualizamos visualmente la propia pantalla
-                                  /*setState(() {
-                                    _currentAvatar = avatarPath;
-                                  });*/
 
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
@@ -352,7 +345,7 @@ class _UserScreenState extends State<UserScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // TFG: Panel de Estadísticas del Usuario
+                  //Panel de Estadísticas del Usuario
                   FutureBuilder<Map<String, dynamic>>(
                     future: _userStatsFuture,
                     builder: (context, snapshot) {
@@ -445,7 +438,7 @@ class _UserScreenState extends State<UserScreen> {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          // Nuestro nuevo Widget Reutilizable en acción
+                          // Widget de presupuesto
                           WishlistSummaryCard(
                             totalValue: stats['wishlistTotal'],
                             budget: stats['wishlistBudget'],
@@ -459,7 +452,7 @@ class _UserScreenState extends State<UserScreen> {
 
                   const SizedBox(height: 32),
 
-                  // TFG: Grid de insignias reactivo y con contador
+                  // Grid de insignias reactivo y con contador
                   FutureBuilder<List<Achievement>>(
                     future: _achievementsFuture,
                     builder: (context, snapshot) {
@@ -525,7 +518,7 @@ class _UserScreenState extends State<UserScreen> {
                             itemBuilder: (context, index) {
                               final ach = achievements[index];
 
-                              // TFG: Definimos colores y opacidades según estado (reactivo)
+                              // Definimos colores y opacidades según estado
                               final Color iconColor = ach.isUnlocked
                                   ? Colors.amber
                                   : Colors.grey[600]!;
@@ -540,7 +533,7 @@ class _UserScreenState extends State<UserScreen> {
                                 message: ach.description,
                                 child: Column(
                                   children: [
-                                    // --- EL MEDALLÓN CIRCULAR (Nativo Material) ---
+                                    // Medallon de insignia
                                     CircleAvatar(
                                       radius: 35, // Tamaño del círculo
                                       backgroundColor: backgroundColor,
@@ -568,7 +561,7 @@ class _UserScreenState extends State<UserScreen> {
                                     const SizedBox(
                                       height: 10,
                                     ), // Espacio entre círculo y texto
-                                    // --- EL TEXTO DEBAJO ---
+                                    // Texto de insignia
                                     Opacity(
                                       // Usamos opacidad para el texto bloqueado
                                       opacity: textOpacity,
@@ -601,7 +594,7 @@ class _UserScreenState extends State<UserScreen> {
               ),
             ),
 
-            // --- SECCIÓN 2: FORMULARIO DE AJUSTES (Acordeón) ---
+            // FORMULARIO DE AJUSTES
             ExpansionTile(
               title: const Text(
                 'Ajustes de Cuenta',
@@ -668,7 +661,7 @@ class _UserScreenState extends State<UserScreen> {
                         obscureText: true,
                         readOnly:
                             !_isPasswordUnlocked, // Solo lectura si no está desbloqueado
-                        onTap: _solicitarPasswordActual, // ¡Dispara el pop-up!
+                        onTap: _solicitarPasswordActual, // Pide contraseña actual
                         decoration: InputDecoration(
                           labelText: 'Confirmar Nueva Contraseña',
                           border: const OutlineInputBorder(),

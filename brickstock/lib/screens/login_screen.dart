@@ -94,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 10),
 
-              // ¡NUEVO! Widget nativo para el checkbox
+              // Widget nativo para el checkbox
               CheckboxListTile(
                 title: const Text("Mantener sesión iniciada"),
                 value: _keepSignedIn,

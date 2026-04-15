@@ -23,7 +23,7 @@ class ElementsListScreen extends StatefulWidget {
 class _ElementsListScreenState extends State<ElementsListScreen> {
   final ApiService apiService = ApiService();
 
-  // --- ESTADO DE SETS ---
+  // ESTADO DE SETS
   List<LegoSet> _sets = [];
   bool _isLoading = true;
   bool _isLoadingMore = false;
@@ -31,7 +31,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
   int _totalCount = 0;
   String? _nextPageUrl;
 
-  // --- ESTADO DE MINIFIGURAS ---
+  // ESTADO DE MINIFIGURAS
   SearchMode _searchMode = SearchMode.sets;
   List<Minifigure> _minifigs = [];
   bool _isLoadingMinifigs = false;
@@ -42,7 +42,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
 
   final TextEditingController _searchController = TextEditingController();
 
-  // TFG: Variable auxiliar para saber si estamos en Búsqueda Global o en un Tema
+  // Variable auxiliar para saber si estamos en Búsqueda Global o en un Tema
   bool get _isGlobalSearch => widget.theme == null;
 
   @override
@@ -101,7 +101,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
   }
 
   Future<void> _loadMinifigs({bool reset = false}) async {
-    // Si estamos en un tema, ni siquiera intentamos cargar minifiguras
+    // Si estamos en un tema, no intentamos cargar minifiguras
     if (!_isGlobalSearch) return;
 
     if (_isGlobalSearch && _searchController.text.trim().isEmpty) {
@@ -183,7 +183,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
               )
             : null,
         bottom: PreferredSize(
-          // TFG: Ajustamos el alto dinámicamente. Si es global, caben las pestañas. Si es tema, solo el buscador.
+          // Ajustamos el alto dinámicamente. Si es global, caben las pestañas. Si es tema, solo el buscador.
           preferredSize: Size.fromHeight(_isGlobalSearch ? 115.0 : 60.0),
           child: Padding(
             padding: const EdgeInsets.symmetric(
@@ -239,7 +239,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                   ),
                 ),
 
-                // TFG: CONDICIONAL. Solo mostramos el toggle si estamos en Búsqueda Global
+                // Solo mostramos el toggle si estamos en Búsqueda Global
                 if (_isGlobalSearch) ...[
                   const SizedBox(height: 12),
                   SegmentedButton<SearchMode>(
@@ -282,16 +282,14 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
           ),
         ),
       ),
-      // TFG: Si estamos dentro de un tema, FORZAMOS a que renderice la lista de Sets
+      //Si estamos dentro de un tema, FORZAMOS a que renderice la lista de Sets
       body: (!_isGlobalSearch || _searchMode == SearchMode.sets)
           ? _buildSetsList()
           : _buildMinifigsList(),
     );
   }
 
-  // ===============================================
-  // VISTA 1: LISTA DE SETS
-  // ===============================================
+  // VISTA LISTA DE SETS
   Widget _buildSetsList() {
     if (_isLoading)
       return const Center(
@@ -462,9 +460,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
     );
   }
 
-  // ===============================================
-  // VISTA 2: LISTA DE MINIFIGURAS
-  // ===============================================
+  //VISTA LISTA DE MINIFIGURAS
   Widget _buildMinifigsList() {
     if (_isLoadingMinifigs)
       return const Center(

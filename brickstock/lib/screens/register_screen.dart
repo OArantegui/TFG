@@ -11,7 +11,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  // GlobalKey para validar el formulario completo de una vez (Patrón recomendado en Flutter)
+  // GlobalKey para validar el formulario completo de una vez
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -22,13 +22,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _authService = AuthService();
   bool _isLoading = false;
 
-  // Variables para controlar la visibilidad de las contraseñas
+  // Controlar la visibilidad de las contraseñas
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
   String _selectedAvatar = 'assets/avatars/lego-default.jpg';
 
-  // Método para liberar los controladores de la memoria cuando se cierra la pantalla
+  // Liberar los controladores de la memoria cuando se cierra la pantalla
   @override
   void dispose() {
     _usernameController.dispose();
@@ -39,7 +39,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _hacerRegistro() async {
-    // Validación rápida del frontend antes de molestar al backend
+    // Validación rápida del frontend antes de llamar al backend
     if (!_formKey.currentState!.validate()) return;
 
     //  Validación extra de seguridad por si falla el validador del Form

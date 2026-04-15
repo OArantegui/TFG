@@ -1,5 +1,4 @@
 import 'dart:convert';
-// ¡ELIMINADO import 'dart:io'; para no romper Flutter Web!
 import 'package:flutter/foundation.dart'; // Necesario para kReleaseMode
 import 'package:http/http.dart' as http;
 import '../models/lego_theme.dart';
@@ -10,12 +9,9 @@ import '../models/minifigure.dart';
 import '../models/achievement.dart';
 
 class ApiService {
-  // 1. Definimos las URLs de los entornos
-  // TODO: Pon aquí tu URL pública de Render cuando la tengas
+  // Definimos las URLs de los entornos
   static const String _productionUrl =
-      'https://brickstock-o9l6.onrender.com/api';
-
-  // 2. Getter estático que decide qué URL usar
+    'https://brickstock-o9l6.onrender.com/api';
   static String get baseUrl {
     return _productionUrl;
   }
@@ -45,23 +41,22 @@ class ApiService {
       throw Exception('Método HTTP no soportado');
     }
 
-    // 1. Primer intento
+    // Primer intento
     http.Response response = await makeRequest(token ?? '');
 
-    // 2. Si el token expiró (401 o 403)
+    // Si el token expiró (401 o 403)
     if (response.statusCode == 401 || response.statusCode == 403) {
-      print("⚠️ Token expirado. Intentando refrescar de fondo...");
+      print("Token expirado. Intentando refrescar de fondo...");
       bool refreshed = await authService.refreshAccessToken();
 
       if (refreshed) {
-        // 3. ¡Éxito! Obtenemos el nuevo token y reintentamos la petición original
+        // Obtenemos el nuevo token y reintentamos la petición original
         token = await authService.getAccessToken();
-        print("✅ Token refrescado. Reintentando petición...");
+        print("Token refrescado. Reintentando petición...");
         response = await makeRequest(token!);
       } else {
-        // Si no se pudo refrescar (expiró también el largo), se fuerza el logout
-        print("❌ Imposible refrescar. Redirigir a Login.");
-        // Opcional: Aquí podrías lanzar un evento global para mandar a LoginScreen
+        // Si no se pudo refrescar, se fuerza el logout
+        print("Imposible refrescar. Redirigir a Login.");
         throw Exception("Sesión expirada");
       }
     }
@@ -95,7 +90,6 @@ class ApiService {
     int page = 1,
     String search = '',
   }) async {
-    // ¡ATENCIÓN A ESTA LÍNEA! Es la que estaba dando el error 404.
     String url = '${ApiService.baseUrl}/lego/sets/$themeId?page=$page';
 
     if (search.isNotEmpty) {
@@ -175,7 +169,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      // Si el interceptor falla (ej. expiró la sesión y el refresh token), caerá aquí
+      // Si el interceptor falla, caerá aquí
       return {
         'success': false,
         'message': 'Error de red o sesión expirada: $e',
@@ -265,7 +259,7 @@ class ApiService {
 
   Future<List<Minifigure>> getSetMinifigures(String setNum) async {
     try {
-      // Usamos el endpoint que hemos creado en nuestro propio backend Node
+      // Usamos el endpoint que hemos creado en backend
       final response = await http.get(
         Uri.parse('${ApiService.baseUrl}/lego/sets/$setNum/minifigs'),
       );
@@ -401,7 +395,7 @@ class ApiService {
     }
   }
 
-  // 2. Obtener detalles de una minifigura (Para la nueva pantalla de detalles)
+  //Obtener detalles de una minifigura
   Future<Map<String, dynamic>> getMinifigDetails(String figNum) async {
     final response = await http.get(
       Uri.parse('${ApiService.baseUrl}/lego/minifigs/$figNum'),
@@ -418,7 +412,7 @@ class ApiService {
     }
   }
 
-  // 3. Obtener la colección de minifiguras del usuario (Para la pestaña Colección)
+  // Obtener la colección de minifiguras del usuario (Para la pestaña Colección)
   Future<List<Minifigure>> getUserMinifigCollection() async {
     // Usamos el wrapper con Token JWT
     final response = await _authRequest('GET', '/collection/minifigs');
@@ -429,13 +423,13 @@ class ApiService {
         final List results = data['data'];
         return results.map((e) => Minifigure.fromJson(e)).toList();
       }
-      throw Exception('Error al parsear cartera de minifiguras');
+      throw Exception('Error al parsear coleccion de minifiguras');
     } else {
       throw Exception('Fallo al cargar la colección de minifiguras');
     }
   }
 
-  // 4. Añadir una minifigura suelta a la colección
+  // Añadir una minifigura suelta a la colección
   Future<Map<String, dynamic>> addMinifigToCollection(
     String figNum, {
     int quantity = 1,
@@ -506,7 +500,6 @@ class ApiService {
   // Obtener datos de mercado globales de TODA la colección del usuario
   Future<Map<String, dynamic>?> getCollectionMarketData() async {
     try {
-      // Usamos tu wrapper seguro que maneja el refresco de tokens
       final response = await _authRequest('GET', '/collection/market-data');
 
       if (response.statusCode == 200) {
@@ -519,10 +512,8 @@ class ApiService {
     }
     return null;
   }
-  
-  // --------------------------------------------------------
-  // NUEVO: ESCÁNER DE CÓDIGO DE BARRAS (BRICKSET + REBRICKABLE)
-  // --------------------------------------------------------
+
+  //Escaner
   Future<Map<String, dynamic>?> scanBarcode(String barcode) async {
     try {
       // Apuntamos al nuevo endpoint de tu backend en Render

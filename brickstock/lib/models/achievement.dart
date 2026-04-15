@@ -25,7 +25,7 @@ class Achievement {
     );
   }
 
-  // TFG: Mapeo manual (Factory Method pattern) para convertir Strings de BD a Iconos Material
+  // Mapeo para pasar a Icono
   IconData get iconData {
     switch (iconName) {
       case 'exposure_plus_1':

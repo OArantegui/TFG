@@ -32,9 +32,7 @@ class LegoSet {
       numParts: json['num_parts'],
       imgUrl: json['set_img_url'] ?? 'https://via.placeholder.com/150', // Fallback si no hay imagen
 
-      // MAPEANDO LOS NUEVOS CAMPOS
-      // Usamos (as num).toDouble() porque a veces los JSON envían "800" en vez de "800.0" y Dart crashea
-      rrp: json['officialRrp'] != null ? (json['officialRrp'] as num).toDouble() : null,
+      rrp: json['officialRrp'] != null ? (json['officialRrp'] as num).toDouble() : null, //Aseguramos que sea formato double
       availability: json['availability'],
       barcode: json['barcode'],
     );

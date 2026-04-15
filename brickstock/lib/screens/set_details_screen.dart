@@ -61,7 +61,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
     );
   }
 
-  // TFG: Helper visual para la nueva cuadrícula de detalles
+  // Helper visual para la nueva cuadrícula de detalles
   Widget _buildDetailItem(IconData icon, String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -96,7 +96,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- IMAGEN PRINCIPAL DEL SET ---
+            // Imagen principal del set
             SizedBox(
               height: 300,
               width: double.infinity,
@@ -127,13 +127,13 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
               ),
             ),
 
-            // --- INFO Y PRECIOS ---
+            // Info y precios
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // TÍTULO DEL SET
+                  // Nombre del set
                   Text(
                     widget.legoSet.name,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -142,7 +142,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // PRECIOS Y GRÁFICA
+                  // precios y grafica
                   MarketDataWidget(
                     setNum: widget.legoSet.setNum,
                     marketDataFuture: _marketDataFuture!,
@@ -163,7 +163,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                       InkWell(
                         onTap: () async {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Buscando manuales... 🔍'), duration: Duration(seconds: 1)),
+                            const SnackBar(content: Text('Buscando manuales...'), duration: Duration(seconds: 1)),
                           );
                           
                           // Ahora recibimos una lista
@@ -257,7 +257,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
 
                   const SizedBox(height: 30),
 
-                  // --- BOTÓN AÑADIR A DESEADOS ---
+                  // Añadir a deseados
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
@@ -348,15 +348,15 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
             FloatingActionButton(
               heroTag: 'btn_minifigs_${widget.legoSet.setNum}', 
               onPressed: () => _showMinifiguresBottomSheet(context, widget.legoSet.setNum),
-              child: const Icon(Icons.smart_toy), 
               tooltip: 'Ver Minifiguras',
+              child: const Icon(Icons.smart_toy), 
             ),
 
             FloatingActionButton.extended(
               heroTag: 'btn_collection_${widget.legoSet.setNum}', 
               onPressed: () async {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Guardando en MongoDB... ⏳')),
+                  const SnackBar(content: Text('Guardando')),
                 );
 
                 final double priceToSave = _currentMarketValue;
@@ -371,7 +371,7 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                 if (result['success'] == true) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('¡${widget.legoSet.name} añadido a tu colección! 🚀'),
+                      content: Text('¡${widget.legoSet.name} añadido a tu colección!'),
                       backgroundColor: Colors.green,
                     ),
                   );

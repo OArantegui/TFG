@@ -125,7 +125,7 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 40),
 
                 // CABECERA DE DESTACADOS
-                Row(
+                /*Row(
                   children: [
                     Expanded(
                       child: Text(
@@ -150,7 +150,20 @@ class HomeScreen extends StatelessWidget {
                         child: const Text('Ver todos', style: TextStyle(color: Colors.grey)),
                       ),
                   ],
+                ),*/
+                // CABECERA DE NOVEDADES
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'NOVEDADES',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 10),
                 const SizedBox(height: 10),
               ]),
             ),
@@ -171,8 +184,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Lógica del carrusel
-  Widget _buildCarouselContent(HomeProvider provider) {
+  // Lógica del carrusel aleatorios
+  /*Widget _buildCarouselContent(HomeProvider provider) {
     if (provider.isLoading) {
       return const Center(child: CircularProgressIndicator(color: Colors.orange));
     }
@@ -195,6 +208,33 @@ class HomeScreen extends StatelessWidget {
       separatorBuilder: (context, index) => const SizedBox(width: 16),
       itemBuilder: (context, index) {
         return _FeaturedSetCard(legoSet: provider.featuredSets[index]);
+      },
+    );
+  }*/
+  // Lógica del carrusel novedades
+  Widget _buildCarouselContent(HomeProvider provider) {
+    if (provider.isLoading) {
+      return const Center(child: CircularProgressIndicator(color: Colors.orange));
+    }
+    
+    if (provider.errorMessage != null) {
+      return const Center(
+        child: Text('Error al cargar novedades', style: TextStyle(color: Colors.redAccent)),
+      );
+    }
+
+    if (provider.newReleaseSets.isEmpty) {
+      return const Center(child: Text('No hay novedades disponibles', style: TextStyle(color: Colors.grey)));
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      itemCount: provider.newReleaseSets.length,
+      separatorBuilder: (context, index) => const SizedBox(width: 16),
+      itemBuilder: (context, index) {
+        return _FeaturedSetCard(legoSet: provider.newReleaseSets[index]);
       },
     );
   }

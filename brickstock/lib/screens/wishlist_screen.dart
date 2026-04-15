@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import '../models/lego_set.dart';
 import '../services/api_service.dart';
 import 'set_details_screen.dart';
@@ -117,6 +117,175 @@ class _WishlistScreenState extends State<WishlistScreen> {
               )
             else
               // LISTA DE SETS DESEADOS
+              Expanded(
+                child: ListView.builder(
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return Card(
+                      color: const Color(0xFF2A2A2A),
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 4.0,
+                      ),
+                      child: ListTile(
+                        leading: Image.network(
+                          ApiService().getProxyUrl(item['imgUrl']),
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, stack) => const Icon(
+                            Icons.broken_image,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        title: Text(
+                          item['name'],
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        subtitle: Text(
+                          'Set: ${item['setNum']} • ${item['targetPrice']} €',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Colors.redAccent,
+                          ),
+                          onPressed: () async {
+                            await ApiService().deleteFromWishlist(item['id']);
+                            _loadWishlist();
+                          },
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SetDetailsScreen(
+                                legoSet: LegoSet(
+                                  setNum: item['setNum'],
+                                  name: item['name'],
+                                  numParts: item['numParts'],
+                                  imgUrl: item['imgUrl'],
+                                  year: item['year'],
+                                  themeId: item['themeId'],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+*/
+
+import 'package:flutter/material.dart';
+import '../models/lego_set.dart';
+import '../services/api_service.dart';
+import 'set_details_screen.dart';
+import '../widgets/wishlist_summary_card.dart';
+
+class WishlistScreen extends StatefulWidget {
+  const WishlistScreen({super.key});
+
+  @override
+  State<WishlistScreen> createState() => _WishlistScreenState();
+}
+
+class _WishlistScreenState extends State<WishlistScreen> {
+  late Future<Map<String, dynamic>> _wishlistFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWishlist();
+  }
+
+  void _loadWishlist() {
+    setState(() {
+      _wishlistFuture = ApiService().getWishlistData();
+    });
+  }
+
+  // ... (mantenemos _editBudget igual)
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _wishlistFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.orange),
+          );
+        } else if (snapshot.hasError) {
+          return const Center(
+            child: Text(
+              'Error al cargar la lista',
+              style: TextStyle(color: Colors.white),
+            ),
+          );
+        }
+
+        final data = snapshot.data!;
+        final budget = (data['budget'] as num).toDouble();
+        final List items = data['data'];
+
+        double totalValue = items.fold(
+          0,
+          (sum, item) => sum + (item['targetPrice'] as num).toDouble(),
+        );
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start, // Alinea el contenido al inicio (izquierda)
+          children: [
+            // --- NUEVA CABECERA ---
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Mis deseados',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh, color: Colors.orange),
+                    tooltip: 'Actualizar lista',
+                    onPressed: _loadWishlist, // Llama a la función que ya tenías
+                  ),
+                ],
+              ),
+            ),
+
+            WishlistSummaryCard(
+              totalValue: totalValue,
+              budget: budget,
+              onBudgetUpdated: _loadWishlist,
+            ),
+
+            if (items.isEmpty)
+              const Expanded(
+                child: Center(
+                  child: Text(
+                    'Tu lista de deseados está vacía',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              )
+            else
               Expanded(
                 child: ListView.builder(
                   itemCount: items.length,

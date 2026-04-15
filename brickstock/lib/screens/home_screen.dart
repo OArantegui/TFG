@@ -123,34 +123,6 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 40),
-
-                // CABECERA DE DESTACADOS
-                /*Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        provider.featuredTheme != null
-                            ? 'DESTACADOS (${provider.featuredTheme!.name})'
-                            : 'DESTACADOS',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (provider.featuredTheme != null)
-                      TextButton(
-                        onPressed: () {
-                          // Push normal porque es una vista específica filtrada, no la pestaña general
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ElementsListScreen(theme: provider.featuredTheme!),
-                            ),
-                          );
-                        },
-                        child: const Text('Ver todos', style: TextStyle(color: Colors.grey)),
-                      ),
-                  ],
-                ),*/
                 // CABECERA DE NOVEDADES
                 Row(
                   children: [
@@ -184,33 +156,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Lógica del carrusel aleatorios
-  /*Widget _buildCarouselContent(HomeProvider provider) {
-    if (provider.isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.orange));
-    }
-    
-    if (provider.errorMessage != null) {
-      return Center(
-        child: Text('Error al cargar destacados', style: const TextStyle(color: Colors.redAccent)),
-      );
-    }
-
-    if (provider.featuredSets.isEmpty) {
-      return const Center(child: Text('No hay sets destacados', style: TextStyle(color: Colors.grey)));
-    }
-
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      itemCount: provider.featuredSets.length,
-      separatorBuilder: (context, index) => const SizedBox(width: 16),
-      itemBuilder: (context, index) {
-        return _FeaturedSetCard(legoSet: provider.featuredSets[index]);
-      },
-    );
-  }*/
   // Lógica del carrusel novedades
   Widget _buildCarouselContent(HomeProvider provider) {
     if (provider.isLoading) {

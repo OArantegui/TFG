@@ -5,7 +5,6 @@ const { register, login, updateUser, refreshToken, logout, verifyCurrentPassword
 
 const { verifyJWT } = require('../middlewares/auth.middleware');
 
-// Ruta para registrar un usuario (POST http://localhost:3000/api/auth/register)
 router.post('/register', register);
 router.post('/login', login);
 router.post('/refresh', refreshToken);

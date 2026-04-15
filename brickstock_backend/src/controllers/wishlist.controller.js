@@ -2,7 +2,7 @@ const Wishlist = require('../models/wishlist.model');
 const User = require('../models/user.model');
 const rebrickableService = require('../services/rebrickable.service');
 
-// AÑADIR A LA LISTA CON VALIDACIÓN DE PRESUPUESTO
+// Añadir set a la lista
 exports.addToWishlist = async (req, res) => {
     try {
         const { setNum, price, force = false } = req.body;
@@ -38,18 +38,17 @@ exports.addToWishlist = async (req, res) => {
     }
 };
 
-// OBTENER LA LISTA Y EL PRESUPUESTO
+// obtener lista y presupuesto
 exports.getUserWishlist = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user.id); //Necesitamos user para el presupuesto
         const list = await Wishlist.find({ userId: req.user.id });
 
         const enrichedList = await Promise.all(list.map(async (item) => {
             let setDetails = {};
-            let themeName = 'Desconocido'; // NUEVO
+            let themeName = 'Desconocido';
             try {
                 setDetails = await rebrickableService.getSetByNum(item.setNum); 
-                // NUEVO: Obtenemos el nombre del tema
                 const themeId = setDetails.theme_id || setDetails.themeId;
                 if (themeId) {
                     const themeData = await rebrickableService.getThemeById(themeId);
@@ -80,7 +79,7 @@ exports.getUserWishlist = async (req, res) => {
     }
 };
 
-// ACTUALIZAR PRESUPUESTO
+// Actualizar presupuesto
 exports.updateBudget = async (req, res) => {
     try {
         const { newBudget } = req.body;
@@ -91,7 +90,7 @@ exports.updateBudget = async (req, res) => {
     }
 };
 
-// BORRAR SET
+// Quitar set de deseados
 exports.deleteFromWishlist = async (req, res) => {
     try {
         await Wishlist.findOneAndDelete({ _id: req.params.id, userId: req.user.id });

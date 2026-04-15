@@ -5,13 +5,13 @@ const achievementService = require('../services/achievement.service');
 const marketService = require('../services/market.service');
 
 
-// POST: Añadir un nuevo set a la cartera
+// POST: Añadir un nuevo set a la coleccion
 exports.addSetToCollection = async (req, res) => {
     try {
         const { setNum, quantity = 1, purchasePrice, condition = 'NISB' } = req.body;
         const userId = req.user.id; 
 
-        // 1 y 2. Comprobar si existe el set en la colección (como ya tenías)
+        // Comprobar si existe el set en la colección
         let existingItem = await Collection.findOne({ userId, setNum, condition });
 
         if (existingItem) {
@@ -20,12 +20,11 @@ exports.addSetToCollection = async (req, res) => {
             return res.status(200).json({ success: true, message: 'Cantidad actualizada en la colección', data: existingItem });
         }
 
-        // 3. Crear el nuevo registro del Set
+        //Crear el nuevo registro del Set
         const newItem = new Collection({ userId, setNum, quantity, purchasePrice, condition });
         await newItem.save();
 
-        // === MAGIA DEL TFG: AUTO-AÑADIR MINIFIGURAS ===
-        // Justificación Académica: Delegamos la lógica compleja al backend. El cliente no hace múltiples peticiones.
+        // Se añaden las minifiguras del set
         try {
             const minifigs = await rebrickableService.getSetMinifigs(setNum);
             
@@ -55,12 +54,10 @@ exports.addSetToCollection = async (req, res) => {
             // Capturamos el error pero NO paramos la ejecución, porque el Set ya se ha guardado
             console.error("Error al auto-añadir minifiguras del set:", figError.message);
         }
-        // ==============================================
 
-        // === TFG: INTERCEPTOR DE GAMIFICACIÓN ===
+        // Comprobamos insignias
         const totalSets = await Collection.countDocuments({ userId });
         const newlyUnlocked = await achievementService.syncCollectionAchievements(userId, totalSets);
-        // =========================================
 
         res.status(201).json({
             success: true,
@@ -75,21 +72,21 @@ exports.addSetToCollection = async (req, res) => {
     }
 };
 
-// GET: Obtener toda la cartera del usuario
+// GET: Obtener toda la coleccion del usuario
 exports.getUserCollection = async (req, res) => {
     try {
-        // 1. Buscamos la colección del usuario en MongoDB
+        //Buscamos la colección del usuario en MongoDB
         const collection = await Collection.find({ userId: req.user.id });
 
-        // 2. Enriquecemos cada item con datos de Rebrickable (Patrón BFF)
+        //Enriquecemos cada item con datos de Rebrickable BFF
         const enrichedCollection = await Promise.all(collection.map(async (item) => {
             let setDetails = {};
-            let themeName = 'Desconocido'; // NUEVO
+            let themeName = 'Desconocido';
             try {
-                // Llamamos a nuestra caché/servicio de Rebrickable.
+                //Llamamos a nuestra caché/servicio de Rebrickable.
                 setDetails = await rebrickableService.getSetByNum(item.setNum); 
                 
-                // NUEVO: Obtenemos el nombre del tema
+                //Nombre del tema
                 const themeId = setDetails.theme_id || setDetails.themeId;
                 if (themeId) {
                     const themeData = await rebrickableService.getThemeById(themeId);
@@ -123,7 +120,7 @@ exports.getUserCollection = async (req, res) => {
 // DELETE: Borrar set de la colección
 exports.deleteCollectionItem = async (req, res) => {
     try {
-        // 1. Buscamos y eliminamos el set de la colección principal
+        //Buscamos y eliminamos el set de la colección principal
         const deletedItem = await Collection.findOneAndDelete({ 
             _id: req.params.id, 
             userId: req.user.id 
@@ -133,14 +130,12 @@ exports.deleteCollectionItem = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Set no encontrado en tu colección' });
         }
 
-        // AUTO-ELIMINAR MINIFIGURAS ASOCIADAS
+        //Borramos las figuras del set
         try {
-            // 2. Preguntamos a Rebrickable qué minifiguras traía exactamente el set que acabamos de borrar
             const minifigs = await rebrickableService.getSetMinifigs(deletedItem.setNum);
             
             if (minifigs && minifigs.length > 0) {
                 for (const fig of minifigs) {
-                    // Buscamos si el usuario tiene esta minifigura en su base de datos
                     let existingFig = await MinifigCollection.findOne({ userId: req.user.id, figNum: fig.figNum });
                     
                     if (existingFig) {
@@ -149,23 +144,20 @@ exports.deleteCollectionItem = async (req, res) => {
                         
                         existingFig.quantity -= figsToRemove;
 
+                        //Solo le quitamos las que trae el set
                         if (existingFig.quantity <= 0) {
-                            // Si al restar se queda en 0 (o menos), la borramos por completo de la colección
                             await MinifigCollection.findByIdAndDelete(existingFig._id);
                         } else {
-                            // Si le siguen quedando copias (ej. la consiguió por separado o tiene otro set que la incluye)
                             await existingFig.save();
                         }
                     }
                 }
             }
         } catch (figError) {
-            // No bloqueamos el borrado principal si esto falla, pero lo registramos
             console.error("Error al auto-eliminar minifiguras del set:", figError.message);
         }
-        // ==========================================================
 
-        // 3. Sincronizamos los logros por si ha bajado de nivel
+        //Sincronizamos los logros por si ha bajado de nivel
         const totalSets = await Collection.countDocuments({ userId: req.user.id });
         await achievementService.syncCollectionAchievements(req.user.id, totalSets);
 
@@ -176,15 +168,15 @@ exports.deleteCollectionItem = async (req, res) => {
     }
 };
 
-// PUT y DELETE (Modificar cantidad o vender/borrar)
+// Actualizar
 exports.updateCollectionItem = async (req, res) => { res.status(200).send("Actualizar set"); };
 
-// GET: Obtener la colección de minifiguras del usuario (Patrón BFF)
+// GET: Obtener la colección de minifiguras del usuario
 exports.getUserMinifigCollection = async (req, res) => {
     try {
         const collection = await MinifigCollection.find({ userId: req.user.id });
 
-        // Enriquecemos con datos de Rebrickable
+        //Enriquecemos con datos de API
         const enrichedCollection = await Promise.all(collection.map(async (item) => {
             let details = {};
             try {
@@ -222,8 +214,6 @@ exports.addMinifigToCollection = async (req, res) => {
 
         if (existingItem) {
             existingItem.quantity += quantity;
-            // Si antes era de un Set y ahora la compra manual, podemos actualizar el 'source' si queremos, 
-            // pero lo dejaremos intacto por simplicidad de la cartera.
             await existingItem.save();
             return res.status(200).json({ success: true, message: 'Cantidad actualizada', data: existingItem });
         }
@@ -232,7 +222,7 @@ exports.addMinifigToCollection = async (req, res) => {
             userId,
             figNum,
             quantity,
-            source: 'Manual' // Marcamos que la añadió suelta
+            source: 'Manual' //No viene de un set, se añade manual
         });
 
         await newItem.save();
@@ -260,10 +250,8 @@ exports.removeMinifigFromCollection = async (req, res) => {
 // GET: Obtener los datos de mercado agregados de toda la colección
 exports.getCollectionMarketData = async (req, res) => {
     try {
-        // CORRECCIÓN: Usamos req.user.id igual que en el resto de tus funciones
         const userId = req.user.id; 
         
-        // CORRECCIÓN: Buscamos por el campo 'userId' que es el que usa tu modelo
         const collectionItems = await Collection.find({ userId: userId });
 
         // Si la colección está vacía, devolvemos todo a 0

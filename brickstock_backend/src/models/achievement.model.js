@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const achievementSchema = new mongoose.Schema({
-  code: { type: String, required: true, unique: true }, // ej: 'FIRST_SET'
-  name: { type: String, required: true }, // ej: 'Primer Ladrillo'
+  code: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
   description: { type: String, required: true },
-  icon: { type: String, required: true }, // Guardaremos el nombre del icono de Material de Flutter
-  conditionType: { type: String, required: true }, // ej: 'COLLECTION_COUNT'
-  conditionValue: { type: Number, required: true }, // ej: 1 (set)
+  icon: { type: String, required: true },
+  conditionType: { type: String, required: true },
+  conditionValue: { type: Number, required: true },
 });
 
 module.exports = mongoose.model('Achievement', achievementSchema);

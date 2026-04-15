@@ -1,7 +1,7 @@
 const Achievement = require('../models/achievement.model');
 const User = require('../models/user.model');
 
-// 1. Semillero: Crea los logros base si no existen
+// Semillero: Crea los logros base si no existen
 const seedAchievements = async () => {
     try {
         const count = await Achievement.countDocuments();
@@ -12,45 +12,14 @@ const seedAchievements = async () => {
                 { code: 'FIFTY_SETS', name: 'Maestro Constructor', description: '50 sets en tu colección. Nivel experto.', icon: 'diamond', conditionType: 'COLLECTION_COUNT', conditionValue: 50 },
             ];
             await Achievement.insertMany(initialAchievements);
-            console.log('🏁 Gamificación: Logros base insertados en MongoDB.');
+            console.log('Logros base insertados en MongoDB.');
         }
     } catch (err) {
         console.error('Error al poblar logros:', err);
     }
 };
 
-// 2. Evaluador: Se llama automáticamente cuando el usuario añade un set
-/*const evaluateCollectionAchievements = async (userId, collectionCount) => {
-    // Buscamos qué logros requieren X sets o menos
-    const achievementsToUnlock = await Achievement.find({
-        conditionType: 'COLLECTION_COUNT',
-        conditionValue: { $lte: collectionCount }
-    });
-
-    if (achievementsToUnlock.length === 0) return null;
-
-    const user = await User.findById(userId);
-    let newlyUnlocked = [];
-
-    // Comprobamos cuáles de esos logros NO tiene el usuario todavía
-    achievementsToUnlock.forEach(achievement => {
-        const alreadyHas = user.unlockedAchievements.some(
-            ua => ua.achievement.toString() === achievement._id.toString()
-        );
-        if (!alreadyHas) {
-            user.unlockedAchievements.push({ achievement: achievement._id });
-            newlyUnlocked.push(achievement); // Lo guardamos para avisar a Flutter
-        }
-    });
-
-    // Si ha ganado algo nuevo, guardamos el usuario actualizado
-    if (newlyUnlocked.length > 0) {
-        await user.save();
-        return newlyUnlocked; 
-    }
-
-    return null;
-};*/
+//Comprobador
 const syncCollectionAchievements = async (userId, collectionCount) => {
     const user = await User.findById(userId);
     const allCollectionAchievements = await Achievement.find({ conditionType: 'COLLECTION_COUNT' });
@@ -64,16 +33,16 @@ const syncCollectionAchievements = async (userId, collectionCount) => {
             ua => ua.achievement.toString() === ach._id.toString()
         );
         
-        // ¿Cumple la condición con su número actual de sets?
+        // Cumple la condición con su número actual de sets?
         const qualifies = collectionCount >= ach.conditionValue;
 
         if (qualifies && hasAchievementIndex === -1) {
-            // CUMPLE y NO LO TIENE -> ¡Lo gana!
+            // Si cumple y no lo tiene, se lo damos
             user.unlockedAchievements.push({ achievement: ach._id });
             newlyUnlocked.push(ach);
             changed = true;
         } else if (!qualifies && hasAchievementIndex !== -1) {
-            // NO CUMPLE pero SÍ LO TIENE -> ¡Se le revoca!
+            // No cumple y lo tiene, se le quita
             user.unlockedAchievements.splice(hasAchievementIndex, 1);
             changed = true;
         }
@@ -84,10 +53,10 @@ const syncCollectionAchievements = async (userId, collectionCount) => {
         await user.save();
     }
 
-    return newlyUnlocked; // Seguimos devolviendo los nuevos para el confeti
+    return newlyUnlocked; // Si ha desbloqueado alguno
 };
 
-// 3. Catálogo: Devuelve todos los logros e indica si el usuario los tiene
+// Devuelve todos los logros e indica si el usuario los tiene
 const getUserAchievements = async (userId) => {
     const allAchievements = await Achievement.find();
     const user = await User.findById(userId).populate('unlockedAchievements.achievement');
@@ -107,5 +76,4 @@ const getUserAchievements = async (userId) => {
     });
 };
 
-//module.exports = { seedAchievements, evaluateCollectionAchievements, getUserAchievements };
 module.exports = { seedAchievements, syncCollectionAchievements, getUserAchievements };

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const bricksetCacheSchema = new mongoose.Schema({
     setID: { type: Number, required: true, unique: true }, // ID interno numérico de Brickset
-    number: { type: String, required: true, index: true }, // Ej. "75192"
+    number: { type: String, required: true, index: true }, // Numero de set (ID de rebrickable)
     name: { type: String },
     year: { type: Number },
     theme: { type: String },
@@ -21,7 +21,6 @@ const bricksetCacheSchema = new mongoose.Schema({
         imageURL: { type: String }
     },
     
-    // Usamos tipo Mixto (Mixed) o Map porque los países (US, UK, DE) pueden variar
     LEGOCom: { type: Map, of: new mongoose.Schema({
         retailPrice: { type: Number },
         dateFirstAvailable: { type: Date }

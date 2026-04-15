@@ -23,7 +23,7 @@ const minifigCollectionSchema = new mongoose.Schema({
     enum: ['From Set', 'Manual'],
     default: 'Manual'
   },
-  // Si viene de un set, guardamos de qué set vino (opcional, pero genial para trazabilidad)
+  // Si viene de un set, guardamos de qué set vino
   sourceSetNum: {
     type: String,
     default: null

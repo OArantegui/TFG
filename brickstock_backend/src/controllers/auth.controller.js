@@ -222,7 +222,7 @@ const verifyCurrentPassword = async (req, res) => {
 
 const updateAvatar = async (req, res) => {
   try {
-    const userId = req.user.id; // Asumiendo que el middleware de auth inyecta el req.user
+    const userId = req.user.id;
     const { avatar } = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(

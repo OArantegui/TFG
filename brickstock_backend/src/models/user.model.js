@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
 }, {
     timestamps: true // Guarda automáticamente la fecha de creación
 });
-// Magia de Mongoose para simular un JOIN sin guardar el array en el User
+
 userSchema.virtual('collections', {
   ref: 'Collection',
   localField: '_id',
@@ -30,7 +30,6 @@ userSchema.virtual('wishlists', {
   foreignField: 'userId'
 });
 
-// Para que los campos virtuales aparezcan cuando convertimos el documento a JSON para mandarlo al frontend
 userSchema.set('toJSON', { virtuals: true });
 userSchema.set('toObject', { virtuals: true });
 module.exports = mongoose.model('User', userSchema);

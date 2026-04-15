@@ -1,14 +1,13 @@
 const axios = require('axios');
-const BricksetCache = require('../models/brickset_cache.model'); // Asegúrate de que la ruta sea correcta
+const BricksetCache = require('../models/brickset_cache.model');
 require('dotenv').config();
 
 const API_KEY = process.env.BRICKSET_API_KEY;
 const BASE_URL = 'https://brickset.com/api/v3.asmx/getSets';
 
-// Función para limpiar el JSON gigante de Brickset y quedarnos solo con lo útil
+// Usamos solo lo que nos interesa para no sobrecargar BBDD
 const mapBricksetData = (rawSet) => {
-    // Brickset a veces separa el número de la variante (ej. number: "75192", numberVariant: 1)
-    // Lo unimos para que coincida con el formato de Rebrickable ("75192-1")
+    // Unimos el numero con el variante
     const fullSetId = `${rawSet.number}-${rawSet.numberVariant}`;
 
     return {
@@ -37,35 +36,33 @@ const mapBricksetData = (rawSet) => {
     };
 };
 
-/**
- * Obtiene los detalles de un set usando su ID (ej. "42115-1")
- */
+//Obtiene los detalles de un set usando su ID (ej. "42115-1")
 const getSetDetails = async (setId) => {
     try {
-        // 1. Buscar en nuestra base de datos MongoDB
+        // Buscar en nuestra base de datos
         const cachedSet = await BricksetCache.findOne({ number: setId });
         
         if (cachedSet) {
-            // Verificar la edad de la caché
+            // Verificar cuanto lleva de caché
             const THIRTY_DAYS_IN_MS = 30 * 24 * 60 * 60 * 1000;
             const cacheAge = Date.now() - new Date(cachedSet.lastUpdatedServer).getTime();
 
-            // Si tiene menos de 30 días, lo servimos desde BD
+            // Si lleva menos de 30 días, lo servimos desde BD
             if (cacheAge < THIRTY_DAYS_IN_MS) {
-                console.log(`⚡ [MONGO] Sirviendo set ${setId} desde caché (Válida)`);
+                console.log(`Sirviendo set ${setId} desde bbdd`);
                 return cachedSet;
             }
             
-            // Si pasamos de aquí, la caché está caducada
-            console.log(`🔄 [CACHE EXPIRADA] El set ${setId} lleva >30 días. Refrescando datos...`);
+            //Mensaje cache caducada
+            console.log(`El set ${setId} lleva >30 días en bbdd. Refrescando datos...`);
         }
 
-        // 2. Si no existe o está caducado, llamamos a la API de Brickset
-        console.log(`🌐 [API] Descargando datos reales del set ${setId} desde Brickset...`);
+        //Si no existe o está caducado, llamamos a la API de Brickset
+        console.log(`Descargando datos reales del set ${setId} desde Brickset...`);
         const response = await axios.get(BASE_URL, {
             params: {
                 apiKey: API_KEY,
-                userHash: '', // No es necesario para búsquedas públicas
+                userHash: '', // Campo de brickset, no es necesario para búsquedas públicas
                 params: JSON.stringify({ setNumber: setId }) // Brickset pide un JSON stringificado aquí
             }
         });
@@ -74,13 +71,13 @@ const getSetDetails = async (setId) => {
         if (response.data.status === 'success' && response.data.matches > 0) {
             const rawSet = response.data.sets[0];
             
-            // 3. Limpiamos los datos
+            // Limpiamos los datos como nos interesa
             const cleanData = mapBricksetData(rawSet);
             
-            // Actualizamos explícitamente el campo de control
+            // Actualizamos el campo de control
             cleanData.lastUpdatedServer = Date.now();
 
-            // 4. Guardamos o actualizamos en MongoDB usando patrón Upsert
+            // Guardamos o actualizamos en bbdd usando patrón Upsert
             const savedSet = await BricksetCache.findOneAndUpdate(
                 { number: setId },         // Condición de búsqueda
                 { $set: cleanData },       // Datos a actualizar
@@ -99,12 +96,10 @@ const getSetDetails = async (setId) => {
     }
 };
 
-/**
- * Busca un set por código de barras escaneado
- */
+//Busca un set por código de barras escaneado
 const getSetByBarcode = async (barcode) => {
     try {
-        // 1. Buscar en nuestra base de datos MongoDB (por EAN o UPC)
+        // Buscar en base de datos (por EAN o UPC)
         const cachedSet = await BricksetCache.findOne({
             $or: [
                 { 'barcode.EAN': barcode },
@@ -113,22 +108,22 @@ const getSetByBarcode = async (barcode) => {
         });
         
         if (cachedSet) {
-            // Verificar la edad de la caché
+            // Verificar cuanto lleva de caché
             const THIRTY_DAYS_IN_MS = 30 * 24 * 60 * 60 * 1000;
             const cacheAge = Date.now() - new Date(cachedSet.lastUpdatedServer).getTime();
 
-            // Si tiene menos de 30 días, lo servimos desde BD
+            // Si lleva menos de 30 días, lo servimos desde bbdd
             if (cacheAge < THIRTY_DAYS_IN_MS) {
-                console.log(`⚡ [MONGO] Set encontrado por código de barras (Caché válida): ${cachedSet.number}`);
-                return cachedSet.number; // Devolvemos el ID tipo "42115-1"
+                console.log(`Set encontrado por código de barras: ${cachedSet.number}`);
+                return cachedSet.number;
             }
             
-            // Si pasamos de aquí, la caché está caducada
-            console.log(`🔄 [CACHE EXPIRADA] El set del código ${barcode} lleva >30 días. Refrescando datos...`);
+            // Mensaje caché caducada
+            console.log(`El set del código ${barcode} lleva >30 días. Refrescando datos...`);
         }
 
-        // 2. Si no está en Mongo, llamamos a la API de Brickset
-        console.log(`🌐 [API] Buscando código de barras ${barcode} en Brickset...`);
+        // Si no está en Mongo, llamamos a la API de Brickset
+        console.log(`Buscando código de barras ${barcode} en Brickset...`);
         const response = await axios.get(BASE_URL, {
             params: {
                 apiKey: API_KEY,
@@ -140,20 +135,18 @@ const getSetByBarcode = async (barcode) => {
         if (response.data.status === 'success' && response.data.matches > 0) {
             const rawSet = response.data.sets[0];
             
-            // 3. Limpiamos los datos y actualizamos la marca de tiempo
+            // Limpiamos los datos y actualizamos la marca de tiempo
             const cleanData = mapBricksetData(rawSet);
             cleanData.lastUpdatedServer = Date.now();
 
-            // 4. Upsert (Actualizar o Insertar)
-            // IMPORTANTE: Usamos 'cleanData.number' como filtro para que actualice 
-            // el set correcto si ya existía en la base de datos
+            // Upsert (Actualizar o Insertar)
             await BricksetCache.findOneAndUpdate(
                 { number: cleanData.number }, // Condición de búsqueda
                 { $set: cleanData },          // Nuevos datos
                 { new: true, upsert: true }   // Insertar si no existe
             );
 
-            // 5. Devolvemos el ID del set para que el frontend pueda cargar los detalles
+            // Devolvemos el ID del set (BFF)
             return cleanData.number; 
         } else {
             return null; // Código de barras no encontrado
@@ -165,12 +158,10 @@ const getSetByBarcode = async (barcode) => {
     }
 };
 
-/**
- * Obtiene las instrucciones de montaje de un set usando su ID
- */
+//Obtiene las instrucciones de montaje de un set usando su ID
 const getInstructions = async (setId) => {
     try {
-        // 1. Necesitamos el 'setID' interno de Brickset (ej: 34522), no el '75331-1'
+        // Necesitamos el 'setID' interno de Brickset no el de Rebrickable
         let cachedSet = await BricksetCache.findOne({ number: setId });
         
         // Si por algún motivo no lo tenemos en caché, lo descargamos primero
@@ -180,9 +171,9 @@ const getInstructions = async (setId) => {
             if (!cachedSet) return [];
         }
 
-        const internalSetID = cachedSet.setID; // Este es el número entero que quiere Brickset
+        const internalSetID = cachedSet.setID; // Número entero que quiere Brickset
 
-        // 2. Llamada a la API de Brickset con el parámetro directo
+        // Llamada a la API de Brickset con el parámetro directo
         const response = await axios.get('https://brickset.com/api/v3.asmx/getInstructions', {
             params: {
                 apiKey: API_KEY,

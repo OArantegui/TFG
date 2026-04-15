@@ -1,6 +1,6 @@
 const axios = require('axios');
 const rebrickableService = require('../services/rebrickable.service');
-const bricksetService = require('../services/brickset.service'); // SERVICIO BRICKSET
+const bricksetService = require('../services/brickset.service');
 const marketService = require('../services/market.service');
 
 const getThemes = async (req, res) => {
@@ -35,7 +35,7 @@ const getImageProxy = async (req, res) => {
     if (!url) return res.status(400).send('Falta la URL');
 
     try {
-        // Descargamos la imagen entera en memoria (arraybuffer) en lugar de stream
+        // Descargamos la imagen entera en memoria
         const response = await axios.get(url, {
             responseType: 'arraybuffer',
             timeout: 8000, 
@@ -142,7 +142,7 @@ const getMinifigDetails = async (req, res) => {
     try {
         const { figNum } = req.params;
 
-        // Ejecutamos ambas peticiones a Rebrickable en paralelo para reducir el tiempo de respuesta (Latencia)
+        //Buscamos los sets en los que sale a la vez
         const [details, sets] = await Promise.all([
             rebrickableService.getMinifigDetails(figNum),
             rebrickableService.getMinifigSets(figNum)
@@ -152,7 +152,7 @@ const getMinifigDetails = async (req, res) => {
             success: true, 
             data: {
                 ...details,
-                appearsInSets: sets // Inyectamos los sets en la misma respuesta
+                appearsInSets: sets
             } 
         });
     } catch (error) {
@@ -165,17 +165,17 @@ const getSetMarketData = async (req, res) => {
     try {
         const { setId } = req.params;
         
-        // 1. Llamada en paralelo: Rebrickable (piezas/año) + Brickset (precio/estado)
+        //Llamada en paralelo: Rebrickable (piezas/año) + Brickset (precio/estado)
         const [setDetails, bricksetData] = await Promise.all([
             rebrickableService.getSetByNum(setId),
-            bricksetService.getSetDetails(setId).catch(() => null) // Si Brickset falla, no rompe la app
+            bricksetService.getSetDetails(setId).catch(() => null)
         ]);
 
         if (!setDetails) {
             return res.status(404).json({ message: 'Set no encontrado en Rebrickable' });
         }
 
-        // 2. Extraer precios reales
+        //Extraer precios reales
         let rrp = null;
         let availability = null;
         let exitDate = null;
@@ -197,7 +197,7 @@ const getSetMarketData = async (req, res) => {
             }
         }
 
-        // 3. Generar mercado inyectando la pura verdad
+        //Generar mercado inyectando precio real
         const marketData = marketService.generateMockMarketData(
             setId, 
             setDetails.pieces, 
@@ -218,14 +218,14 @@ const scanBarcode = async (req, res) => {
     try {
         const { barcode } = req.params;
 
-        // 1. Buscar el código en Brickset
+        //Buscar el código en Brickset
         const setId = await bricksetService.getSetByBarcode(barcode);
 
         if (!setId) {
             return res.status(404).json({ message: 'No se ha encontrado ningún set con este código' });
         }
 
-        // 2. Obtener datos combinados (Si falla Rebrickable, evitamos que rompa)
+        //Obtener datos combinados
         const [setDetails, bricksetData] = await Promise.all([
             rebrickableService.getSetByNum(setId).catch(() => null),
             bricksetService.getSetDetails(setId).catch(() => null)
@@ -235,7 +235,7 @@ const scanBarcode = async (req, res) => {
             return res.status(404).json({ message: 'Set encontrado por código, pero sin datos visuales en Rebrickable' });
         }
 
-        // 3. Extraer precios y fechas
+        //Extraer precios y fechas
         let rrp = null;
         let availability = null;
         let exitDate = null;
@@ -252,12 +252,11 @@ const scanBarcode = async (req, res) => {
             }
         }
 
-        // 4. NORMALIZACIÓN DE DATOS
-        // Desempaquetamos por si tu servicio de Rebrickable los mete dentro de un "data: {}"
+        //NORMALIZACIÓN DE DATOS
         const actualSet = setDetails.data ? setDetails.data : setDetails;
-        
+        //Prevenimos fallos en nombres de campos poniendo distintas opciones
         const safeImgUrl = actualSet.set_img_url || actualSet.imageUrl || actualSet.imgUrl || actualSet.image || '';       
-        // Buscamos las piezas y el año sea cual sea el nombre que tengan en tu servicio
+        
         const safePieces = actualSet.num_parts || actualSet.pieces || 0;
         const safeYear = actualSet.year || actualSet.año || new Date().getFullYear();
 
@@ -270,7 +269,7 @@ const scanBarcode = async (req, res) => {
             exitDate
         );
 
-        // 5. CONSTRUIR EL JSON BLINDADO PARA FLUTTER
+        //Json blindado, combinando los datos de ambas apis
         const responseData = {
             // Forzamos los nombres exactos que espera LegoSet.fromJson
             set_num: actualSet.set_num || actualSet._id || actualSet.id || setId,
@@ -293,6 +292,7 @@ const scanBarcode = async (req, res) => {
     }
 };
 
+// GET: Obtener el tema de un set para los detalles
 const getThemeById = async (req, res) => {
     try {
         const theme = await rebrickableService.getThemeById(req.params.id);
@@ -302,10 +302,10 @@ const getThemeById = async (req, res) => {
     }
 };
 
+// GET: Obtener la lista de pdfs de instrucciones
 const getSetInstructions = async (req, res) => {
     try {
         const { setId } = req.params;
-        // Aquí llama al servicio de arriba
         const instructions = await bricksetService.getInstructions(setId);
 
         // Filtramos y extraemos solo las URLs de los manuales (core.pdf)

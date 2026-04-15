@@ -9,16 +9,15 @@ const achievementRoutes = require('./routes/achievement.routes');
 
 const app = express();
 
-// === CONFIGURACIÓN CORS ACTUALIZADA ===
-// Permitimos localhost (para desarrollo) y tu dominio de GitHub Pages (para producción)
+// Permitimos localhost (para desarrollo) y  dominio de GitHub Pages (para producción)
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://oarantegui.github.io' // ¡Pon aquí la URL base de tu frontend sin la barra final!
+  'https://oarantegui.github.io'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Permitir peticiones sin origen (como Postman o llamadas móviles directas)
+    // Permitir peticiones sin origen
     if (!origin) return callback(null, true);
     // BORRAR EN SU MOMENTO
     // 2. Permitir cualquier petición desde localhost, 127.0.0.1 o el emulador de Android (10.0.2.2)
@@ -37,7 +36,6 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json()); // Permite recibir JSON
-// Montar las rutas en un prefijo base
 app.use('/api/collection', collectionRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 // Rutas base
@@ -45,7 +43,6 @@ app.use('/api/lego', legoRoutes);
 app.use('/api/auth', authRoutes); 
 app.use('/api/achievements', achievementRoutes);
 
-// Ruta de salud (Health Check)
 app.get('/', (req, res) => {
     res.send('BrickStock Backend is running correctly!');
 });

@@ -6,7 +6,7 @@ const collectionController = require('../controllers/collection.controller');
 const { verifyJWT } = require('../middlewares/auth.middleware');
 const { validateCollectionInput, checkValidationErrors } = require('../middlewares/validation.middleware');
 
-// [POST] Añadir a la Colección (Una sola vez y con todos los escudos)
+// POST Añadir a la Colección (Una sola vez y con todos los escudos)
 router.post('/', 
     verifyJWT, 
     validateCollectionInput, 
@@ -14,12 +14,12 @@ router.post('/',
     collectionController.addSetToCollection
 );
 
-// [GET] Ver colección
+// GET Ver colección
 router.get('/', verifyJWT, collectionController.getUserCollection);
 
 router.get('/market-data', verifyJWT, collectionController.getCollectionMarketData);
 
-// [PUT] Modificar set en la colección
+// PUT Modificar set en la colección
 router.put('/:id', 
     verifyJWT, 
     validateCollectionInput, 
@@ -27,7 +27,7 @@ router.put('/:id',
     collectionController.updateCollectionItem
 );
 
-// [DELETE] Borrar set de la colección
+// DELETE Borrar set de la colección
 router.delete('/:id', verifyJWT, collectionController.deleteCollectionItem);
 
 router.get('/minifigs', verifyJWT, collectionController.getUserMinifigCollection);

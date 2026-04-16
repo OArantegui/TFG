@@ -38,7 +38,17 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.orange,
           brightness: Brightness.dark,
-          background: const Color(0xFF121212),
+        ),
+        // Fondo por defecto en las pantallas
+        scaffoldBackgroundColor: const Color(0xFF121212), 
+        
+        // Que todas las pantallas sean del mismo color
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1E1E1E),
+          elevation: 0,
+          centerTitle: false,
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
         ),
         useMaterial3: true,
       ),

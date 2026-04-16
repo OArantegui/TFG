@@ -165,16 +165,9 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
         widget.theme?.name ?? widget.customTitle ?? 'Buscar';
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        elevation: 0,
         title: Text(
-          appBarTitle,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          appBarTitle
         ),
         leading: !_isGlobalSearch
             ? IconButton(

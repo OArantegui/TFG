@@ -28,15 +28,14 @@ class _UserScreenState extends State<UserScreen> {
   bool _isPasswordUnlocked = false;
 
   late Future<List<Achievement>> _achievementsFuture;
-  late Future<Map<String, dynamic>>
-  _userStatsFuture; // Nuevo Future para las estadísticas
+  late Future<Map<String, dynamic>> _userStatsFuture;
 
   @override
   void initState() {
     super.initState();
     _cargarDatosUsuario();
     _achievementsFuture = _apiService.getMyAchievements();
-    _loadUserStats(); // Cargamos estadísticas
+    _loadUserStats(); 
   }
 
   void _loadUserStats() {
@@ -45,7 +44,6 @@ class _UserScreenState extends State<UserScreen> {
     });
   }
 
-  // Recopilamos datos de la Colección y Wishlist para el panel de estadísticas
   Future<Map<String, dynamic>> _fetchUserStats() async {
     final collection = await _apiService.getUserCollection();
     final wishlistData = await _apiService.getWishlistData();
@@ -88,10 +86,7 @@ class _UserScreenState extends State<UserScreen> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ajustes guardados correctamente'),
-          backgroundColor: Colors.green,
-        ),
+        const SnackBar(content: Text('Ajustes guardados correctamente'), backgroundColor: Colors.green),
       );
       _passwordController.clear();
       _confirmPasswordController.clear();
@@ -99,12 +94,7 @@ class _UserScreenState extends State<UserScreen> {
       Provider.of<UserProvider>(context, listen: false).loadUserData();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Error al guardar. Puede que el email o usuario ya existan.',
-          ),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text('Error al guardar. Puede que el email o usuario ya existan.'), backgroundColor: Colors.red),
       );
     }
     _isPasswordUnlocked = false;
@@ -114,13 +104,10 @@ class _UserScreenState extends State<UserScreen> {
     await _authService.logout();
     Provider.of<UserProvider>(context, listen: false).clearUserData();
     if (!mounted) return;
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
+    Navigator.of(context).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
   }
 
   void _solicitarPasswordActual() {
-    // Si ya lo desbloqueó antes, le dejamos escribir normalmente
     if (_isPasswordUnlocked) return;
 
     final currentPassController = TextEditingController();
@@ -128,7 +115,7 @@ class _UserScreenState extends State<UserScreen> {
 
     showDialog(
       context: context,
-      barrierDismissible: false, // Obliga a interactuar con los botones
+      barrierDismissible: false, 
       builder: (ctx) => StatefulBuilder(
         builder: (context, setStateDialog) {
           return AlertDialog(
@@ -143,10 +130,7 @@ class _UserScreenState extends State<UserScreen> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Por favor, introduce tu contraseña actual para desbloquear la edición de contraseña.',
-                  style: TextStyle(color: Colors.white70),
-                ),
+                const Text('Por favor, introduce tu contraseña actual para desbloquear la edición de contraseña.', style: TextStyle(color: Colors.white70)),
                 const SizedBox(height: 20),
                 TextField(
                   controller: currentPassController,
@@ -161,68 +145,31 @@ class _UserScreenState extends State<UserScreen> {
               ],
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text(
-                  'Cancelar',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: Colors.grey))),
               ElevatedButton(
                 onPressed: isVerifying
                     ? null
                     : () async {
                         if (currentPassController.text.isEmpty) return;
-
-                        // Mostramos el circulito de carga en el botón
                         setStateDialog(() => isVerifying = true);
 
-                        final isValid = await _authService
-                            .verifyCurrentPassword(currentPassController.text);
+                        final isValid = await _authService.verifyCurrentPassword(currentPassController.text);
 
                         if (!mounted) return;
                         setStateDialog(() => isVerifying = false);
 
                         if (isValid) {
-                          setState(() {
-                            _isPasswordUnlocked =
-                                true; // ¡Desbloqueamos los campos!
-                          });
+                          setState(() => _isPasswordUnlocked = true);
                           Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Campos de contraseña desbloqueados',
-                              ),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Campos de contraseña desbloqueados'), backgroundColor: Colors.green));
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Contraseña incorrecta'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Contraseña incorrecta'), backgroundColor: Colors.red));
                         }
                       },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
                 child: isVerifying
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.black,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        'Verificar',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
+                    : const Text('Verificar', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
               ),
             ],
           );
@@ -231,482 +178,401 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 
+  // ===========================================================================
+  // WIDGETS EXTRAÍDOS (Componentes modulares)
+  // ===========================================================================
+
+  Widget _buildAvatarAndName() {
+    return Column(
+      children: [
+        Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            CircleAvatar(
+              radius: 40,
+              backgroundImage: AssetImage(context.watch<UserProvider>().avatar),
+              backgroundColor: const Color(0xFF2D2D2D),
+            ),
+            GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (dialogContext) => AvatarPickerDialog(
+                    onAvatarSelected: (avatarPath) async {
+                      final success = await _authService.updateAvatar(avatarPath);
+                      if (!context.mounted) return;
+                      if (success) {
+                        Provider.of<UserProvider>(context, listen: false).updateAvatar(avatarPath);
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Avatar actualizado con éxito')));
+                      }
+                    },
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+                child: const Icon(Icons.edit, color: Colors.black, size: 18),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          context.watch<UserProvider>().username,
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatsSection() {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _userStatsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(color: Colors.orange));
+        }
+        if (snapshot.hasError) {
+          return const Text('Error al cargar estadísticas', style: TextStyle(color: Colors.grey));
+        }
+
+        final stats = snapshot.data!;
+
+        return Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Card(
+                    color: const Color(0xFF2D2D2D),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.shelves, color: Colors.orange, size: 30),
+                          const SizedBox(height: 8),
+                          Text('${stats['collectionCount']}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                          const Text('En Colección', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Card(
+                    color: const Color(0xFF2D2D2D),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.favorite_border, color: Colors.pinkAccent, size: 30),
+                          const SizedBox(height: 8),
+                          Text('${stats['wishlistCount']}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                          const Text('En Deseados', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            WishlistSummaryCard(
+              totalValue: stats['wishlistTotal'],
+              budget: stats['wishlistBudget'],
+              onBudgetUpdated: _loadUserStats, 
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildAchievementsSection() {
+    return FutureBuilder<List<Achievement>>(
+      future: _achievementsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Tus Insignias (...)', style: TextStyle(fontSize: 18, color: Colors.orange, fontWeight: FontWeight.bold)),
+              SizedBox(height: 10),
+              Center(child: CircularProgressIndicator(color: Colors.orange)),
+            ],
+          );
+        }
+        if (snapshot.hasError) {
+          return const Text('Error al cargar insignias', style: TextStyle(color: Colors.grey));
+        }
+
+        final achievements = snapshot.data ?? [];
+        final unlockedCount = achievements.where((a) => a.isUnlocked).length;
+        final totalCount = achievements.length;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Tus Insignias ($unlockedCount/$totalCount)', style: const TextStyle(fontSize: 18, color: Colors.orange, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 15),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              // Truco Senior: MaxCrossAxisExtent adapta el grid al ancho disponible automáticamente.
+              // En móvil cabrán 3, en un panel ancho cabrán 4 o 5 sin estirarse raro.
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 110,
+                childAspectRatio: 0.7,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemCount: achievements.length,
+              itemBuilder: (context, index) {
+                final ach = achievements[index];
+                final Color iconColor = ach.isUnlocked ? Colors.amber : Colors.grey[600]!;
+                final Color backgroundColor = ach.isUnlocked ? Colors.orange.withOpacity(0.2) : const Color(0xFF2D2D2D);
+                final double textOpacity = ach.isUnlocked ? 1.0 : 0.4;
+
+                return Tooltip(
+                  message: ach.description,
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 35, 
+                        backgroundColor: backgroundColor,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: ach.isUnlocked ? Colors.orange.withOpacity(0.5) : Colors.white10, width: 1),
+                          ),
+                          child: Center(child: Icon(ach.iconData, size: 35, color: iconColor)),
+                        ),
+                      ),
+                      const SizedBox(height: 10), 
+                      Opacity(
+                        opacity: textOpacity,
+                        child: Text(
+                          ach.name,
+                          textAlign: TextAlign.center,
+                          maxLines: 2, 
+                          overflow: TextOverflow.ellipsis, 
+                          style: TextStyle(fontSize: 11, fontWeight: ach.isUnlocked ? FontWeight.bold : FontWeight.normal, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSettingsSection() {
+    return ExpansionTile(
+      title: const Text('Ajustes de Cuenta', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      leading: const Icon(Icons.settings, color: Colors.grey),
+      childrenPadding: const EdgeInsets.all(16.0),
+      // Mantenemos el color de fondo para que parezca una tarjeta
+      backgroundColor: const Color(0xFF1E1E1E),
+      collapsedBackgroundColor: const Color(0xFF1E1E1E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      children: [
+        Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Deja en blanco la contraseña si no quieres cambiarla.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _usernameController,
+                decoration: const InputDecoration(labelText: 'Nombre de Usuario', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(labelText: 'Correo Electrónico', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
+                controller: _passwordController,
+                obscureText: true,
+                readOnly: !_isPasswordUnlocked, 
+                onTap: _solicitarPasswordActual, 
+                decoration: InputDecoration(
+                  labelText: 'Nueva Contraseña',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: Icon(
+                    _isPasswordUnlocked ? Icons.lock_open : Icons.lock,
+                    color: _isPasswordUnlocked ? Colors.green : Colors.grey,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
+                controller: _confirmPasswordController,
+                obscureText: true,
+                readOnly: !_isPasswordUnlocked, 
+                onTap: _solicitarPasswordActual, 
+                decoration: InputDecoration(
+                  labelText: 'Confirmar Nueva Contraseña',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: Icon(
+                    _isPasswordUnlocked ? Icons.lock_open : Icons.lock,
+                    color: _isPasswordUnlocked ? Colors.green : Colors.grey,
+                  ),
+                ),
+                validator: (val) {
+                  if (_passwordController.text.isNotEmpty && val != _passwordController.text) {
+                    return 'Las contraseñas no coinciden';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              if (_isLoading)
+                const Center(child: CircularProgressIndicator(color: Colors.orange))
+              else
+                ElevatedButton.icon(
+                  onPressed: _guardarAjustes,
+                  icon: const Icon(Icons.save),
+                  label: const Text('Guardar Cambios'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ===========================================================================
+  // LAYOUTS (Orquestadores de Vista)
+  // ===========================================================================
+
+  Widget _buildNarrowLayout() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            color: const Color(0xFF1E1E1E),
+            padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+            child: Column(
+              children: [
+                _buildAvatarAndName(),
+                const SizedBox(height: 24),
+                _buildStatsSection(),
+                const SizedBox(height: 32),
+                _buildAchievementsSection(),
+              ],
+            ),
+          ),
+          // En móvil, los ajustes van sueltos debajo
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: _buildSettingsSection(),
+          ),
+          const SizedBox(height: 120),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWideLayout() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(32.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // COLUMNA IZQUIERDA (40%): Perfil y Estadísticas
+          Expanded(
+            flex: 4,
+            child: Container(
+              padding: const EdgeInsets.all(24.0),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E1E),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  _buildAvatarAndName(),
+                  const SizedBox(height: 24),
+                  _buildStatsSection(),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(width: 32),
+
+          // COLUMNA DERECHA (60%): Insignias y Ajustes
+          Expanded(
+            flex: 6,
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24.0),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E1E),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: _buildAchievementsSection(),
+                ),
+                const SizedBox(height: 24),
+                // Expansion tile envuelto para que encaje visualmente con las tarjetas
+                _buildSettingsSection(),
+                const SizedBox(height: 80), // Espacio extra al final
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Mi Perfil',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color(0xFF1E1E1E),
-        elevation: 0,
+        title: const Text('Mi Perfil'),
+        
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.redAccent),
             tooltip: 'Cerrar Sesión',
             onPressed: () async {
-              //Destruimos la sesión en la BBDD y en el almacenamiento local
               await AuthService().logout();
-
-              // Asegurarnos de que esta pantalla sigue existiendo antes de intentar navegar
               if (!context.mounted) return;
-
-              //Navegamos al Login pero DESTRUYENDO todo el historial anterior.
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => const LoginScreen()),
-                (Route<dynamic> route) =>
-                    false, // Borra las rutas
+                (Route<dynamic> route) => false, 
               );
             },
           ),
         ],
       ),
-      backgroundColor: const Color(0xFF121212),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            //CABECERA Y ESTADÍSTICAS
-            Container(
-              color: const Color(0xFF1E1E1E),
-              padding: const EdgeInsets.symmetric(
-                vertical: 24.0,
-                horizontal: 16.0,
-              ),
-              child: Column(
-                children: [
-                  Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundImage: AssetImage(
-                          context.watch<UserProvider>().avatar,
-                        ),
-                        backgroundColor: const Color(0xFF2D2D2D),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (dialogContext) => AvatarPickerDialog(
-                              onAvatarSelected: (avatarPath) async {
-                                //Guardamos en el servidor
-                                final success = await _authService.updateAvatar(
-                                  avatarPath,
-                                );
-
-                                if (!context.mounted) return;
-
-                                if (success) {
-                                  // Avisamos a provider
-                                  Provider.of<UserProvider>(
-                                    context,
-                                    listen: false,
-                                  ).updateAvatar(avatarPath);
-
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Avatar actualizado con éxito',
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: Colors.orange,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.edit,
-                            color: Colors.black,
-                            size: 18,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    context.watch<UserProvider>().username,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  //Panel de Estadísticas del Usuario
-                  FutureBuilder<Map<String, dynamic>>(
-                    future: _userStatsFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.orange,
-                          ),
-                        );
-                      }
-                      if (snapshot.hasError) {
-                        return const Text(
-                          'Error al cargar estadísticas',
-                          style: TextStyle(color: Colors.grey),
-                        );
-                      }
-
-                      final stats = snapshot.data!;
-
-                      return Column(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Card(
-                                  color: const Color(0xFF2D2D2D),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      children: [
-                                        const Icon(
-                                          Icons.shelves,
-                                          color: Colors.orange,
-                                          size: 30,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          '${stats['collectionCount']}',
-                                          style: const TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        const Text(
-                                          'En Colección',
-                                          style: TextStyle(
-                                            color: Colors.grey,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Card(
-                                  color: const Color(0xFF2D2D2D),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      children: [
-                                        const Icon(
-                                          Icons.favorite_border,
-                                          color: Colors.pinkAccent,
-                                          size: 30,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          '${stats['wishlistCount']}',
-                                          style: const TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        const Text(
-                                          'En Deseados',
-                                          style: TextStyle(
-                                            color: Colors.grey,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          // Widget de presupuesto
-                          WishlistSummaryCard(
-                            totalValue: stats['wishlistTotal'],
-                            budget: stats['wishlistBudget'],
-                            onBudgetUpdated:
-                                _loadUserStats, // Recargamos las stats al guardar
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Grid de insignias reactivo y con contador
-                  FutureBuilder<List<Achievement>>(
-                    future: _achievementsFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Tus Insignias (...)',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.orange,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.orange,
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                      if (snapshot.hasError) {
-                        return const Text(
-                          'Error al cargar insignias',
-                          style: TextStyle(color: Colors.grey),
-                        );
-                      }
-
-                      final achievements = snapshot.data ?? [];
-                      // Calculamos cuántas están desbloqueadas
-                      final unlockedCount = achievements
-                          .where((a) => a.isUnlocked)
-                          .length;
-                      final totalCount = achievements.length;
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Título dinámico
-                          Text(
-                            'Tus Insignias ($unlockedCount/$totalCount)',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: Colors.orange,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                  childAspectRatio: 0.7,
-                                  crossAxisSpacing: 10,
-                                  mainAxisSpacing: 10,
-                                ),
-                            itemCount: achievements.length,
-                            itemBuilder: (context, index) {
-                              final ach = achievements[index];
-
-                              // Definimos colores y opacidades según estado
-                              final Color iconColor = ach.isUnlocked
-                                  ? Colors.amber
-                                  : Colors.grey[600]!;
-                              final Color backgroundColor = ach.isUnlocked
-                                  ? Colors.orange.withOpacity(0.2)
-                                  : const Color(0xFF2D2D2D);
-                              final double textOpacity = ach.isUnlocked
-                                  ? 1.0
-                                  : 0.4;
-
-                              return Tooltip(
-                                message: ach.description,
-                                child: Column(
-                                  children: [
-                                    // Medallon de insignia
-                                    CircleAvatar(
-                                      radius: 35, // Tamaño del círculo
-                                      backgroundColor: backgroundColor,
-                                      // Borde sutil
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: ach.isUnlocked
-                                                ? Colors.orange.withOpacity(0.5)
-                                                : Colors.white10,
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Center(
-                                          child: Icon(
-                                            ach.iconData,
-                                            size: 35, // Tamaño del icono dentro
-                                            color: iconColor,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-
-                                    const SizedBox(
-                                      height: 10,
-                                    ), // Espacio entre círculo y texto
-                                    // Texto de insignia
-                                    Opacity(
-                                      // Usamos opacidad para el texto bloqueado
-                                      opacity: textOpacity,
-                                      child: Text(
-                                        ach.name,
-                                        textAlign: TextAlign.center,
-                                        maxLines:
-                                            2, // Máximo 2 líneas para que no rompa el grid
-                                        overflow: TextOverflow
-                                            .ellipsis, // Si es muy largo, pone "..."
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: ach.isUnlocked
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // FORMULARIO DE AJUSTES
-            ExpansionTile(
-              title: const Text(
-                'Ajustes de Cuenta',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              leading: const Icon(Icons.settings, color: Colors.grey),
-              childrenPadding: const EdgeInsets.all(16.0),
-              children: [
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'Deja en blanco la contraseña si no quieres cambiarla.',
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
-                      ),
-                      const SizedBox(height: 20),
-
-                      TextFormField(
-                        controller: _usernameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Nombre de Usuario',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-
-                      TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: 'Correo Electrónico',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        readOnly:
-                            !_isPasswordUnlocked, // Solo lectura si no está desbloqueado
-                        onTap: _solicitarPasswordActual, // ¡Dispara el pop-up!
-                        decoration: InputDecoration(
-                          labelText: 'Nueva Contraseña',
-                          border: const OutlineInputBorder(),
-                          // Un icono visual para que sepa si está bloqueado o abierto
-                          suffixIcon: Icon(
-                            _isPasswordUnlocked ? Icons.lock_open : Icons.lock,
-                            color: _isPasswordUnlocked
-                                ? Colors.green
-                                : Colors.grey,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-
-                      TextFormField(
-                        controller: _confirmPasswordController,
-                        obscureText: true,
-                        readOnly:
-                            !_isPasswordUnlocked, // Solo lectura si no está desbloqueado
-                        onTap: _solicitarPasswordActual, // Pide contraseña actual
-                        decoration: InputDecoration(
-                          labelText: 'Confirmar Nueva Contraseña',
-                          border: const OutlineInputBorder(),
-                          suffixIcon: Icon(
-                            _isPasswordUnlocked ? Icons.lock_open : Icons.lock,
-                            color: _isPasswordUnlocked
-                                ? Colors.green
-                                : Colors.grey,
-                          ),
-                        ),
-                        validator: (val) {
-                          if (_passwordController.text.isNotEmpty &&
-                              val != _passwordController.text) {
-                            return 'Las contraseñas no coinciden';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-
-                      if (_isLoading)
-                        const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.orange,
-                          ),
-                        )
-                      else
-                        ElevatedButton.icon(
-                          onPressed: _guardarAjustes,
-                          icon: const Icon(Icons.save),
-                          label: const Text('Guardar Cambios'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            foregroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 120),
-          ],
-        ),
+      
+      // EL CEREBRO DE LA RESPONSIVIDAD
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth >= 900) {
+            return _buildWideLayout();
+          } else {
+            return _buildNarrowLayout();
+          }
+        },
       ),
     );
   }

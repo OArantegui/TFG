@@ -69,11 +69,8 @@ class _MinifigDetailsScreenState extends State<MinifigDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        elevation: 0,
-        title: const Text('Detalles', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Detalles'),
         iconTheme: const IconThemeData(color: Colors.orange),
       ),
       floatingActionButton: FloatingActionButton.extended(

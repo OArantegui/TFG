@@ -150,7 +150,13 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
               placeholder: (context, url) => const Center(child: CircularProgressIndicator(color: Colors.orange)),
               errorWidget: (context, url, error) => Container(
                 color: const Color(0xFF2A2A2A),
-                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: const [Icon(Icons.image_not_supported, size: 50, color: Colors.grey), SizedBox(height: 8), Text("Imagen no disponible", style: TextStyle(color: Colors.grey))]),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center, 
+                  children: const [
+                    Icon(Icons.image_not_supported, size: 50, color: Colors.grey), 
+                    SizedBox(height: 8), 
+                    Text("Imagen no disponible", style: 
+                    TextStyle(color: Colors.grey))]),
               ),
             ),
           ),

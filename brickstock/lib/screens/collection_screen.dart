@@ -47,11 +47,8 @@ class _CollectionScreenState extends State<CollectionScreen> {
     final provider = Provider.of<CollectionProvider>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        elevation: 0,
-        title: const Text('Mi Colección', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Mi Colección'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.orange), 
@@ -77,6 +74,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
   Widget _buildNarrowLayout(CollectionProvider provider) {
     return Column(
       children: [
+        const SizedBox(height: 16),
         _buildSummaryHeader(provider),
         const SizedBox(height: 16),
         _buildModeToggle(),
@@ -93,7 +91,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
   // --- LAYOUT ANCHO (WEB / TABLET) ---
   Widget _buildWideLayout(CollectionProvider provider) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

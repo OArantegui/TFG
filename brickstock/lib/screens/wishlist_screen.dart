@@ -79,8 +79,8 @@ class _WishlistScreenState extends State<WishlistScreen> {
           budget: _budget,
           onBudgetUpdated: _loadWishlist,
           showButton: _wishlistItems.isNotEmpty,
-          buttonLabel: 'Ver estadísticas de temas',
-          onButtonPressed: () => _showStatsBottomSheet(context),
+          buttonLabel: 'Estadística por temas',
+          onButtonPressed: () => _showStatsDialog(context),
         ),
         
         const SizedBox(height: 16),
@@ -105,35 +105,31 @@ class _WishlistScreenState extends State<WishlistScreen> {
     );
   }
 
-  // --- NUEVA FUNCIÓN PARA EL BOTTOM SHEET ---
-  void _showStatsBottomSheet(BuildContext context) {
-    showModalBottomSheet(
+  
+  // --- NUEVA FUNCIÓN PARA EL MODAL CENTRADO (ESTILO COLECCIÓN) ---
+  void _showStatsDialog(BuildContext context) {
+    showDialog(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min, // Ajusta el tamaño al contenido
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: Colors.grey[600],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              WishlistThemeChartWidget(themeData: _getThemeDistribution()),
-              const SizedBox(height: 20),
-            ],
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Estadísticas de Temas', 
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
+        ),
+        content: SizedBox(
+          width: 400, // Misma proporción que en tu historial de mercado
+          child: SingleChildScrollView(
+            child: WishlistThemeChartWidget(themeData: _getThemeDistribution()),
           ),
-        );
-      },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx), 
+            child: const Text('Cerrar', style: TextStyle(color: Colors.orange))
+          ),
+        ],
+      ),
     );
   }
 

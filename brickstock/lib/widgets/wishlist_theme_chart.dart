@@ -35,16 +35,12 @@ class _WishlistThemeChartWidgetState extends State<WishlistThemeChartWidget> {
     final totalBudget = widget.themeData.values.fold(0.0, (sum, val) => sum + val);
 
     return Card(
-      color: const Color(0xFF1E1E1E),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: const Color(0xFF2A2A2A),
+      shape: RoundedRectangleBorder(),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const Text(
-              'Distribución por Tema',
-              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-            ),
             const SizedBox(height: 20),
             SizedBox(
               height: 200,

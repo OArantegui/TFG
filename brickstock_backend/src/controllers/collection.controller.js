@@ -274,10 +274,20 @@ exports.getCollectionMarketData = async (req, res) => {
                 const setDetails = await rebrickableService.getSetByNum(item.setNum);
                 
                 // Generamos su curva de mercado individual
-                const marketData = marketService.generateMockMarketData(
+                /*const marketData = marketService.generateMockMarketData(
                     item.setNum,
                     setDetails.pieces,
                     setDetails.year
+                );*/
+                // Dentro de getCollectionMarketData en collection.controller.js
+                const marketData = marketService.generateMockMarketData(
+                    item.setNum,
+                    setDetails.pieces,
+                    setDetails.year,
+                    setDetails.retailPrice, // Añade esto si lo tienes en setDetails
+                    setDetails.availability, // Añade esto
+                    setDetails.exitDate,     // Muy importante para el salto de escasez
+                    setDetails.launchDate    // Muy importante para el inicio de la gráfica
                 );
 
                 const qty = item.quantity || 1; // Multiplicador por si tiene varios iguales

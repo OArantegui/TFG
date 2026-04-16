@@ -3,6 +3,7 @@ const MinifigCollection = require('../models/minifig_collection.model');
 const rebrickableService = require('../services/rebrickable.service');
 const achievementService = require('../services/achievement.service');
 const marketService = require('../services/market.service');
+const bricksetService = require('../services/brickset.service');
 
 
 // POST: Añadir un nuevo set a la coleccion
@@ -20,8 +21,33 @@ exports.addSetToCollection = async (req, res) => {
             return res.status(200).json({ success: true, message: 'Cantidad actualizada en la colección', data: existingItem });
         }
 
+        let cacheData = { pieces: 0, year: new Date().getFullYear(), rrp: null, launchDate: null, exitDate: null };
+        try {
+            const [setDetails, bricksetData] = await Promise.all([
+                rebrickableService.getSetByNum(setNum).catch(() => null),
+                bricksetService.getSetDetails(setNum).catch(() => null)
+            ]);
+
+            if (setDetails) {
+                cacheData.pieces = setDetails.pieces || setDetails.num_parts || 0;
+                cacheData.year = setDetails.year || new Date().getFullYear();
+            }
+            if (bricksetData) {
+                cacheData.launchDate = bricksetData.launchDate;
+                cacheData.exitDate = bricksetData.exitDate;
+                if (bricksetData.LEGOCom) {
+                    const deData = bricksetData.LEGOCom.get ? bricksetData.LEGOCom.get('DE') : bricksetData.LEGOCom.DE;
+                    const usData = bricksetData.LEGOCom.get ? bricksetData.LEGOCom.get('US') : bricksetData.LEGOCom.US;
+                    if (deData) cacheData.rrp = deData.retailPrice;
+                    else if (usData) cacheData.rrp = usData.retailPrice;
+                }
+            }
+        } catch (err) {
+            console.error("Error obteniendo datos para caché de mercado:", err.message);
+        }
+
         //Crear el nuevo registro del Set
-        const newItem = new Collection({ userId, setNum, quantity, purchasePrice, condition });
+        const newItem = new Collection({ userId, setNum, quantity, purchasePrice, condition, marketDataCache: cacheData });
         await newItem.save();
 
         // Se añaden las minifiguras del set
@@ -247,8 +273,9 @@ exports.removeMinifigFromCollection = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error al eliminar', error: error.message });
     }
 };
+
 // GET: Obtener los datos de mercado agregados de toda la colección
-exports.getCollectionMarketData = async (req, res) => {
+/*exports.getCollectionMarketData = async (req, res) => {
     try {
         const userId = req.user.id; 
         
@@ -274,11 +301,11 @@ exports.getCollectionMarketData = async (req, res) => {
                 const setDetails = await rebrickableService.getSetByNum(item.setNum);
                 
                 // Generamos su curva de mercado individual
-                /*const marketData = marketService.generateMockMarketData(
+                const marketData = marketService.generateMockMarketData(
                     item.setNum,
                     setDetails.pieces,
                     setDetails.year
-                );*/
+                );
                 // Dentro de getCollectionMarketData en collection.controller.js
                 const marketData = marketService.generateMockMarketData(
                     item.setNum,
@@ -313,6 +340,78 @@ exports.getCollectionMarketData = async (req, res) => {
             month: month,
             price: parseFloat(historyMap[month].toFixed(2))
         })).sort((a, b) => a.month.localeCompare(b.month)); // Orden cronológico
+
+        res.status(200).json({
+            totalRetailPrice: parseFloat(totalRetail.toFixed(2)),
+            currentMarketValue: parseFloat(totalMarket.toFixed(2)),
+            history: historyArray
+        });
+
+    } catch (error) {
+        console.error('Error en getCollectionMarketData:', error);
+        res.status(500).json({ message: 'Error al calcular mercado de la colección' });
+    }
+};*/
+
+// GET: Obtener los datos de mercado agregados de toda la colección
+exports.getCollectionMarketData = async (req, res) => {
+    try {
+        const userId = req.user.id; 
+        
+        const collectionItems = await Collection.find({ userId: userId });
+
+        if (!collectionItems || collectionItems.length === 0) {
+            return res.status(200).json({
+                totalRetailPrice: 0,
+                currentMarketValue: 0,
+                history: []
+            });
+        }
+
+        let totalRetail = 0;
+        let totalMarket = 0;
+        const historyMap = {};
+
+        // Recorremos cada set de la colección usando SOLO nuestra base de datos (0 llamadas externas)
+        collectionItems.forEach((item) => {
+            try {
+                // Recuperamos la caché que guardamos el día que el usuario añadió el set
+                const cache = item.marketDataCache || {};
+
+                // Generamos su curva de mercado individual
+                const marketData = marketService.generateMockMarketData(
+                    item.setNum,
+                    cache.pieces || 0,
+                    cache.year || new Date().getFullYear(),
+                    cache.rrp, 
+                    null, // availability (pasamos null porque con la exitDate el motor ya sabe si está descatalogado)
+                    cache.exitDate, 
+                    cache.launchDate 
+                );
+
+                const qty = item.quantity || 1; 
+
+                // Sumamos a los totales globales
+                totalRetail += (marketData.estimatedRetailPrice * qty);
+                totalMarket += (marketData.currentMarketValue * qty);
+
+                // Sumamos cada mes a la gráfica global
+                marketData.history.forEach(point => {
+                    if (!historyMap[point.month]) {
+                        historyMap[point.month] = 0;
+                    }
+                    historyMap[point.month] += (point.price * qty);
+                });
+            } catch (error) {
+                console.error(`Error calculando mercado global para ${item.setNum}:`, error.message);
+            }
+        }); // Fíjate que ya no hay await Promise.all, el bucle ahora es instantáneo
+
+        // Convertimos el diccionario de meses en un array ordenado
+        const historyArray = Object.keys(historyMap).map(month => ({
+            month: month,
+            price: parseFloat(historyMap[month].toFixed(2))
+        })).sort((a, b) => a.month.localeCompare(b.month)); 
 
         res.status(200).json({
             totalRetailPrice: parseFloat(totalRetail.toFixed(2)),

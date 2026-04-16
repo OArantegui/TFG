@@ -161,58 +161,6 @@ const getMinifigDetails = async (req, res) => {
     }
 };
 
-/*const getSetMarketData = async (req, res) => {
-    try {
-        const { setId } = req.params;
-        
-        //Llamada en paralelo: Rebrickable (piezas/año) + Brickset (precio/estado)
-        const [setDetails, bricksetData] = await Promise.all([
-            rebrickableService.getSetByNum(setId),
-            bricksetService.getSetDetails(setId).catch(() => null)
-        ]);
-
-        if (!setDetails) {
-            return res.status(404).json({ message: 'Set no encontrado en Rebrickable' });
-        }
-
-        //Extraer precios reales
-        let rrp = null;
-        let availability = null;
-        let exitDate = null;
-
-        if (bricksetData) {
-            availability = bricksetData.availability;
-            exitDate = bricksetData.exitDate;
-
-            if (bricksetData.LEGOCom) {
-                // Como es un Map de Mongoose, debemos usar .get('DE') en lugar de .DE
-                const deData = bricksetData.LEGOCom.get ? bricksetData.LEGOCom.get('DE') : bricksetData.LEGOCom.DE;
-                const usData = bricksetData.LEGOCom.get ? bricksetData.LEGOCom.get('US') : bricksetData.LEGOCom.US;
-
-                if (deData) {
-                    rrp = deData.retailPrice;
-                } else if (usData) {
-                    rrp = usData.retailPrice;
-                }
-            }
-        }
-
-        //Generar mercado inyectando precio real
-        const marketData = marketService.generateMockMarketData(
-            setId, 
-            setDetails.pieces, 
-            setDetails.year,
-            rrp,
-            availability,
-            exitDate
-        );
-
-        res.status(200).json(marketData);
-    } catch (error) {
-        console.error(`Error al obtener mercado para ${req.params.setId}:`, error.message);
-        res.status(500).json({ message: 'Error al calcular datos de mercado' });
-    }
-};*/
 const getSetMarketData = async (req, res) => {
     try {
         const { setId } = req.params;
@@ -289,40 +237,7 @@ const scanBarcode = async (req, res) => {
         if (!setDetails) {
             return res.status(404).json({ message: 'Set encontrado por código, pero sin datos visuales en Rebrickable' });
         }
-        /*
-        //Extraer precios y fechas
-        let rrp = null;
-        let availability = null;
-        let exitDate = null;
-
-        if (bricksetData) {
-            availability = bricksetData.availability;
-            exitDate = bricksetData.exitDate;
-
-            if (bricksetData.LEGOCom) {
-                const deData = bricksetData.LEGOCom.get ? bricksetData.LEGOCom.get('DE') : bricksetData.LEGOCom.DE;
-                const usData = bricksetData.LEGOCom.get ? bricksetData.LEGOCom.get('US') : bricksetData.LEGOCom.US;
-                if (deData) rrp = deData.retailPrice;
-                else if (usData) rrp = usData.retailPrice;
-            }
-        }
-
-        //NORMALIZACIÓN DE DATOS
-        const actualSet = setDetails.data ? setDetails.data : setDetails;
-        //Prevenimos fallos en nombres de campos poniendo distintas opciones
-        const safeImgUrl = actualSet.set_img_url || actualSet.imageUrl || actualSet.imgUrl || actualSet.image || '';       
         
-        const safePieces = actualSet.num_parts || actualSet.pieces || 0;
-        const safeYear = actualSet.year || actualSet.año || new Date().getFullYear();
-
-        const marketData = marketService.generateMockMarketData(
-            setId,
-            safePieces,
-            safeYear,
-            rrp,
-            availability,
-            exitDate
-        );*/
         //Extraer precios y fechas
         let rrp = null;
         let availability = null;

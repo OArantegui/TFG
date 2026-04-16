@@ -39,6 +39,14 @@ const colectionSchema = new mongoose.Schema({
     type: String,
     enum: ['Holding', 'Sold'], // Holding = Lo mantengo en cartera
     default: 'Holding'
+  },
+  //Cache desnormalizado para valor de coleccion 
+  marketDataCache: {
+    pieces: { type: Number, default: 0 },
+    year: { type: Number, default: new Date().getFullYear() },
+    rrp: { type: Number, default: null },
+    launchDate: { type: Date, default: null },
+    exitDate: { type: Date, default: null }
   }
 }, { 
   timestamps: true // Añade createdAt y updatedAt automáticamente

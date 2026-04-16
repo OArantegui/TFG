@@ -36,70 +36,6 @@ class MarketDataWidget extends StatelessWidget {
       default: return monthNumber;
     }
   }
-
-  /*Widget _buildChart(List<dynamic> history) {
-    List<FlSpot> spots = [];
-    double minY = double.infinity;
-    double maxY = 0;
-
-    for (int i = 0; i < history.length; i++) {
-      double price = (history[i]['price'] as num).toDouble();
-      spots.add(FlSpot(i.toDouble(), price));
-      if (price < minY) minY = price;
-      if (price > maxY) maxY = price;
-    }
-
-    return LineChart(
-      LineChartData(
-        minX: 0,
-        maxX: (history.length - 1).toDouble(),
-        minY: minY * 0.95,
-        maxY: maxY * 1.05,
-        lineBarsData: [
-          LineChartBarData(
-            spots: spots,
-            isCurved: true,
-            color: Colors.greenAccent, 
-            barWidth: 4,
-            dotData: const FlDotData(show: true),
-            belowBarData: BarAreaData(show: true, color: Colors.greenAccent.withOpacity(0.15)),
-          ),
-        ],
-        titlesData: FlTitlesData(
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 30,
-              interval: 1, 
-              getTitlesWidget: (value, meta) {
-                if (value == value.toInt() && value >= 0 && value < history.length) {
-                  int index = value.toInt();
-                  String monthStr = history[index]['month'].toString().split('-')[1];
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(_getMonthName(monthStr).substring(0, 3), // 3 letras para el eje X
-                        style: const TextStyle(fontSize: 10, color: Colors.grey)),
-                  );
-                }
-                return const Text('');
-              },
-            ),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 45,
-              getTitlesWidget: (value, meta) => Text('${value.toInt()}€', style: const TextStyle(fontSize: 10, color: Colors.grey)),
-            ),
-          ),
-        ),
-        gridData: const FlGridData(show: true, drawVerticalLine: false),
-        borderData: FlBorderData(show: false),
-      ),
-    );
-  }*/
   Widget _buildChart(List<dynamic> history) {
     List<FlSpot> spots = [];
     double minY = double.infinity;
@@ -112,15 +48,23 @@ class MarketDataWidget extends StatelessWidget {
       if (price > maxY) maxY = price;
     }
 
-    // LÓGICA NUEVA: Calcular intervalo dinámico (Dynamic Sampling)
-    // Dividimos el total de datos entre 5 para mostrar unas ~5 etiquetas en el eje X
+    // Salvavidas por si la línea es completamente plana
+    if (minY == maxY) {
+      minY = minY * 0.95;
+      maxY = maxY * 1.05;
+    }
+
+    // Salvavidas por si solo hay un punto de datos (set que acaba de salir)
+    double maxX = (history.length - 1).toDouble();
+    if (maxX <= 0) maxX = 1.0; 
+
     double xInterval = (history.length / 5).ceilToDouble();
-    if (xInterval == 0) xInterval = 1; // Seguridad contra divisiones raras
+    if (xInterval == 0) xInterval = 1;
 
     return LineChart(
       LineChartData(
         minX: 0,
-        maxX: (history.length - 1).toDouble(),
+        maxX: maxX,
         minY: minY * 0.95,
         maxY: maxY * 1.05,
         lineBarsData: [
@@ -129,7 +73,6 @@ class MarketDataWidget extends StatelessWidget {
             isCurved: true, 
             color: Colors.greenAccent, 
             barWidth: 3,
-            // Si hay muchos meses, ocultamos los puntos para que la línea se vea limpia
             dotData: FlDotData(show: history.length <= 24),
             belowBarData: BarAreaData(show: true, color: Colors.greenAccent.withOpacity(0.15)),
           ),
@@ -141,20 +84,18 @@ class MarketDataWidget extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
-              interval: xInterval, // Aplicamos el intervalo inteligente
+              interval: xInterval,
               getTitlesWidget: (value, meta) {
                 if (value == value.toInt() && value >= 0 && value < history.length) {
                   int index = value.toInt();
-                  
-                  // El backend nos manda "YYYY-MM", lo separamos
                   String dateStr = history[index]['month'].toString(); 
-                  String yearStr = dateStr.split('-')[0].substring(2); // Cogemos "22" de "2022"
+                  String yearStr = dateStr.split('-')[0].substring(2);
                   String monthStr = dateStr.split('-')[1];
-                  String monthName = _getMonthName(monthStr).substring(0, 3); // "Ene"
+                  String monthName = _getMonthName(monthStr).substring(0, 3);
                   
                   return Padding(
                     padding: const EdgeInsets.only(top: 8.0),
-                    child: Text('$monthName $yearStr', // Resultado: "Ene 22"
+                    child: Text('$monthName $yearStr', 
                         style: const TextStyle(fontSize: 10, color: Colors.grey)),
                   );
                 }
@@ -176,28 +117,90 @@ class MarketDataWidget extends StatelessWidget {
     );
   }
 
-  void _showHistoryChartModal(BuildContext context, List<dynamic> history) {
+  void _showHistoryChartModal(BuildContext context, List<dynamic> fullHistory) {
+    // Estado inicial al abrir el popup
+    String selectedFilter = 'ALL';
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Histórico de Valor', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: SizedBox(
-          height: 300, width: 400,
-          child: Column(
-            children: [
-              const Text('Evolución estimada del mercado', style: TextStyle(fontSize: 12, color: Colors.grey)),
-              const SizedBox(height: 20),
-              Expanded(child: _buildChart(history)),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) {
+          
+          // Lógica Matemática del Filtro
+          List<dynamic> displayHistory;
+          int itemsToTake = fullHistory.length;
+
+          switch (selectedFilter) {
+            case '6M': itemsToTake = 6; break;
+            case '1Y': itemsToTake = 12; break;
+            case '5Y': itemsToTake = 60; break;
+            case 'ALL': default: itemsToTake = fullHistory.length; break;
+          }
+
+          // Si el set es más joven que el tiempo seleccionado, cogemos todo lo que hay
+          if (itemsToTake > fullHistory.length) {
+            itemsToTake = fullHistory.length;
+          }
+
+          // Recortamos el array quedándonos solo con los últimos X elementos
+          displayHistory = fullHistory.sublist(fullHistory.length - itemsToTake);
+
+          return AlertDialog(
+            backgroundColor: const Color(0xFF2A2A2A),
+            title: const Text('Histórico de Valor', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            content: SizedBox(
+              height: 380, // Un poco más alto para hacer hueco a los botones
+              width: 400,
+              child: Column(
+                children: [
+                  const Text('Evolución estimada del mercado', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  const SizedBox(height: 15),
+
+                  // BOTONES DE FILTRO (Usamos ChoiceChip nativos de Material)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: ['6M', '1Y', '5Y', 'ALL'].map((filter) {
+                        final isSelected = selectedFilter == filter;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: ChoiceChip(
+                            label: Text(filter, style: TextStyle(
+                              color: isSelected ? Colors.black : Colors.white70,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold
+                            )),
+                            selected: isSelected,
+                            selectedColor: Colors.orange,
+                            backgroundColor: const Color(0xFF3A3A3A),
+                            onSelected: (bool selected) {
+                              if (selected) {
+                                // Aquí ocurre la magia: recargamos solo el modal
+                                setState(() => selectedFilter = filter);
+                              }
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Pasamos el array recortado en lugar de fullHistory
+                  Expanded(child: _buildChart(displayHistory)),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cerrar', style: TextStyle(color: Colors.orange))),
             ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cerrar', style: TextStyle(color: Colors.orange))),
-        ],
+          );
+        }
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

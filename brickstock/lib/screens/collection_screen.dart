@@ -222,10 +222,10 @@ class _CollectionScreenState extends State<CollectionScreen> {
   // Mantenemos el header original para móvil
   Widget _buildSummaryHeader(CollectionProvider provider) {
     return Container(
-      padding: const EdgeInsets.all(20.0),
-      decoration: const BoxDecoration(
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
         color: Color(0xFF2A2A2A),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         children: [
@@ -327,6 +327,48 @@ class _CollectionScreenState extends State<CollectionScreen> {
   }
 
   // --- DIÁLOGOS DE CONFIRMACIÓN (Omitidos para brevedad, mantener los que ya tenías) ---
-  void _confirmDeleteSet(BuildContext context, CollectionProvider provider, String id) { /* ... */ }
-  void _confirmDeleteMinifig(BuildContext context, CollectionProvider provider, Minifigure fig) { /* ... */ }
+  void _confirmDeleteSet(BuildContext context, CollectionProvider provider, String id) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2D2D2D),
+        title: const Text('Eliminar Set', style: TextStyle(color: Colors.white)),
+        content: const Text('¿Seguro que quieres eliminar este set de tu colección?', style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: Colors.grey))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () {
+              provider.deleteFromCollection(id);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    ); 
+  }
+  void _confirmDeleteMinifig(BuildContext context, CollectionProvider provider, Minifigure fig) { 
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2D2D2D),
+        title: const Text('Eliminar Minifigura', style: TextStyle(color: Colors.white)),
+        content: const Text('¿Seguro que quieres eliminar esta minifigura de tu colección?', style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: Colors.grey))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () {
+              if (fig.id != null) {
+                provider.deleteMinifig(fig.id!);
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    ); 
+  }
 }

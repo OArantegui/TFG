@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../services/api_service.dart';
 import '../models/lego_set.dart';
 import '../widgets/wishlist_summary_card.dart';
+import '../widgets/wishlist_theme_chart.dart'; 
 import 'set_details_screen.dart';
 
 class WishlistScreen extends StatefulWidget {
@@ -49,6 +50,18 @@ class _WishlistScreenState extends State<WishlistScreen> {
     }
   }
 
+  Map<String, double> _getThemeDistribution() {
+    Map<String, double> distribution = {};
+    for (var item in _wishlistItems) {
+      // Ajusta 'themeName' al nombre del campo que devuelva tu backend Node.js
+      String theme = item['themeName'] ?? 'Tema ${item['themeId'] ?? '?'}'; 
+      double price = (item['targetPrice'] as num).toDouble();
+      
+      distribution[theme] = (distribution[theme] ?? 0) + price;
+    }
+    return distribution;
+  }
+
   String _getImageUrl(String url) {
     return kIsWeb ? _apiService.getProxyUrl(url) : url;
   }
@@ -57,26 +70,46 @@ class _WishlistScreenState extends State<WishlistScreen> {
   // LAYOUTS RESPONSIVOS
   // ===========================================================================
 
-  Widget _buildNarrowLayout() {
+  /*Widget _buildNarrowLayout() {
     return Column(
       children: [
         const SizedBox(height: 16),
-        // En móvil, la tarjeta de resumen va arriba con margen
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Color(0xFF2A2A2A),
+            borderRadius: BorderRadius.circular(24),
+          ),
           child: WishlistSummaryCard(
             totalValue: _totalValue,
             budget: _budget,
             onBudgetUpdated: _loadWishlist,
           ),
         ),
+        const SizedBox(height: 12),
+        //const Divider(color: Colors.white10, height: 1),
+        // --- NUEVO BOTÓN DE ESTADÍSTICAS ---
+        if (_wishlistItems.isNotEmpty)  
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.pie_chart, color: Colors.orange),
+              label: const Text('Ver estadísticas de temas', style: TextStyle(color: Colors.white)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.orange),
+                minimumSize: const Size(double.infinity, 45), // Ocupa el ancho completo
+              ),
+              onPressed: () => _showStatsBottomSheet(context),
+            ),
+          ),
         const SizedBox(height: 20),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Tus próximos sets',
+              'Sets deseados',
               style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
@@ -84,6 +117,88 @@ class _WishlistScreenState extends State<WishlistScreen> {
         const SizedBox(height: 10),
         Expanded(child: _buildWishlistList()),
       ],
+    );
+  }*/
+  Widget _buildNarrowLayout() {
+    return Column(
+      children: [
+        // ENCABEZADO ESTILO COLECCIÓN (Box oscuro pegado arriba)
+        /*//Container(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+          decoration: const BoxDecoration(
+            color: Color(0xFF2A2A2A),
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+          ),
+          child: WishlistSummaryCard(
+            totalValue: _totalValue,
+            budget: _budget,
+            onBudgetUpdated: _loadWishlist,
+            // Aquí activamos la visualización de la gráfica si hay sets
+            showButton: _wishlistItems.isNotEmpty,
+            buttonLabel: 'Ver estadísticas de temas',
+            onButtonPressed: () => _showStatsBottomSheet(context),
+          ),
+        //),*/
+        WishlistSummaryCard(
+          totalValue: _totalValue,
+          budget: _budget,
+          onBudgetUpdated: _loadWishlist,
+          showButton: _wishlistItems.isNotEmpty,
+          buttonLabel: 'Ver estadísticas de temas',
+          onButtonPressed: () => _showStatsBottomSheet(context),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // --- TEXTO DE LA LISTA ---
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Sets deseados',
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 10),
+        
+        // --- LA LISTA ORIGINAL (No hace falta tocar el ListView) ---
+        Expanded(child: _buildWishlistList()),
+      ],
+    );
+  }
+
+  // --- NUEVA FUNCIÓN PARA EL BOTTOM SHEET ---
+  void _showStatsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min, // Ajusta el tamaño al contenido
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey[600],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              WishlistThemeChartWidget(themeData: _getThemeDistribution()),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -104,11 +219,9 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   onBudgetUpdated: _loadWishlist,
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'El gráfico de barras muestra cuánto te falta para alcanzar tu presupuesto ideal basado en tus precios objetivo.',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
+                // --- NUEVO GRÁFICO AQUÍ ---
+                if (_wishlistItems.isNotEmpty)
+                  WishlistThemeChartWidget(themeData: _getThemeDistribution()),
               ],
             ),
           ),

@@ -36,7 +36,7 @@ class _WishlistThemeChartWidgetState extends State<WishlistThemeChartWidget> {
 
     return Card(
       color: const Color(0xFF2A2A2A),
-      shape: RoundedRectangleBorder(),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

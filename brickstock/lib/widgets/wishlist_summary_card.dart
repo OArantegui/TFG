@@ -17,7 +17,7 @@ class WishlistSummaryCard extends StatelessWidget {
     required this.budget,
     required this.onBudgetUpdated,
     this.showButton = false, // Por defecto oculto (útil para PC)
-    this.buttonLabel = 'Estadísticas por temas',
+    this.buttonLabel = 'Estadística por temas',
     this.onButtonPressed,
   });
 

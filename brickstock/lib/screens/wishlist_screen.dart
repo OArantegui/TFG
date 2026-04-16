@@ -114,7 +114,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
         backgroundColor: const Color(0xFF2A2A2A),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
-          'Estadísticas de Temas', 
+          'Estadística por temas', 
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
         ),
         content: SizedBox(
@@ -149,7 +149,9 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   budget: _budget,
                   onBudgetUpdated: _loadWishlist,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 30),
+                const Text('Estadística por Temas', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 20),
                 // --- NUEVO GRÁFICO AQUÍ ---
                 if (_wishlistItems.isNotEmpty)
                   WishlistThemeChartWidget(themeData: _getThemeDistribution()),

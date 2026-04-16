@@ -67,8 +67,12 @@ class WishlistSummaryCard extends StatelessWidget {
     Color statusColor = isOverBudget ? Colors.redAccent : Colors.orange;
 
     return Container(
-      padding: const EdgeInsets.all(16.0),
-      color: const Color(0xFF2A2A2A), // Tu fondo oscuro original
+      padding: const EdgeInsets.all(24.0),
+      margin: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Color(0xFF2A2A2A),
+        borderRadius: BorderRadius.circular(24),
+      ),
       width: double.infinity,
       child: Column(
         mainAxisSize: MainAxisSize.min, // Para que no ocupe toda la pantalla

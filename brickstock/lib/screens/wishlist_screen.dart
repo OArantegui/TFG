@@ -70,75 +70,10 @@ class _WishlistScreenState extends State<WishlistScreen> {
   // LAYOUTS RESPONSIVOS
   // ===========================================================================
 
-  /*Widget _buildNarrowLayout() {
-    return Column(
-      children: [
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Color(0xFF2A2A2A),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: WishlistSummaryCard(
-            totalValue: _totalValue,
-            budget: _budget,
-            onBudgetUpdated: _loadWishlist,
-          ),
-        ),
-        const SizedBox(height: 12),
-        //const Divider(color: Colors.white10, height: 1),
-        // --- NUEVO BOTÓN DE ESTADÍSTICAS ---
-        if (_wishlistItems.isNotEmpty)  
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.pie_chart, color: Colors.orange),
-              label: const Text('Ver estadísticas de temas', style: TextStyle(color: Colors.white)),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.orange),
-                minimumSize: const Size(double.infinity, 45), // Ocupa el ancho completo
-              ),
-              onPressed: () => _showStatsBottomSheet(context),
-            ),
-          ),
-        const SizedBox(height: 20),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Sets deseados',
-              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        Expanded(child: _buildWishlistList()),
-      ],
-    );
-  }*/
   Widget _buildNarrowLayout() {
     return Column(
       children: [
-        // ENCABEZADO ESTILO COLECCIÓN (Box oscuro pegado arriba)
-        /*//Container(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-          decoration: const BoxDecoration(
-            color: Color(0xFF2A2A2A),
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-          ),
-          child: WishlistSummaryCard(
-            totalValue: _totalValue,
-            budget: _budget,
-            onBudgetUpdated: _loadWishlist,
-            // Aquí activamos la visualización de la gráfica si hay sets
-            showButton: _wishlistItems.isNotEmpty,
-            buttonLabel: 'Ver estadísticas de temas',
-            onButtonPressed: () => _showStatsBottomSheet(context),
-          ),
-        //),*/
+        const SizedBox(height: 16),
         WishlistSummaryCard(
           totalValue: _totalValue,
           budget: _budget,

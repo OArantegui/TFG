@@ -223,6 +223,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
   Widget _buildSummaryHeader(CollectionProvider provider) {
     return Container(
       padding: const EdgeInsets.all(24.0),
+      margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Color(0xFF2A2A2A),
         borderRadius: BorderRadius.circular(24),

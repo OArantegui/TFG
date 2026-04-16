@@ -37,7 +37,7 @@ class MarketDataWidget extends StatelessWidget {
     }
   }
 
-  Widget _buildChart(List<dynamic> history) {
+  /*Widget _buildChart(List<dynamic> history) {
     List<FlSpot> spots = [];
     double minY = double.infinity;
     double maxY = 0;
@@ -80,6 +80,81 @@ class MarketDataWidget extends StatelessWidget {
                   return Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(_getMonthName(monthStr).substring(0, 3), // 3 letras para el eje X
+                        style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                  );
+                }
+                return const Text('');
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 45,
+              getTitlesWidget: (value, meta) => Text('${value.toInt()}€', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+            ),
+          ),
+        ),
+        gridData: const FlGridData(show: true, drawVerticalLine: false),
+        borderData: FlBorderData(show: false),
+      ),
+    );
+  }*/
+  Widget _buildChart(List<dynamic> history) {
+    List<FlSpot> spots = [];
+    double minY = double.infinity;
+    double maxY = 0;
+
+    for (int i = 0; i < history.length; i++) {
+      double price = (history[i]['price'] as num).toDouble();
+      spots.add(FlSpot(i.toDouble(), price));
+      if (price < minY) minY = price;
+      if (price > maxY) maxY = price;
+    }
+
+    // LÓGICA NUEVA: Calcular intervalo dinámico (Dynamic Sampling)
+    // Dividimos el total de datos entre 5 para mostrar unas ~5 etiquetas en el eje X
+    double xInterval = (history.length / 5).ceilToDouble();
+    if (xInterval == 0) xInterval = 1; // Seguridad contra divisiones raras
+
+    return LineChart(
+      LineChartData(
+        minX: 0,
+        maxX: (history.length - 1).toDouble(),
+        minY: minY * 0.95,
+        maxY: maxY * 1.05,
+        lineBarsData: [
+          LineChartBarData(
+            spots: spots,
+            isCurved: true, 
+            color: Colors.greenAccent, 
+            barWidth: 3,
+            // Si hay muchos meses, ocultamos los puntos para que la línea se vea limpia
+            dotData: FlDotData(show: history.length <= 24),
+            belowBarData: BarAreaData(show: true, color: Colors.greenAccent.withOpacity(0.15)),
+          ),
+        ],
+        titlesData: FlTitlesData(
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 30,
+              interval: xInterval, // Aplicamos el intervalo inteligente
+              getTitlesWidget: (value, meta) {
+                if (value == value.toInt() && value >= 0 && value < history.length) {
+                  int index = value.toInt();
+                  
+                  // El backend nos manda "YYYY-MM", lo separamos
+                  String dateStr = history[index]['month'].toString(); 
+                  String yearStr = dateStr.split('-')[0].substring(2); // Cogemos "22" de "2022"
+                  String monthStr = dateStr.split('-')[1];
+                  String monthName = _getMonthName(monthStr).substring(0, 3); // "Ene"
+                  
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text('$monthName $yearStr', // Resultado: "Ene 22"
                         style: const TextStyle(fontSize: 10, color: Colors.grey)),
                   );
                 }

@@ -23,13 +23,12 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<HomeProvider>();
     final userProvider = context.watch<UserProvider>();
-    
+
     final screenWidth = MediaQuery.of(context).size.width;
     int navColumns = screenWidth > 800 ? 4 : (screenWidth > 600 ? 3 : 2);
 
     return Scaffold(
       backgroundColor: Colors.transparent, // Mantiene el fondo oscuro
-      
       // BOTÓN FLOTANTE
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -39,147 +38,188 @@ class HomeScreen extends StatelessWidget {
           );
         },
         icon: SvgPicture.asset(
-            'assets/icons/barcode_scan.svg',
-            width: 24, // Tamaño estándar de un icono
-            height: 24,
-            colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-          ),
-        label: const Text('Escanear Set', style: TextStyle(fontWeight: FontWeight.bold)),
+          'assets/icons/barcode_scan.svg',
+          width: 24, // Tamaño estándar de un icono
+          height: 24,
+          colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+        ),
+        label: const Text(
+          'Escanear Set',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat, // Lo centra abajo
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.centerFloat, // Lo centra abajo
 
-      body: CustomScrollView(
-        slivers: [
-          // CABECERA DINÁMICA: Desaparece al bajar, aparece al subir
-          SliverAppBar(
-            floating: true,
-            snap: true,
-            backgroundColor: const Color(0xFF1E1E1E),
-            elevation: 0,
-            title: const Text(
-              'BRICKSTOCK', 
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange, letterSpacing: 1.2)
-            ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 16.0),
-                child: GestureDetector(
-                  onTap: () => onNavigate(5), // Perfil
-                  child: Center(
-                    child: CircleAvatar(
-                      radius: 16, // Tamaño para que encaje bien en la AppBar
-                      backgroundImage: AssetImage(userProvider.avatar), // Usamos la variable recibida
-                      backgroundColor: const Color(0xFF2D2D2D),
+      body: RefreshIndicator(
+        onRefresh: () =>
+            context.read<HomeProvider>().refresh(), // Llama al nuevo método
+        color: Colors.orange,
+        child: CustomScrollView(
+          slivers: [
+            // CABECERA DINÁMICA: Desaparece al bajar, aparece al subir
+            SliverAppBar(
+              floating: true,
+              snap: true,
+              backgroundColor: const Color(0xFF1E1E1E),
+              elevation: 0,
+              title: const Text(
+                'BRICKSTOCK',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: GestureDetector(
+                    onTap: () => onNavigate(5), // Perfil
+                    child: Center(
+                      child: CircleAvatar(
+                        radius: 16, // Tamaño para que encaje bien en la AppBar
+                        backgroundImage: AssetImage(
+                          userProvider.avatar,
+                        ), // Usamos la variable recibida
+                        backgroundColor: const Color(0xFF2D2D2D),
+                      ),
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
+              ],
+            ),
+
+            // CONTENIDO PRINCIPAL
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
               ),
-              const SizedBox(width: 8),
-            ],
-          ),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const Text(
+                    'Inicio',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      height: 1.1,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
 
-          // CONTENIDO PRINCIPAL
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                const Text(
-                  'Inicio',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white, height: 1.1),
-                ),
-                const SizedBox(height: 30),
-
-                // BOTONES DE NAVEGACIÓN
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(), // El scroll lo maneja el CustomScrollView
-                  crossAxisCount: navColumns,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 1.3,
-                  children: [
-                    NavCard(
-                      title: 'Buscar', 
-                      icon: Icons.search, 
-                      onTap: () => onNavigate(1) // Índice 1: Buscar
-                    ),
-                    NavCard(
-                      title: 'Temas', 
-                      icon: Icons.list_alt, 
-                      onTap: () => onNavigate(2) // Índice 2: Temas
-                    ),
-                    NavCard(
-                      title: 'Colección', 
-                      icon: Icons.shelves, 
-                      onTap: () => onNavigate(3) // Índice 3: Colección
-                    ),
-                    NavCard(
-                      title: 'Deseados', 
-                      icon: Icons.favorite_border, 
-                      onTap: () => onNavigate(4) // Índice 4: Deseados
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 40),
-                // CABECERA DE NOVEDADES
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Text(
-                        'NOVEDADES',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange),
-                        overflow: TextOverflow.ellipsis,
+                  // BOTONES DE NAVEGACIÓN
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics:
+                        const NeverScrollableScrollPhysics(), // El scroll lo maneja el CustomScrollView
+                    crossAxisCount: navColumns,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 1.3,
+                    children: [
+                      NavCard(
+                        title: 'Buscar',
+                        icon: Icons.search,
+                        onTap: () => onNavigate(1), // Índice 1: Buscar
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                const SizedBox(height: 10),
-              ]),
+                      NavCard(
+                        title: 'Temas',
+                        icon: Icons.list_alt,
+                        onTap: () => onNavigate(2), // Índice 2: Temas
+                      ),
+                      NavCard(
+                        title: 'Colección',
+                        icon: Icons.shelves,
+                        onTap: () => onNavigate(3), // Índice 3: Colección
+                      ),
+                      NavCard(
+                        title: 'Deseados',
+                        icon: Icons.favorite_border,
+                        onTap: () => onNavigate(4), // Índice 4: Deseados
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+                  // CABECERA DE NOVEDADES
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'NOVEDADES',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  const SizedBox(height: 10),
+                ]),
+              ),
             ),
-          ),
 
-          // CARRUSEL DE DESTACADOS INTEGRADO EN SLIVER
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 250, // Altura fija para el carrusel horizontal
-              child: _buildCarouselContent(provider),
+            // CARRUSEL DE DESTACADOS INTEGRADO EN SLIVER
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 250, // Altura fija para el carrusel horizontal
+                child: _buildCarouselContent(provider),
+              ),
             ),
-          ),
-          
-          // Espacio extra al final para que no se pegue al borde inferior
-          const SliverToBoxAdapter(child: SizedBox(height: 40)), 
-        ],
-      )
+
+            // Espacio extra al final para que no se pegue al borde inferior
+            const SliverToBoxAdapter(child: SizedBox(height: 40)),
+          ],
+        ),
+      ),
     );
   }
 
   // Lógica del carrusel novedades
   Widget _buildCarouselContent(HomeProvider provider) {
     if (provider.isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.orange));
-    }
-    
-    if (provider.errorMessage != null) {
       return const Center(
-        child: Text('Error al cargar novedades', style: TextStyle(color: Colors.redAccent)),
+        child: CircularProgressIndicator(color: Colors.orange),
       );
     }
 
-    if (provider.newReleaseSets.isEmpty) {
-      return const Center(child: Text('No hay novedades disponibles', style: TextStyle(color: Colors.grey)));
+    if (provider.errorMessage != null) {
+      return const Center(
+        child: Text(
+          'Error al cargar recomendaciones',
+          style: TextStyle(color: Colors.redAccent),
+        ),
+      );
+    }
+
+    // Usamos featuredSets
+    if (provider.featuredSets.isEmpty) {
+      return const Center(
+        child: Text(
+          'No hay recomendaciones disponibles',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
     }
 
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
-      itemCount: provider.newReleaseSets.length,
+      itemCount: provider.featuredSets.length, // Usamos featuredSets
       separatorBuilder: (context, index) => const SizedBox(width: 16),
       itemBuilder: (context, index) {
-        return _FeaturedSetCard(legoSet: provider.newReleaseSets[index]);
+        return _FeaturedSetCard(
+          legoSet: provider.featuredSets[index],
+        ); // Usamos featuredSets
       },
     );
   }
@@ -210,7 +250,8 @@ class _FeaturedSetCard extends StatelessWidget {
         );
       },
       child: Container(
-        width: 180, // Ligeramente ajustado para que queden mejor en móviles pequeños
+        width:
+            180, // Ligeramente ajustado para que queden mejor en móviles pequeños
         decoration: BoxDecoration(
           color: const Color(0xFF2D2D2D),
           borderRadius: BorderRadius.circular(16),
@@ -229,10 +270,17 @@ class _FeaturedSetCard extends StatelessWidget {
                     imageUrl: _getImageUrl(legoSet.imgUrl),
                     fit: BoxFit.cover,
                     placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orange),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.orange,
+                      ),
                     ),
                     errorWidget: (context, url, error) => const Center(
-                      child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
+                      child: Icon(
+                        Icons.broken_image,
+                        color: Colors.grey,
+                        size: 40,
+                      ),
                     ),
                   ),
                   Positioned.fill(
@@ -241,7 +289,10 @@ class _FeaturedSetCard extends StatelessWidget {
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.8),
+                          ],
                           stops: const [0.6, 1.0],
                         ),
                       ),
@@ -259,14 +310,21 @@ class _FeaturedSetCard extends StatelessWidget {
                   //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.orange,
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         '#${legoSet.setNum}',
-                        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10),
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -275,19 +333,43 @@ class _FeaturedSetCard extends StatelessWidget {
                         legoSet.name,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.calendar_today, size: 12, color: Colors.grey),
+                        const Icon(
+                          Icons.calendar_today,
+                          size: 12,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(width: 4),
-                        Text('${legoSet.year}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        Text(
+                          '${legoSet.year}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
                         const Spacer(),
-                        const Icon(Icons.extension, size: 12, color: Colors.grey),
+                        const Icon(
+                          Icons.extension,
+                          size: 12,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(width: 4),
-                        Text('${legoSet.numParts}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        Text(
+                          '${legoSet.numParts}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ],
                     ),
                   ],

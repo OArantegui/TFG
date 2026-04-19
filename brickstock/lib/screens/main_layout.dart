@@ -28,33 +28,36 @@ class _MainLayoutState extends State<MainLayout> {
   void initState() {
     super.initState();
   }
-  
+
   void _onItemTapped(int index) {
     setState(() {
       if (_selectedIndex == 2 && index == 2) {
         _exploreNavKey.currentState?.popUntil((route) => route.isFirst);
       }
       _selectedIndex = index;
-      _isBottomBarVisible = true; 
+      _isBottomBarVisible = true;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-
     //Escuchamos el avatar en tiempo real
     final userProvider = context.watch<UserProvider>();
     final avatarRealTime = userProvider.avatar;
     final usernameRealTime = userProvider.username;
 
     final List<Widget> screens = [
-      ChangeNotifierProvider(create: (_) => HomeProvider(), child: HomeScreen(onNavigate: _onItemTapped)),
+      ChangeNotifierProvider(
+        create: (_) => HomeProvider(),
+        child: HomeScreen(onNavigate: _onItemTapped),
+      ),
       const ElementsListScreen(customTitle: 'Buscar Sets'),
       PopScope(
         canPop: false,
         onPopInvokedWithResult: (bool didPop, dynamic result) {
           if (didPop) return;
-          if (_exploreNavKey.currentState != null && _exploreNavKey.currentState!.canPop()) {
+          if (_exploreNavKey.currentState != null &&
+              _exploreNavKey.currentState!.canPop()) {
             _exploreNavKey.currentState!.pop();
           } else {
             setState(() => _selectedIndex = 0);
@@ -62,10 +65,14 @@ class _MainLayoutState extends State<MainLayout> {
         },
         child: Navigator(
           key: _exploreNavKey,
-          onGenerateRoute: (settings) => MaterialPageRoute(builder: (context) => const ThemesScreen()),
+          onGenerateRoute: (settings) =>
+              MaterialPageRoute(builder: (context) => const ThemesScreen()),
         ),
       ),
-      ChangeNotifierProvider(create: (_) => CollectionProvider(), child: const CollectionScreen()),
+      ChangeNotifierProvider(
+        create: (_) => CollectionProvider(),
+        child: const CollectionScreen(),
+      ),
       const WishlistScreen(),
       const UserScreen(),
     ];
@@ -73,7 +80,7 @@ class _MainLayoutState extends State<MainLayout> {
     return LayoutBuilder(
       builder: (context, constraints) {
         bool isMobile = constraints.maxWidth < 640;
-        bool showBottomBar = isMobile && _selectedIndex != 0;
+        bool showBottomBar = isMobile;
 
         return Scaffold(
           extendBody: true,
@@ -91,31 +98,44 @@ class _MainLayoutState extends State<MainLayout> {
                   unselectedIconTheme: const IconThemeData(color: Colors.grey),
                   destinations: [
                     NavigationRailDestination(
-                      icon: Image.asset('assets/brickstock_logo.png', width: 24, height: 24), 
-                      selectedIcon: Image.asset('assets/brickstock_logo.png', width: 24, height: 24), 
-                      label: const Text('Inicio')),
+                      icon: Image.asset(
+                        'assets/brickstock_logo.png',
+                        width: 24,
+                        height: 24,
+                      ),
+                      selectedIcon: Image.asset(
+                        'assets/brickstock_logo.png',
+                        width: 24,
+                        height: 24,
+                      ),
+                      label: const Text('Inicio'),
+                    ),
                     const NavigationRailDestination(
-                      icon: Icon(Icons.search_outlined), 
-                      selectedIcon: Icon(Icons.search), 
-                      label: Text('Buscar')),
+                      icon: Icon(Icons.search_outlined),
+                      selectedIcon: Icon(Icons.search),
+                      label: Text('Buscar'),
+                    ),
                     const NavigationRailDestination(
-                      icon: Icon(Icons.list_alt_outlined), 
-                      selectedIcon: Icon(Icons.list_alt), 
-                      label: Text('Temas')),
+                      icon: Icon(Icons.list_alt_outlined),
+                      selectedIcon: Icon(Icons.list_alt),
+                      label: Text('Temas'),
+                    ),
                     const NavigationRailDestination(
-                      icon: Icon(Icons.shelves), 
-                    selectedIcon: Icon(Icons.shelves), 
-                    label: Text('Colección')),
+                      icon: Icon(Icons.shelves),
+                      selectedIcon: Icon(Icons.shelves),
+                      label: Text('Colección'),
+                    ),
                     const NavigationRailDestination(
-                      icon: Icon(Icons.favorite_border), 
-                      selectedIcon: Icon(Icons.favorite_border), 
-                      label: Text('Deseados')),
+                      icon: Icon(Icons.favorite_border),
+                      selectedIcon: Icon(Icons.favorite_border),
+                      label: Text('Deseados'),
+                    ),
                     NavigationRailDestination(
                       // Reemplazamos el Icon por un CircleAvatar
                       icon: CircleAvatar(
                         radius: 12,
                         backgroundImage: AssetImage(avatarRealTime),
-                      ), 
+                      ),
                       selectedIcon: CircleAvatar(
                         radius: 12,
                         backgroundImage: AssetImage(avatarRealTime),
@@ -126,47 +146,21 @@ class _MainLayoutState extends State<MainLayout> {
                             border: Border.all(color: Colors.orange, width: 2),
                           ),
                         ),
-                      ), 
+                      ),
                       label: Text(usernameRealTime),
                     ),
                   ],
                 ),
-                const VerticalDivider(thickness: 1, width: 1, color: Colors.white10),
+                const VerticalDivider(
+                  thickness: 1,
+                  width: 1,
+                  color: Colors.white10,
+                ),
               ],
 
               Expanded(
                 child: NotificationListener<Notification>(
                   onNotification: (Notification notification) {
-                    if (isMobile) {
-                      // Si la lista cambia de tamaño bruscamente
-                      if (notification is ScrollMetricsNotification) {
-                        if (notification.metrics.maxScrollExtent <= 0 && !_isBottomBarVisible) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            if (mounted) setState(() => _isBottomBarVisible = true);
-                          });
-                        }
-                      }
-                      
-                      // Si hacemos scroll hasta arriba del todo
-                      if (notification is ScrollNotification) {
-                        if (notification.metrics.pixels <= 0 || notification.metrics.maxScrollExtent <= 0) {
-                          if (!_isBottomBarVisible) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (mounted) setState(() => _isBottomBarVisible = true);
-                            });
-                          }
-                        }
-                      }
-
-                      //El gesto del dedo (Bajar = Ocultar, Subir = Mostrar)
-                      if (notification is UserScrollNotification) {
-                        if (notification.direction == ScrollDirection.reverse) {
-                          if (_isBottomBarVisible) setState(() => _isBottomBarVisible = false);
-                        } else if (notification.direction == ScrollDirection.forward) {
-                          if (!_isBottomBarVisible) setState(() => _isBottomBarVisible = true);
-                        }
-                      }
-                    }
                     return false;
                   },
                   child: screens[_selectedIndex],
@@ -175,55 +169,64 @@ class _MainLayoutState extends State<MainLayout> {
             ],
           ),
           bottomNavigationBar: showBottomBar
-              ? AnimatedSlide(
-                  duration: const Duration(milliseconds: 300),
-                  offset: _isBottomBarVisible ? Offset.zero : const Offset(0, 1),
-                  child: NavigationBar(
-                    backgroundColor: const Color(0xFF1E1E1E),
-                    indicatorColor: Colors.orange.withOpacity(0.2),
-                    selectedIndex: _selectedIndex,
-                    onDestinationSelected: _onItemTapped,
-                    destinations: [
-                      NavigationDestination(
-                        icon: Image.asset('assets/brickstock_logo.png', width: 24, height: 24), 
-                        selectedIcon: Image.asset('assets/brickstock_logo.png', width: 24, height: 24), 
-                        label: 'Inicio'),
-                      const NavigationDestination(
-                        icon: Icon(Icons.search_outlined, color: Colors.grey), 
-                        selectedIcon: Icon(Icons.search, color: Colors.orange), 
-                        label: 'Buscar'),
-                      const NavigationDestination(
-                        icon: Icon(Icons.list_alt_outlined, color: Colors.grey), 
-                        selectedIcon: Icon(Icons.list_alt, color: Colors.orange), 
-                        label: 'Temas'),
-                      const NavigationDestination(
-                        icon: Icon(Icons.shelves, color: Colors.grey), 
-                        selectedIcon: Icon(Icons.shelves, color: Colors.orange), 
-                        label: 'Colección'),
-                      const NavigationDestination(
-                        icon: Icon(Icons.favorite_border, color: Colors.grey), 
-                        selectedIcon: Icon(Icons.favorite, color: Colors.orange), 
-                        label: 'Deseados'),
-                      NavigationDestination(
-                        // Reemplazamos el Icon genérico
-                        icon: CircleAvatar(
-                          radius: 12,
-                          backgroundImage: AssetImage(avatarRealTime),
-                        ), 
-                        selectedIcon: CircleAvatar(
-                          radius: 14, // Un poco más grande al estar seleccionado
-                          backgroundImage: AssetImage(avatarRealTime),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.orange, width: 2),
-                            ),
-                          ),
-                        ), 
-                        label: usernameRealTime,
+              ? NavigationBar(
+                  backgroundColor: const Color(0xFF1E1E1E),
+                  indicatorColor: Colors.orange.withOpacity(0.2),
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: _onItemTapped,
+                  destinations: [
+                    NavigationDestination(
+                      icon: Image.asset(
+                        'assets/brickstock_logo.png',
+                        width: 24,
+                        height: 24,
                       ),
-                    ],
-                  ),
+                      selectedIcon: Image.asset(
+                        'assets/brickstock_logo.png',
+                        width: 24,
+                        height: 24,
+                      ),
+                      label: 'Inicio',
+                    ),
+                    const NavigationDestination(
+                      icon: Icon(Icons.search_outlined, color: Colors.grey),
+                      selectedIcon: Icon(Icons.search, color: Colors.orange),
+                      label: 'Buscar',
+                    ),
+                    const NavigationDestination(
+                      icon: Icon(Icons.list_alt_outlined, color: Colors.grey),
+                      selectedIcon: Icon(Icons.list_alt, color: Colors.orange),
+                      label: 'Temas',
+                    ),
+                    const NavigationDestination(
+                      icon: Icon(Icons.shelves, color: Colors.grey),
+                      selectedIcon: Icon(Icons.shelves, color: Colors.orange),
+                      label: 'Colección',
+                    ),
+                    const NavigationDestination(
+                      icon: Icon(Icons.favorite_border, color: Colors.grey),
+                      selectedIcon: Icon(Icons.favorite, color: Colors.orange),
+                      label: 'Deseados',
+                    ),
+                    NavigationDestination(
+                      // Reemplazamos el Icon genérico
+                      icon: CircleAvatar(
+                        radius: 12,
+                        backgroundImage: AssetImage(avatarRealTime),
+                      ),
+                      selectedIcon: CircleAvatar(
+                        radius: 14, // Un poco más grande al estar seleccionado
+                        backgroundImage: AssetImage(avatarRealTime),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.orange, width: 2),
+                          ),
+                        ),
+                      ),
+                      label: usernameRealTime,
+                    ),
+                  ],
                 )
               : null,
         );

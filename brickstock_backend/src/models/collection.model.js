@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const colectionSchema = new mongoose.Schema({
+const colectionSchema = new mongoose.Schema({ 
   // Referencia al dueño
   userId: {
     type: mongoose.Schema.Types.ObjectId,

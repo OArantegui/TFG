@@ -236,7 +236,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
               ],
             ),
             trailing: IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              icon: const Icon(Icons.delete, color: Colors.redAccent),
               // AQUÍ USAMOS TU MÉTODO Y TU ID DE MONGODB
               onPressed: () => _removeSet(item['id']),
             ),

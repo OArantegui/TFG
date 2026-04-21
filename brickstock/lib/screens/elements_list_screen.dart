@@ -316,116 +316,127 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                     style: TextStyle(color: Colors.white54),
                   ),
                 )
-              : GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                  // LA MAGIA RESPONSIVA:
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 450, // Ancho máximo: en móvil será 1 col, en web varias.
-                    childAspectRatio: 3.2,   // Relación ancho/alto para que la tarjeta parezca un ListTile
-                    crossAxisSpacing: 4.0,
-                    mainAxisSpacing: 4.0,
-                  ),
-                  itemCount: _sets.length + (_nextPageUrl != null ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    // Botón de Cargar Más (se adaptará como una tarjeta más en el Grid)
-                    if (index == _sets.length) {
-                      return Center(
-                        child: _isLoadingMore
-                            ? const CircularProgressIndicator(color: Colors.orange)
-                            : OutlinedButton.icon(
-                                icon: const Icon(Icons.add_circle_outline, color: Colors.orange),
-                                label: const Text('Cargar más', style: TextStyle(color: Colors.orange)),
-                                onPressed: () {
-                                  _currentPage++;
-                                  _loadSets();
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Colors.orange),
-                                ),
-                              ),
-                      );
-                    }
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Parámetros de seguridad para el Grid
+                    const double maxColumnWidth = 450.0;
+                    const double minItemHeight = 125.0; 
 
-                    final legoSet = _sets[index];
-                    return Card(
-                      color: const Color(0xFF2A2A2A),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                    // Cálculo matemático dinámico
+                    int columns = (constraints.maxWidth / maxColumnWidth).ceil();
+                    if (columns < 1) columns = 1;
+                    
+                    double itemWidth = constraints.maxWidth / columns;
+                    double dynamicAspectRatio = itemWidth / minItemHeight;
+
+                    return GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        childAspectRatio: dynamicAspectRatio,
+                        crossAxisSpacing: 4.0,
+                        mainAxisSpacing: 4.0,
                       ),
-                      child: Center( // Center ayuda a alinear el ListTile dentro de la celda del Grid
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(6.0),
-                            child: Container(
-                              width: 60,
-                              height: 60,
-                              color: Colors.white,
-                              child: CachedNetworkImage(
-                                imageUrl: _getImageUrl(legoSet.imgUrl),
-                                fit: BoxFit.contain,
-                                placeholder: (context, url) => const Padding(
-                                  padding: EdgeInsets.all(12.0),
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.orange,
+                      itemCount: _sets.length + (_nextPageUrl != null ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == _sets.length) {
+                          return Center(
+                            child: _isLoadingMore
+                                ? const CircularProgressIndicator(color: Colors.orange)
+                                : OutlinedButton.icon(
+                                    icon: const Icon(Icons.add_circle_outline, color: Colors.orange),
+                                    label: const Text('Cargar más', style: TextStyle(color: Colors.orange)),
+                                    onPressed: () {
+                                      _currentPage++;
+                                      _loadSets();
+                                    },
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(color: Colors.orange),
+                                    ),
+                                  ),
+                          );
+                        }
+
+                        final legoSet = _sets[index];
+                        return Card(
+                          color: const Color(0xFF2A2A2A),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: ListTile( // Sin el Center() para usar todo el alto de la Card
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                            leading: ClipRRect(
+                              borderRadius: BorderRadius.circular(6.0),
+                              child: Container(
+                                width: 60,
+                                height: 60,
+                                color: Colors.white,
+                                child: CachedNetworkImage(
+                                  imageUrl: _getImageUrl(legoSet.imgUrl),
+                                  fit: BoxFit.contain,
+                                  placeholder: (context, url) => const Padding(
+                                    padding: EdgeInsets.all(12.0),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.orange,
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) => const Icon(
+                                    Icons.broken_image,
+                                    color: Colors.grey,
                                   ),
                                 ),
-                                errorWidget: (context, url, error) => const Icon(
-                                  Icons.broken_image,
-                                  color: Colors.grey,
-                                ),
                               ),
                             ),
-                          ),
-                          title: Text(
-                            legoSet.name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                            title: Text(
+                              legoSet.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Set: ${legoSet.setNum} • Año: ${legoSet.year}',
-                                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                                ),
-                                const SizedBox(height: 2),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.extension, size: 12, color: Colors.orange),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${legoSet.numParts} piezas',
-                                      style: const TextStyle(
-                                        color: Colors.orange,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Set: ${legoSet.setNum} • Año: ${legoSet.year}',
+                                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.extension, size: 12, color: Colors.orange),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${legoSet.numParts} piezas',
+                                        style: const TextStyle(
+                                          color: Colors.orange,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                          onTap: () {
-                            Navigator.of(context, rootNavigator: true).push(
-                              MaterialPageRoute(
-                                builder: (context) => SetDetailsScreen(legoSet: legoSet),
+                                    ],
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                        ),
-                      ),
+                            ),
+                            trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                            onTap: () {
+                              Navigator.of(context, rootNavigator: true).push(
+                                MaterialPageRoute(
+                                  builder: (context) => SetDetailsScreen(legoSet: legoSet),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
@@ -468,115 +479,124 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                     style: TextStyle(color: Colors.white54),
                   ),
                 )
-              : GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                  // LA MISMA MAGIA AQUÍ:
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 450,
-                    childAspectRatio: 3.2,
-                    crossAxisSpacing: 4.0,
-                    mainAxisSpacing: 4.0,
-                  ),
-                  itemCount: _minifigs.length + (_nextMinifigsPageUrl != null ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    // Botón de Cargar Más
-                    if (index == _minifigs.length) {
-                      return Center(
-                        child: _isLoadingMoreMinifigs
-                            ? const CircularProgressIndicator(color: Colors.orange)
-                            : OutlinedButton.icon(
-                                icon: const Icon(Icons.add_circle_outline, color: Colors.orange),
-                                label: const Text('Cargar más', style: TextStyle(color: Colors.orange)),
-                                onPressed: () {
-                                  _minifigsPage++;
-                                  _loadMinifigs();
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Colors.orange),
-                                ),
-                              ),
-                      );
-                    }
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    const double maxColumnWidth = 450.0;
+                    const double minItemHeight = 125.0;
 
-                    final fig = _minifigs[index];
-                    return Card(
-                      color: const Color(0xFF2A2A2A),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                    int columns = (constraints.maxWidth / maxColumnWidth).ceil();
+                    if (columns < 1) columns = 1;
+
+                    double itemWidth = constraints.maxWidth / columns;
+                    double dynamicAspectRatio = itemWidth / minItemHeight;
+
+                    return GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        childAspectRatio: dynamicAspectRatio,
+                        crossAxisSpacing: 4.0,
+                        mainAxisSpacing: 4.0,
                       ),
-                      child: Center(
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(6.0),
-                            child: Container(
-                              width: 60,
-                              height: 60,
-                              color: Colors.white,
-                              child: CachedNetworkImage(
-                                imageUrl: _getImageUrl(fig.imageUrl),
-                                fit: BoxFit.contain,
-                                memCacheWidth: 200,
-                                placeholder: (context, url) => const Padding(
-                                  padding: EdgeInsets.all(12.0),
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.orange,
-                                  ),
-                                ),
-                                errorWidget: (context, url, error) =>
-                                    const Icon(Icons.face, color: Colors.black),
-                              ),
-                            ),
-                          ),
-                          title: Text(
-                            fig.name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'ID: ${fig.figNum}',
-                                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                                ),
-                                const SizedBox(height: 2),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.extension, size: 12, color: Colors.orange),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${fig.numParts} piezas',
-                                      style: const TextStyle(
-                                        color: Colors.orange,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                      itemCount: _minifigs.length + (_nextMinifigsPageUrl != null ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == _minifigs.length) {
+                          return Center(
+                            child: _isLoadingMoreMinifigs
+                                ? const CircularProgressIndicator(color: Colors.orange)
+                                : OutlinedButton.icon(
+                                    icon: const Icon(Icons.add_circle_outline, color: Colors.orange),
+                                    label: const Text('Cargar más', style: TextStyle(color: Colors.orange)),
+                                    onPressed: () {
+                                      _minifigsPage++;
+                                      _loadMinifigs();
+                                    },
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(color: Colors.orange),
                                     ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                  ),
+                          );
+                        }
+
+                        final fig = _minifigs[index];
+                        return Card(
+                          color: const Color(0xFF2A2A2A),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                          onTap: () {
-                            Navigator.of(context, rootNavigator: true).push(
-                              MaterialPageRoute(
-                                builder: (context) => MinifigDetailsScreen(minifigure: fig),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                            leading: ClipRRect(
+                              borderRadius: BorderRadius.circular(6.0),
+                              child: Container(
+                                width: 60,
+                                height: 60,
+                                color: Colors.white,
+                                child: CachedNetworkImage(
+                                  imageUrl: _getImageUrl(fig.imageUrl),
+                                  fit: BoxFit.contain,
+                                  memCacheWidth: 200,
+                                  placeholder: (context, url) => const Padding(
+                                    padding: EdgeInsets.all(12.0),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.orange,
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(Icons.face, color: Colors.black),
+                                ),
                               ),
-                            );
-                          },
-                        ),
-                      ),
+                            ),
+                            title: Text(
+                              fig.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'ID: ${fig.figNum}',
+                                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.extension, size: 12, color: Colors.orange),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${fig.numParts} piezas',
+                                        style: const TextStyle(
+                                          color: Colors.orange,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                            onTap: () {
+                              Navigator.of(context, rootNavigator: true).push(
+                                MaterialPageRoute(
+                                  builder: (context) => MinifigDetailsScreen(minifigure: fig),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
@@ -584,6 +604,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
       ],
     );
   }
+
   void _showAddMinifigDialog(Minifigure fig) {
     showDialog(
       context: context,

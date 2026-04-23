@@ -105,8 +105,11 @@ class _CollectionScreenState extends State<CollectionScreen> {
                   const SizedBox(height: 30),
                   
                   // CABECERA GRÁFICA CON FILTROS
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 10, // Espacio horizontal si se juntan
+                    runSpacing: 10, // Espacio vertical si saltan de línea
                     children: [
                       const Text('Evolución Colección', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                       _buildFilterChips(),
@@ -168,24 +171,23 @@ class _CollectionScreenState extends State<CollectionScreen> {
   // --- COMPONENTES REUTILIZABLES ---
 
   Widget _buildFilterChips() {
-    return Row(
+    return Wrap(
+      spacing: 6.0, // Espacio horizontal entre botones
+      runSpacing: 6.0, // Espacio vertical por si se apilan
       children: ['6M', '1Y', '5Y', 'ALL'].map((filter) {
         final isSelected = _selectedFilter == filter;
-        return Padding(
-          padding: const EdgeInsets.only(left: 6.0),
-          child: ChoiceChip(
-            label: Text(filter, style: TextStyle(
-              color: isSelected ? Colors.black : Colors.white70,
-              fontSize: 10,
-              fontWeight: FontWeight.bold
-            )),
-            selected: isSelected,
-            selectedColor: Colors.orange,
-            backgroundColor: const Color(0xFF2A2A2A),
-            onSelected: (selected) {
-              if (selected) setState(() => _selectedFilter = filter);
-            },
-          ),
+        return ChoiceChip(
+          label: Text(filter, style: TextStyle(
+            color: isSelected ? Colors.black : Colors.white70,
+            fontSize: 10,
+            fontWeight: FontWeight.bold
+          )),
+          selected: isSelected,
+          selectedColor: Colors.orange,
+          backgroundColor: const Color(0xFF2A2A2A),
+          onSelected: (selected) {
+            if (selected) setState(() => _selectedFilter = filter);
+          },
         );
       }).toList(),
     );

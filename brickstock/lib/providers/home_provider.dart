@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/lego_set.dart';
+import '../models/collection_item.dart';
 
 class HomeProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
 
-  // Variables de estado renombradas para mayor claridad
   List<LegoSet> featuredSets = [];
   bool isLoading = true;
   String? errorMessage;
 
-  // Al crear el provider, lanzamos la carga automáticamente
   HomeProvider() {
     loadRecommendations();
   }
@@ -29,24 +28,16 @@ class HomeProvider extends ChangeNotifier {
       List<String> userSetNums = [];
 
       try {
-        final response = await _apiService.getWishlistData();
+        final List<CollectionItem> collection = await _apiService.getUserCollection();
 
-        final List<dynamic> items =
-            response['data'] ?? response['items'] ?? response['wishlist'] ?? [];
-
-        for (var item in items) {
-          final setNum =
-              item['setNum'] ??
-              (item['set'] != null ? item['set']['set_num'] : null);
-          if (setNum != null) userSetNums.add(setNum);
-
-          int themeId =
-              item['themeId'] ??
-              (item['set'] != null ? item['set']['theme_id'] ?? 0 : 0);
-          if (themeId != 0) userThemeIds.add(themeId);
+        for (var item in collection) {
+          userSetNums.add(item.setNum);
+          if (item.themeId != 0) {
+            userThemeIds.add(item.themeId);
+          }
         }
       } catch (e) {
-        debugPrint("No se pudo obtener la wishlist: $e");
+        debugPrint("Error leyendo colección: $e");
       }
 
       if (userThemeIds.isNotEmpty) {
@@ -56,30 +47,30 @@ class HomeProvider extends ChangeNotifier {
         }
 
         final favoriteThemeId = themeCounts.entries
-            .reduce((a, b) => a.value > b.value ? a : b)
-            .key;
+            .reduce((a, b) => a.value > b.value ? a : b).key;
+            
+        debugPrint("Tema favorito detectado ID: $favoriteThemeId");
 
-        final responseSets = await _apiService.getAllSets(page: 1);
-        final List<LegoSet> allSets = responseSets['sets'] as List<LegoSet>;
+        // SOLUCIÓN: Usamos tu método getSetsByTheme en lugar de getAllSets
+        final responseSets = await _apiService.getSetsByTheme(favoriteThemeId, page: 1);
+        final List<LegoSet> themeSets = responseSets['sets'] as List<LegoSet>;
 
-        featuredSets = allSets
-            .where(
-              (s) =>
-                  s.themeId == favoriteThemeId &&
-                  !userSetNums.contains(s.setNum),
-            )
+        // Filtramos para quitar los que ya tienes
+        featuredSets = themeSets
+            .where((s) => !userSetNums.contains(s.setNum))
             .take(10)
             .toList();
       }
 
+      // PLAN B: Si la colección está vacía o el tema no devolvió resultados
       if (featuredSets.isEmpty) {
         final responseSets = await _apiService.getAllSets(page: 1);
         final List<LegoSet> allSets = responseSets['sets'] as List<LegoSet>;
         featuredSets = allSets.take(10).toList();
       }
     } catch (e) {
-      errorMessage = 'Error al cargar recomendaciones: $e';
-      debugPrint(errorMessage);
+      errorMessage = e.toString();
+      debugPrint("Error general en recomendaciones: $e");
     } finally {
       isLoading = false;
       notifyListeners();

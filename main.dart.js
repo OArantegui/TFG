@@ -53161,7 +53161,7 @@ s=p}for(;;)switch(s){case 0:p=4
 j=t.N
 i=t.z
 s=7
-return A.n(n.jV("POST","/collection",A.a9(["setNum",a,"purchasePrice",b,"quantity",1,"condition","NISB"],j,i)),$async$Dy)
+return A.n(n.jV("POST","/collection",A.a9(["setNum",a,"purchasePrice",b,"quantity",1],j,i)),$async$Dy)
 case 7:m=d
 h=m
 l=B.T.m3(A.dQ(A.dP(h.e)).bb(h.w),null)

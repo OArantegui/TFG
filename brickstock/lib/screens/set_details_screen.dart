@@ -438,24 +438,44 @@ class _SetDetailsScreenState extends State<SetDetailsScreen> {
                 if (result['success'] == true) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('¡${widget.legoSet.name} añadido a tu colección!'), backgroundColor: Colors.green));
                   if (result['newAchievements'] != null && result['newAchievements'].isNotEmpty) {
-                    final achievementData = result['newAchievements'][0]; 
-                    if (!mounted) return;
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        title: const Row(children: [Icon(Icons.stars, color: Colors.amber, size: 30), SizedBox(width: 10), Text('¡Nuevo Logro!')]),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(achievementData['name'], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-                            const SizedBox(height: 10),
-                            Text(achievementData['description'], textAlign: TextAlign.center),
+                    final List newAchievements = result['newAchievements'];
+
+                    // Recorremos todos los logros que hayan saltado
+                    for (var achievementData in newAchievements) {
+                      // Comprobamos que el widget siga en pantalla antes de lanzar el popup
+                      if (!mounted) return; 
+
+                      // El 'await' es la clave: detiene el bucle hasta que se cierre este Dialog
+                      await showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          title: const Row(children: [
+                            Icon(Icons.stars, color: Colors.amber, size: 30), 
+                            SizedBox(width: 10), 
+                            Text('¡Nuevo Logro!')
+                          ]),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                achievementData['name'], 
+                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold), 
+                                textAlign: TextAlign.center
+                              ),
+                              const SizedBox(height: 10),
+                              Text(achievementData['description'], textAlign: TextAlign.center),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx), // Cierra el modal y permite que el bucle continúe
+                              child: const Text('¡Genial!', style: TextStyle(color: Colors.orange))
+                            )
                           ],
                         ),
-                        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('¡Genial!', style: TextStyle(color: Colors.orange)))],
-                      ),
-                    );
+                      );
+                    }
                   }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'] ?? 'Error al guardar.'), backgroundColor: Colors.red));

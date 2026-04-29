@@ -24,20 +24,7 @@ class Achievement {
       isUnlocked: json['isUnlocked'] ?? false,
     );
   }
-
-  // Mapeo para pasar a Icono
-  /*IconData get iconData {
-    switch (iconName) {
-      case 'exposure_plus_1':
-        return Icons.exposure_plus_1;
-      case 'local_fire_department':
-        return Icons.local_fire_department;
-      case 'diamond':
-        return Icons.diamond;
-      default:
-        return Icons.emoji_events;
-    }
-  }*/
+  
   IconData get iconData {
     switch (iconName) {
       case 'exposure_plus_1': return Icons.exposure_plus_1;

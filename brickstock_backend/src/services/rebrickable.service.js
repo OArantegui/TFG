@@ -332,6 +332,30 @@ const getMinifigDetails = async (figNum) => {
         throw error;
     }
 };
+// Sube por el árbol genealógico de temas hasta encontrar el Tema Principal (Raíz)
+const getRootThemeId = async (themeId) => {
+    try {
+        // Nos aseguramos de que la caché de temas está cargada
+        if (allThemesCache.length === 0) {
+            await getThemes(1, '', 'id_desc'); // Forzamos la descarga de todos
+        }
+        
+        const themeDict = {};
+        allThemesCache.forEach(t => themeDict[t.id] = t);
+
+        let currentThemeId = themeId;
+        
+        // Mientras el tema actual tenga un padre, seguimos subiendo
+        while (currentThemeId && themeDict[currentThemeId] && themeDict[currentThemeId].parent_id) {
+            currentThemeId = themeDict[currentThemeId].parent_id;
+        }
+        
+        return currentThemeId;
+    } catch (error) {
+        console.error("Error buscando el tema raíz:", error.message);
+        return themeId; // Fallback de seguridad: devolvemos el original si falla
+    }
+};
 
 module.exports = {
     getThemes,
@@ -343,5 +367,6 @@ module.exports = {
     getAllSets,
     getAllMinifigs,
     getMinifigDetails,
-    getThemeById
+    getThemeById,
+    getRootThemeId
 };

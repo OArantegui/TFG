@@ -21,7 +21,7 @@ exports.addSetToCollection = async (req, res) => {
             return res.status(200).json({ success: true, message: 'Cantidad actualizada en la colección', data: existingItem });
         }
 
-        let cacheData = { pieces: 0, year: new Date().getFullYear(), rrp: null, launchDate: null, exitDate: null, themeId: null };
+        let cacheData = { pieces: 0, year: new Date().getFullYear(), rrp: null, launchDate: null, exitDate: null, themeId: null, rootThemeId: null };
         try {
             const [setDetails, bricksetData] = await Promise.all([
                 rebrickableService.getSetByNum(setNum).catch(() => null),
@@ -31,7 +31,13 @@ exports.addSetToCollection = async (req, res) => {
             if (setDetails) {
                 cacheData.pieces = setDetails.pieces || setDetails.num_parts || 0;
                 cacheData.year = setDetails.year || new Date().getFullYear();
-                cacheData.themeId = setDetails.themeId || setDetails.theme_id || null;
+                const rawThemeId = setDetails.themeId || setDetails.theme_id || null;
+                cacheData.themeId = rawThemeId;
+                
+                if (rawThemeId) {
+                    // Calculamos el tema raíz para la gamificación
+                    cacheData.rootThemeId = await rebrickableService.getRootThemeId(rawThemeId);
+                }
             }
             if (bricksetData) {
                 cacheData.launchDate = bricksetData.launchDate;

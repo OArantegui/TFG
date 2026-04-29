@@ -9,11 +9,11 @@ const bricksetService = require('../services/brickset.service');
 // POST: Añadir un nuevo set a la coleccion
 exports.addSetToCollection = async (req, res) => {
     try {
-        const { setNum, quantity = 1, purchasePrice, condition = 'NISB' } = req.body;
+        const { setNum, quantity = 1, purchasePrice } = req.body;
         const userId = req.user.id; 
 
         // Comprobar si existe el set en la colección
-        let existingItem = await Collection.findOne({ userId, setNum, condition });
+        let existingItem = await Collection.findOne({ userId, setNum });
 
         if (existingItem) {
             existingItem.quantity += quantity;
@@ -47,7 +47,7 @@ exports.addSetToCollection = async (req, res) => {
         }
 
         //Crear el nuevo registro del Set
-        const newItem = new Collection({ userId, setNum, quantity, purchasePrice, condition, marketDataCache: cacheData });
+        const newItem = new Collection({ userId, setNum, quantity, purchasePrice, marketDataCache: cacheData });
         await newItem.save();
 
         // Se añaden las minifiguras del set

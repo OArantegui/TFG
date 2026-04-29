@@ -31,11 +31,6 @@ exports.validateCollectionInput = [
     body('purchasePrice')
         .exists().withMessage('El precio de compra es obligatorio')
         .isFloat({ min: 0 }).withMessage('El precio de compra debe ser un número positivo o 0'),
-    
-    // Verificamos la condición (solo permitimos los valores definidos)
-    body('condition')
-        .optional()
-        .isIn(['NISB', 'Used', 'Incomplete']).withMessage('Condición no válida')
 ];
 
 //Reglas de Validación para la Lista de Deseos

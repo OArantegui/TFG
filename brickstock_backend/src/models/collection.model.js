@@ -25,7 +25,7 @@ const colectionSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
-  condition: { //Revisar esto
+  /*condition: { //Revisar esto
     type: String,
     enum: ['NISB', 'Used', 'Incomplete'],
     default: 'NISB'
@@ -39,7 +39,7 @@ const colectionSchema = new mongoose.Schema({
     type: String,
     enum: ['Holding', 'Sold'], // Holding = Lo mantengo en cartera
     default: 'Holding'
-  },
+  },*/
   //Cache desnormalizado para valor de coleccion 
   marketDataCache: {
     pieces: { type: Number, default: 0 },

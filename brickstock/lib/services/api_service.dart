@@ -154,7 +154,6 @@ class ApiService {
           'setNum': setNum,
           'purchasePrice': purchasePrice,
           'quantity': 1,
-          'condition': 'NISB',
         },
       );
 

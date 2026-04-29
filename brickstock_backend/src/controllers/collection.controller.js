@@ -21,7 +21,7 @@ exports.addSetToCollection = async (req, res) => {
             return res.status(200).json({ success: true, message: 'Cantidad actualizada en la colección', data: existingItem });
         }
 
-        let cacheData = { pieces: 0, year: new Date().getFullYear(), rrp: null, launchDate: null, exitDate: null };
+        let cacheData = { pieces: 0, year: new Date().getFullYear(), rrp: null, launchDate: null, exitDate: null, themeId: null };
         try {
             const [setDetails, bricksetData] = await Promise.all([
                 rebrickableService.getSetByNum(setNum).catch(() => null),
@@ -31,6 +31,7 @@ exports.addSetToCollection = async (req, res) => {
             if (setDetails) {
                 cacheData.pieces = setDetails.pieces || setDetails.num_parts || 0;
                 cacheData.year = setDetails.year || new Date().getFullYear();
+                cacheData.themeId = setDetails.themeId || setDetails.theme_id || null;
             }
             if (bricksetData) {
                 cacheData.launchDate = bricksetData.launchDate;
@@ -83,7 +84,7 @@ exports.addSetToCollection = async (req, res) => {
 
         // Comprobamos insignias
         const totalSets = await Collection.countDocuments({ userId });
-        const newlyUnlocked = await achievementService.syncCollectionAchievements(userId, totalSets);
+        const newlyUnlocked = await achievementService.syncCollectionAchievements(userId);
 
         res.status(201).json({
             success: true,
@@ -185,7 +186,7 @@ exports.deleteCollectionItem = async (req, res) => {
 
         //Sincronizamos los logros por si ha bajado de nivel
         const totalSets = await Collection.countDocuments({ userId: req.user.id });
-        await achievementService.syncCollectionAchievements(req.user.id, totalSets);
+        await achievementService.syncCollectionAchievements(req.user.id);
 
         res.status(200).json({ success: true, message: 'Set y sus minifiguras asociados borrados de la colección' });
     } catch (error) {

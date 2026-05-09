@@ -150,7 +150,7 @@ class HomeScreen extends StatelessWidget {
                     children: [
                       const Expanded(
                         child: Text(
-                          'NOVEDADES',
+                          'NOVEDADES RECOMENDADAS',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

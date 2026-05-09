@@ -51563,7 +51563,7 @@ $1(a){return new A.nT(this.a,null)},
 $S:132}
 A.aDt.prototype={
 $1(a){var s=null
-return A.mY(A.b([A.hw(B.oQ,s,s,new A.aDr(a),s,s),A.SC(B.FA,new A.aDs(this.a,this.b,a),A.Ek(s,s,B.bZ,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s))],t.p),B.aY,B.a9O,s,B.aao)},
+return A.mY(A.b([A.hw(B.oQ,s,s,new A.aDr(a),s,s),A.SC(B.FA,new A.aDs(this.a,this.b,a),A.Ek(s,s,B.bZ,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s))],t.p),B.aY,B.a9P,s,B.aao)},
 $S:60}
 A.aDr.prototype={
 $0(){A.c1(this.a,!1).dR(null)
@@ -51575,7 +51575,7 @@ A.c1(this.c,!1).dR(null)},
 $S:0}
 A.aDq.prototype={
 $1(a){var s=null
-return A.mY(A.b([A.hw(B.oQ,s,s,new A.aDo(a),s,s),A.SC(B.FA,new A.aDp(this.a,this.b,a),A.Ek(s,s,B.bZ,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s))],t.p),B.aY,B.aaX,s,B.a9T)},
+return A.mY(A.b([A.hw(B.oQ,s,s,new A.aDo(a),s,s),A.SC(B.FA,new A.aDp(this.a,this.b,a),A.Ek(s,s,B.bZ,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s))],t.p),B.aY,B.aaX,s,B.a9U)},
 $S:60}
 A.aDo.prototype={
 $0(){A.c1(this.a,!1).dR(null)
@@ -51840,11 +51840,11 @@ A.TA.prototype={
 I(a){var s,r,q,p,o,n=this,m=null,l=A.me(a,!0,t.xB),k=A.me(a,!0,t.nj),j=A.bW(a,m,t.w).w.a.a
 if(j>800)s=4
 else s=j>600?3:2
-r=A.aTI(B.x,B.j,B.qt,new A.YK(24,24,new A.Jj("assets/icons/barcode_scan.svg",m,m,m,m),B.Qx,m),B.a9Z,new A.ajG(a))
+r=A.aTI(B.x,B.j,B.qt,new A.YK(24,24,new A.Jj("assets/icons/barcode_scan.svg",m,m,m,m),B.Qx,m),B.aa_,new A.ajG(a))
 q=t.p
 p=A.b([new A.aM(B.Q2,A.lR(m,A.dS(A.nb(B.aY,new A.iL(k.b,m,m),m,16),m,m),B.a6,!1,m,m,m,m,m,m,m,m,m,m,m,m,m,m,m,m,m,new A.ajH(n),m,m,m,m,m,m,!1,B.c0),m),B.op],q)
 o=A.aUP(A.b([new A.uC("Buscar",B.n4,new A.ajI(n),m),new A.uC("Temas",B.n1,new A.ajJ(n),m),new A.uC("Colecci\xf3n",B.hm,new A.ajK(n),m),new A.uC("Deseados",B.hl,new A.ajL(n),m)],q),!0,!0,!0)
-q=A.b([new A.IW(B.aa0,p,0,B.bV,!0,!0,m),new A.J_(B.bM,A.b0C(A.aUP(A.b([B.a9Q,B.dD,new A.tQ(new A.IY(s,16,16,1.3,m),o,m,B.W,!1,m,m,B.hH,m,!0,m,0,m,4,B.fy,B.a6,m,m,B.r,B.aN,m),B.EV,A.ch(A.b([B.QB],q),B.p,B.m,B.q,0),B.cj,B.cj],q),!0,!0,!0)),m),new A.J0(A.cz(n.ag8(l),250,m),m),B.a3z],q)
+q=A.b([new A.IW(B.aa1,p,0,B.bV,!0,!0,m),new A.J_(B.bM,A.b0C(A.aUP(A.b([B.a9R,B.dD,new A.tQ(new A.IY(s,16,16,1.3,m),o,m,B.W,!1,m,m,B.hH,m,!0,m,0,m,4,B.fy,B.a6,m,m,B.r,B.aN,m),B.EV,A.ch(A.b([B.QB],q),B.p,B.m,B.q,0),B.cj,B.cj],q),!0,!0,!0)),m),new A.J0(A.cz(n.ag8(l),250,m),m),B.a3z],q)
 return A.l3(m,B.t,new A.Hs(new A.S2(q,B.W,!1,m,m,B.fP,m,!1,m,0,m,m,B.fy,B.a6,m,m,B.r,B.aN,m),new A.ajM(a),B.x,m),m,!1,r,B.lC)},
 ag8(a){var s
 if(a.c)return B.aT
@@ -51932,7 +51932,7 @@ break
 case 6:m.aa(t.J).f.eC(B.a3I)
 case 5:case 1:return A.u(q,r)}})
 return A.v($async$x8,r)},
-I(a){var s=this,r=null,q=A.S(a),p=A.lu(r,r,r,!0,!0,r,r,1,!0,r,0,!1,r,!1,r,r,r,r,!0,r,r,r,r,r,B.aaq,r,r,r,1,r,!0),o=A.bF(20),n=A.b([B.RW,B.cj,B.a9Y,B.dD,A.Ao(r,B.cz,!1,r,!0,B.r,r,A.PQ(),s.d,r,r,r,r,r,2,A.lZ(r,new A.fM(4,A.bF(12),B.dl),r,r,r,r,r,r,!0,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,B.bR,"Correo electr\xf3nico",!0,!0,!1,r,B.tR,r,r,r,r,r,r,r,r,r,r,r,r),B.a6,!0,r,!0,r,!1,r,B.co,r,r,r,r,B.kr,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.cv,r,r,r,r,r,r,r,r,r,r,r,B.aQ,!0,B.ap,r,B.ep,r,r,r,r),B.b5,A.Ao(r,B.cz,!1,r,!0,B.r,r,A.PQ(),s.e,r,r,r,r,r,2,A.lZ(r,new A.fM(4,A.bF(12),B.dl),r,r,r,r,r,r,!0,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,B.bR,"Contrase\xf1a",!0,!0,!1,r,B.tL,r,r,r,r,r,r,r,r,r,r,r,r),B.a6,!0,r,!0,r,!1,r,B.co,r,r,r,r,r,r,r,r,1,r,r,!0,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.cv,r,r,r,r,r,r,r,r,r,r,r,B.aQ,!0,B.ap,r,B.ep,r,r,r,r),B.cj,new A.Dg(s.w,new A.aI2(s),B.x,B.k,B.aaM,B.ua,B.aj,r),B.or],t.p)
+I(a){var s=this,r=null,q=A.S(a),p=A.lu(r,r,r,!0,!0,r,r,1,!0,r,0,!1,r,!1,r,r,r,r,!0,r,r,r,r,r,B.aaq,r,r,r,1,r,!0),o=A.bF(20),n=A.b([B.RW,B.cj,B.a9Z,B.dD,A.Ao(r,B.cz,!1,r,!0,B.r,r,A.PQ(),s.d,r,r,r,r,r,2,A.lZ(r,new A.fM(4,A.bF(12),B.dl),r,r,r,r,r,r,!0,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,B.bR,"Correo electr\xf3nico",!0,!0,!1,r,B.tR,r,r,r,r,r,r,r,r,r,r,r,r),B.a6,!0,r,!0,r,!1,r,B.co,r,r,r,r,B.kr,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.cv,r,r,r,r,r,r,r,r,r,r,r,B.aQ,!0,B.ap,r,B.ep,r,r,r,r),B.b5,A.Ao(r,B.cz,!1,r,!0,B.r,r,A.PQ(),s.e,r,r,r,r,r,2,A.lZ(r,new A.fM(4,A.bF(12),B.dl),r,r,r,r,r,r,!0,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,B.bR,"Contrase\xf1a",!0,!0,!1,r,B.tL,r,r,r,r,r,r,r,r,r,r,r,r),B.a6,!0,r,!0,r,!1,r,B.co,r,r,r,r,r,r,r,r,1,r,r,!0,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.cv,r,r,r,r,r,r,r,r,r,r,r,B.aQ,!0,B.ap,r,B.ep,r,r,r,r),B.cj,new A.Dg(s.w,new A.aI2(s),B.x,B.k,B.aaM,B.ua,B.aj,r),B.or],t.p)
 if(s.r)n.push(B.aT)
 else n.push(A.SC(B.ab7,s.gakV(),A.Ek(r,r,B.x,r,r,r,2,r,r,B.k,r,r,B.mg,r,new A.c2(A.bF(12),B.n),r,r,r,r,r)))
 n.push(B.b5)
@@ -52327,7 +52327,7 @@ case 2:return A.t(o.at(-1),r)}})
 return A.v($async$tE,r)},
 l(){this.f.l()
 this.aD()},
-I(a){var s=null,r=A.lu(s,s,s,!0,!0,s,s,1,s,s,s,!1,s,!1,s,s,s,s,!0,s,s,s,s,s,B.a9X,s,s,s,1,s,!0),q=A.b([new A.Gj(this.f,this.gala(),s),A.dS(A.bV(s,s,B.o,s,s,new A.c7(s,s,A.kD(B.c_,3),A.bF(12),s,s,B.a5),s,150,s,s,s,s,s,250),s,s)],t.p)
+I(a){var s=null,r=A.lu(s,s,s,!0,!0,s,s,1,s,s,s,!1,s,!1,s,s,s,s,!0,s,s,s,s,s,B.a9Y,s,s,s,1,s,!0),q=A.b([new A.Gj(this.f,this.gala(),s),A.dS(A.bV(s,s,B.o,s,s,new A.c7(s,s,A.kD(B.c_,3),A.bF(12),s,s,B.a5),s,150,s,s,s,s,s,250),s,s)],t.p)
 if(this.d)q.push(A.bV(s,B.JD,B.o,B.a0,s,s,s,s,s,s,s,s,s,s))
 return A.l3(r,s,A.f4(B.bJ,q,B.r,B.ba),s,!1,s,s)}}
 A.aMk.prototype={
@@ -52433,7 +52433,7 @@ return A.v($async$$0,r)},
 $S:8}
 A.aMZ.prototype={
 $1(a){var s=null,r=A.aP(this.b.i(0,"message"),s,s,s,s,s,s,s)
-return A.mY(A.b([A.hw(B.oR,s,s,new A.aMX(a),s,s),A.hw(B.aah,s,s,new A.aMY(this.a,a,this.c),s,s)],t.p),s,r,s,B.aa_)},
+return A.mY(A.b([A.hw(B.oR,s,s,new A.aMX(a),s,s),A.hw(B.aah,s,s,new A.aMY(this.a,a,this.c),s,s)],t.p),s,r,s,B.aa0)},
 $S:60}
 A.aMX.prototype={
 $0(){A.c1(this.a,!1).dR(null)
@@ -52808,7 +52808,7 @@ r=t.p
 i=A.b([B.aab,B.ck,m,B.b5,l,B.b5,k,B.b5,A.vL(q.w,A.lZ(p,B.hJ,p,p,p,p,p,p,!0,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,p,"Confirmar Nueva Contrase\xf1a",!0,!0,!1,p,p,p,p,p,p,p,p,A.nF(s,i?B.bq:B.ae,p,p),p,p,p,p,p),p,!0,j,!i,p,new A.aOZ(q)),B.ck],r)
 if(q.z)i.push(B.aT)
 else{m=A.Ek(p,p,B.x,p,p,p,p,p,p,B.k,p,p,B.rE,p,p,p,p,p,p,p)
-i.push(new A.Ei(!0,q.gakU(),p,p,p,m,B.o,p,!1,p,!0,p,new A.a1y(B.aaN,B.Sg,m,p,p),p))}return new A.Ey(B.tS,B.aa8,A.b([A.aZk(A.bp(i,B.ca,B.m,B.q),q.d)],r),B.bV,B.bV,B.bp,new A.c2(o,B.n),new A.c2(n,B.n),p)},
+i.push(new A.Ei(!0,q.gakU(),p,p,p,m,B.o,p,!1,p,!0,p,new A.a1y(B.aaN,B.Sg,m,p,p),p))}return new A.Ey(B.tS,B.aa9,A.b([A.aZk(A.bp(i,B.ca,B.m,B.q),q.d)],r),B.bV,B.bV,B.bp,new A.c2(o,B.n),new A.c2(n,B.n),p)},
 I(a){var s=null
 return A.l3(A.lu(A.b([A.h_(s,s,B.Se,s,s,new A.aPe(a),s,s,"Cerrar Sesi\xf3n")],t.p),s,s,!0,!0,s,s,1,s,s,s,!1,s,!1,s,s,s,s,!0,s,s,s,s,s,B.aar,s,s,s,1,s,!0),s,A.pT(new A.aPf(this)),s,!1,s,s)}}
 A.aP4.prototype={
@@ -52836,7 +52836,7 @@ A.aPb.prototype={
 $1(a){return new A.qM(new A.aPa(this.a,this.b,this.c,a),null)},
 $S:170}
 A.aPa.prototype={
-$2(a,b){var s=this,r=null,q=s.c,p=t.p,o=A.bp(A.b([B.aa3,B.ck,A.Ao(r,B.cz,!1,r,!0,B.r,r,A.PQ(),q,r,r,r,r,r,2,B.T9,B.a6,!0,r,!0,r,!1,r,B.co,r,r,r,r,r,r,r,r,1,r,r,!0,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.cv,r,r,r,r,r,r,r,r,r,r,r,B.aQ,!0,B.ap,r,B.ep,r,r,r,r)],p),B.p,B.m,B.an),n=s.d,m=A.hw(B.oQ,r,r,new A.aP8(n),r,r),l=s.a
+$2(a,b){var s=this,r=null,q=s.c,p=t.p,o=A.bp(A.b([B.aa4,B.ck,A.Ao(r,B.cz,!1,r,!0,B.r,r,A.PQ(),q,r,r,r,r,r,2,B.T9,B.a6,!0,r,!0,r,!1,r,B.co,r,r,r,r,r,r,r,r,1,r,r,!0,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.cv,r,r,r,r,r,r,r,r,r,r,r,B.aQ,!0,B.ap,r,B.ep,r,r,r,r)],p),B.p,B.m,B.an),n=s.d,m=A.hw(B.oQ,r,r,new A.aP8(n),r,r),l=s.a
 q=l.a?r:new A.aP9(l,s.b,q,b,n,a)
 n=A.Ek(r,r,B.x,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r)
 return A.mY(A.b([m,A.SC(l.a?B.a3s:B.aau,q,n)],p),B.aY,o,r,B.a1b)},
@@ -52913,7 +52913,7 @@ $S:519}
 A.aOV.prototype={
 $2(a,b){var s,r,q=null
 if(b.a===B.cR)return B.Oy
-if(b.c!=null)return B.a9K
+if(b.c!=null)return B.a9L
 s=b.b
 if(s==null)s=A.b([],t.xc)
 r=J.d4(s)
@@ -54254,7 +54254,7 @@ return A.aP(""+B.d.eU(a)+"\u20ac",s,s,s,s,B.Fu,s,s)},
 $S:307}
 A.yx.prototype={
 I(a){var s=null,r=A.bF(16),q=A.cz(A.b_4(new A.akI(this),J.cD(this.c),s,s,B.W,new A.akJ(),!0),s,17976931348623157e292)
-return A.mY(A.b([A.hw(B.aba,s,s,new A.akK(a),s,s)],t.p),s,q,new A.c2(r,B.n),B.aa2)}}
+return A.mY(A.b([A.hw(B.aba,s,s,new A.akK(a),s,s)],t.p),s,q,new A.c2(r,B.n),B.aa3)}}
 A.akJ.prototype={
 $2(a,b){return B.Pm},
 $S:309}
@@ -54369,7 +54369,7 @@ if(o.length!==0)p.push(A.aZz(s.JB(o),B.c5,200))
 else p.push(B.RT)
 p.push(B.kj)
 o=s.d
-p.push(A.jC(new A.aM(B.bp,A.bp(A.b([A.ih(!1,r,r,r,!0,r,r,!0,r,B.Sd,r,r,r,r,r,!1,r,r,r,r,A.aP(o.c,r,r,r,r,B.aQ,r,r),r,B.aa7,r,r,r),B.mc,A.ih(!1,r,r,r,!0,r,r,!0,r,B.S6,r,r,r,r,r,!1,r,r,r,r,A.aP(o.b,r,r,r,r,B.aQ,r,r),r,B.aaI,r,r,r),B.mc,A.ih(!1,r,r,r,!0,r,r,!0,r,B.S9,r,r,r,r,r,!1,r,r,r,r,A.aP(""+o.e+" unidades",r,r,r,r,B.aQ,r,r),r,B.a9U,r,r,r)],q),B.p,B.m,B.q),r),B.bo,r,r,r))
+p.push(A.jC(new A.aM(B.bp,A.bp(A.b([A.ih(!1,r,r,r,!0,r,r,!0,r,B.Sd,r,r,r,r,r,!1,r,r,r,r,A.aP(o.c,r,r,r,r,B.aQ,r,r),r,B.aa8,r,r,r),B.mc,A.ih(!1,r,r,r,!0,r,r,!0,r,B.S6,r,r,r,r,r,!1,r,r,r,r,A.aP(o.b,r,r,r,r,B.aQ,r,r),r,B.aaI,r,r,r),B.mc,A.ih(!1,r,r,r,!0,r,r,!0,r,B.S9,r,r,r,r,r,!1,r,r,r,r,A.aP(""+o.e+" unidades",r,r,r,r,B.aQ,r,r),r,B.a9V,r,r,r)],q),B.p,B.m,B.q),r),B.bo,r,r,r))
 p.push(B.EU)
 q=s.c
 q.toString
@@ -117905,8 +117905,8 @@ B.ab0=new A.av("No se encontraron resultados",null,B.dE,null,null,null,null,null
 B.Jr=new A.d5(B.D,null,null,B.ab0,null)
 B.ab1=new A.av("No tienes minifiguras en tu colecci\xf3n",null,B.dE,null,null,null,null,null,null,null)
 B.Js=new A.d5(B.D,null,null,B.ab1,null)
-B.aa6=new A.av("Este set no contiene minifiguras.",null,null,null,null,null,null,null,null,null)
-B.Jt=new A.d5(B.D,null,null,B.aa6,null)
+B.aa7=new A.av("Este set no contiene minifiguras.",null,null,null,null,null,null,null,null,null)
+B.Jt=new A.d5(B.D,null,null,B.aa7,null)
 B.MC=new A.o(1,1,0.5411764705882353,0.5019607843137255,B.e)
 B.Op=new A.o(1,1,0.3215686274509804,0.3215686274509804,B.e)
 B.JW=new A.o(1,1,0.09019607843137255,0.26666666666666666,B.e)
@@ -117946,11 +117946,11 @@ B.Jx=new A.d5(B.D,null,null,B.aaS,null)
 B.mj=new A.as(32,32,32,32)
 B.a_o=new A.aM(B.mj,B.eS,null)
 B.Jy=new A.d5(B.D,null,null,B.a_o,null)
-B.a9P=new A.av("No tienes sets en tu colecci\xf3n",null,B.dE,null,null,null,null,null,null,null)
-B.Jz=new A.d5(B.D,null,null,B.a9P,null)
+B.a9Q=new A.av("No tienes sets en tu colecci\xf3n",null,B.dE,null,null,null,null,null,null,null)
+B.Jz=new A.d5(B.D,null,null,B.a9Q,null)
 B.bp=new A.as(16,16,16,16)
-B.a9N=new A.av("Esta minifigura no aparece en ning\xfan set registrado.",null,B.dE,null,null,null,null,null,null,null)
-B.a_p=new A.aM(B.bp,B.a9N,null)
+B.a9O=new A.av("Esta minifigura no aparece en ning\xfan set registrado.",null,B.dE,null,null,null,null,null,null,null)
+B.a_p=new A.aM(B.bp,B.a9O,null)
 B.JA=new A.d5(B.D,null,null,B.a_p,null)
 B.aaw=new A.av("Tu lista de deseos est\xe1 vac\xeda",null,B.cn,null,null,null,null,null,null,null)
 B.JB=new A.d5(B.D,null,null,B.aaw,null)
@@ -118414,8 +118414,8 @@ B.rS=new A.tv(!1,!1,!1,!1)
 B.rT=new A.tv(!1,!1,!1,!0)
 B.j8=new A.Tc(0,"tight")
 B.aA=new A.Aq(2,"ellipsis")
-B.aa9=new A.av("NOVEDADES",null,B.oN,null,null,null,B.aA,null,null,null)
-B.QB=new A.y4(1,B.j8,B.aa9,null)
+B.a9K=new A.av("NOVEDADES RECOMENDADAS",null,B.oN,null,null,null,B.aA,null,null,null)
+B.QB=new A.y4(1,B.j8,B.a9K,null)
 B.QC=new A.y6(null,null,null,null,null,null,null,null,null,null,null,null,null)
 B.j_=new A.np(!1,!1,!1,!1)
 B.j0=new A.np(!1,!1,!1,!0)
@@ -118917,8 +118917,8 @@ B.Ro=new A.bc(58123,"MaterialIcons",!0)
 B.S7=new A.aY(B.Ro,18,B.x,null,null)
 B.fx=new A.co(4,null,null,null)
 B.oO=new A.x(!0,B.x,null,null,null,null,null,B.R,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.aa5=new A.av("Manual",null,B.oO,null,null,null,null,null,null,null)
-B.Vc=s([B.S7,B.fx,B.aa5],t.p)
+B.aa6=new A.av("Manual",null,B.oO,null,null,null,null,null,null,null)
+B.Vc=s([B.S7,B.fx,B.aa6],t.p)
 B.au=new A.Jz(0,"upstream")
 B.Ve=s([B.au,B.l],A.ad("E<Jz>"))
 B.aq=new A.JG(0,"rtl")
@@ -120308,8 +120308,8 @@ B.ab8=new A.av("Deseados",null,null,null,null,null,null,null,null,null)
 B.Z8=new A.q5(B.tM,B.tM,B.ab8)
 B.Sc=new A.aY(B.tH,null,null,null,null)
 B.Sy=new A.aY(B.n4,null,null,null,null)
-B.a9W=new A.av("Buscar",null,null,null,null,null,null,null,null,null)
-B.Z9=new A.q5(B.Sc,B.Sy,B.a9W)
+B.a9X=new A.av("Buscar",null,null,null,null,null,null,null,null,null)
+B.Z9=new A.q5(B.Sc,B.Sy,B.a9X)
 B.RZ=new A.aY(B.tG,null,null,null,null)
 B.SA=new A.aY(B.n1,null,null,null,null)
 B.FC=new A.av("Temas",null,null,null,null,null,null,null,null,null)
@@ -120534,8 +120534,8 @@ B.UA=s([B.Sf,B.on,B.ab2],t.p)
 B.a1b=new A.zE(B.ah,B.m,B.q,B.p,null,B.bH,null,0,B.UA,null)
 B.RG=new A.bc(58880,"MaterialIcons",!1)
 B.RX=new A.aY(B.RG,30,B.ny,null,null)
-B.a9S=new A.av("\xa1Nuevo Logro!",null,null,null,null,null,null,null,null,null)
-B.Wj=s([B.RX,B.on,B.a9S],t.p)
+B.a9T=new A.av("\xa1Nuevo Logro!",null,null,null,null,null,null,null,null,null)
+B.Wj=s([B.RX,B.on,B.a9T],t.p)
 B.a1c=new A.zE(B.ah,B.m,B.q,B.p,null,B.bH,null,0,B.Wj,null)
 B.a1d=new A.Ic(1333)
 B.nX=new A.Ic(2222)
@@ -120824,10 +120824,10 @@ B.aac=new A.av("Avatar actualizado con \xe9xito",null,null,null,null,null,null,n
 B.a3J=new A.dX(B.aac,null,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
 B.aaW=new A.av("Error al eliminar",null,null,null,null,null,null,null,null,null)
 B.a3K=new A.dX(B.aaW,B.c_,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
-B.a9L=new A.av("Las contrase\xf1as no coinciden.",null,null,null,null,null,null,null,null,null)
-B.a3L=new A.dX(B.a9L,B.c_,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
-B.a9M=new A.av("No se ha encontrado ning\xfan set con este c\xf3digo",null,null,null,null,null,null,null,null,null)
-B.a3M=new A.dX(B.a9M,null,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
+B.a9M=new A.av("Las contrase\xf1as no coinciden.",null,null,null,null,null,null,null,null,null)
+B.a3L=new A.dX(B.a9M,B.c_,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
+B.a9N=new A.av("No se ha encontrado ning\xfan set con este c\xf3digo",null,null,null,null,null,null,null,null,null)
+B.a3M=new A.dX(B.a9N,null,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
 B.ab_=new A.av("Error de conexi\xf3n al escanear",null,null,null,null,null,null,null,null,null)
 B.a3N=new A.dX(B.ab_,null,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
 B.aaQ=new A.av("Guardando",null,null,null,null,null,null,null,null,null)
@@ -120836,10 +120836,10 @@ B.aaP=new A.av("Ajustes guardados correctamente",null,null,null,null,null,null,n
 B.a3P=new A.dX(B.aaP,B.bq,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
 B.aag=new A.av("Contrase\xf1a incorrecta",null,null,null,null,null,null,null,null,null)
 B.a3Q=new A.dX(B.aag,B.c_,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
-B.aa4=new A.av("\xa1A\xf1adido a deseados!",null,null,null,null,null,null,null,null,null)
-B.a3R=new A.dX(B.aa4,B.bq,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
-B.aa1=new A.av("Error al registrar. El usuario o correo ya existen.",null,null,null,null,null,null,null,null,null)
-B.a3S=new A.dX(B.aa1,B.c_,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
+B.aa5=new A.av("\xa1A\xf1adido a deseados!",null,null,null,null,null,null,null,null,null)
+B.a3R=new A.dX(B.aa5,B.bq,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
+B.aa2=new A.av("Error al registrar. El usuario o correo ya existen.",null,null,null,null,null,null,null,null,null)
+B.a3S=new A.dX(B.aa2,B.c_,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
 B.aas=new A.av("Campos de contrase\xf1a desbloqueados",null,null,null,null,null,null,null,null,null)
 B.a3T=new A.dX(B.aas,B.bq,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
 B.ab6=new A.av("Error al guardar. Puede que el email o usuario ya existan.",null,null,null,null,null,null,null,null,null)
@@ -120848,12 +120848,12 @@ B.aaR=new A.av("Eliminado de deseados",null,null,null,null,null,null,null,null,n
 B.a3V=new A.dX(B.aaR,B.x,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
 B.aaa=new A.av("A\xf1adido ignorando el l\xedmite",null,null,null,null,null,null,null,null,null)
 B.a3W=new A.dX(B.aaa,B.x,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
-B.a9R=new A.av("Por favor, rellena todos los campos.",null,null,null,null,null,null,null,null,null)
-B.a3X=new A.dX(B.a9R,null,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
+B.a9S=new A.av("Por favor, rellena todos los campos.",null,null,null,null,null,null,null,null,null)
+B.a3X=new A.dX(B.a9S,null,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
 B.aaf=new A.av("No hay manuales en PDF disponibles.",null,null,null,null,null,null,null,null,null)
 B.a3Y=new A.dX(B.aaf,B.x,null,null,null,null,null,null,null,null,null,null,null,B.aL,!1,null,null,null,B.r,null)
-B.a9V=new A.av("Buscando manuales...",null,null,null,null,null,null,null,null,null)
-B.a3Z=new A.dX(B.a9V,null,null,null,null,null,null,null,null,null,null,null,null,B.cU,!1,null,null,null,B.r,null)
+B.a9W=new A.av("Buscando manuales...",null,null,null,null,null,null,null,null,null)
+B.a3Z=new A.dX(B.a9W,null,null,null,null,null,null,null,null,null,null,null,null,B.cU,!1,null,null,null,B.r,null)
 B.F_=new A.J4(0,"permissive")
 B.a4_=new A.J4(1,"normal")
 B.a40=new A.J4(2,"forced")
@@ -121260,24 +121260,24 @@ B.a9G=new A.eP(B.a7r,B.a6k,B.a7s,B.a7V,B.a5X,B.a64,B.a6G,B.a7P,B.a6T,B.a8g,B.a5m
 B.a9H=new A.av("A\xf1adir a Colecci\xf3n",null,B.eq,null,null,null,null,null,null,null)
 B.Fx=new A.av("Cargar m\xe1s",null,B.fC,null,null,null,null,null,null,null)
 B.a9J=new A.av("A\xf1adir a deseados",null,null,null,null,null,null,null,null,null)
-B.a9K=new A.av("Error al cargar insignias",null,B.cn,null,null,null,null,null,null,null)
-B.a9O=new A.av("\xbfSeguro que quieres eliminar este set de tu colecci\xf3n?",null,B.bR,null,null,null,null,null,null,null)
+B.a9L=new A.av("Error al cargar insignias",null,B.cn,null,null,null,null,null,null,null)
+B.a9P=new A.av("\xbfSeguro que quieres eliminar este set de tu colecci\xf3n?",null,B.bR,null,null,null,null,null,null,null)
 B.a73=new A.x(!0,B.j,null,null,null,null,28,B.R,null,null,null,null,1.1,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.a9Q=new A.av("Inicio",null,B.a73,null,null,null,null,null,null,null)
-B.a9T=new A.av("Eliminar Minifigura",null,B.aQ,null,null,null,null,null,null,null)
-B.a9U=new A.av("Cantidad en este set",null,B.bR,null,null,null,null,null,null,null)
-B.a9X=new A.av("Escanear Set",null,null,null,null,null,null,null,null,null)
-B.a9Y=new A.av("Bienvenido de nuevo",null,B.Ft,B.c1,null,null,null,null,null,null)
+B.a9R=new A.av("Inicio",null,B.a73,null,null,null,null,null,null,null)
+B.a9U=new A.av("Eliminar Minifigura",null,B.aQ,null,null,null,null,null,null,null)
+B.a9V=new A.av("Cantidad en este set",null,B.bR,null,null,null,null,null,null,null)
+B.a9Y=new A.av("Escanear Set",null,null,null,null,null,null,null,null,null)
+B.a9Z=new A.av("Bienvenido de nuevo",null,B.Ft,B.c1,null,null,null,null,null,null)
 B.Fz=new A.av("Cerrar",null,B.fC,null,null,null,null,null,null,null)
-B.a9Z=new A.av("Escanear Set",null,B.fB,null,null,null,null,null,null,null)
+B.aa_=new A.av("Escanear Set",null,B.fB,null,null,null,null,null,null,null)
 B.FA=new A.av("Eliminar",null,B.aQ,null,null,null,null,null,null,null)
-B.aa_=new A.av("\u26a0\ufe0f L\xedmite Excedido",null,null,null,null,null,null,null,null,null)
+B.aa0=new A.av("\u26a0\ufe0f L\xedmite Excedido",null,null,null,null,null,null,null,null,null)
 B.a6n=new A.x(!0,B.x,null,null,null,null,null,B.R,null,1.2,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.aa0=new A.av("BRICKSTOCK",null,B.a6n,null,null,null,null,null,null,null)
-B.aa2=new A.av("Manuales disponibles",null,B.fB,null,null,null,null,null,null,null)
-B.aa3=new A.av("Por favor, introduce tu contrase\xf1a actual para desbloquear la edici\xf3n de contrase\xf1a.",null,B.bR,null,null,null,null,null,null,null)
-B.aa7=new A.av("Nombre",null,B.bR,null,null,null,null,null,null,null)
-B.aa8=new A.av("Ajustes de Cuenta",null,B.eq,null,null,null,null,null,null,null)
+B.aa1=new A.av("BRICKSTOCK",null,B.a6n,null,null,null,null,null,null,null)
+B.aa3=new A.av("Manuales disponibles",null,B.fB,null,null,null,null,null,null,null)
+B.aa4=new A.av("Por favor, introduce tu contrase\xf1a actual para desbloquear la edici\xf3n de contrase\xf1a.",null,B.bR,null,null,null,null,null,null,null)
+B.aa8=new A.av("Nombre",null,B.bR,null,null,null,null,null,null,null)
+B.aa9=new A.av("Ajustes de Cuenta",null,B.eq,null,null,null,null,null,null,null)
 B.aab=new A.av("Deja en blanco la contrase\xf1a si no quieres cambiarla.",null,B.cG,null,null,null,null,null,null,null)
 B.aad=new A.av("En Colecci\xf3n",null,B.cG,null,null,null,null,null,null,null)
 B.aah=new A.av("Ignorar y A\xf1adir",null,B.Fw,null,null,null,null,null,null,null)

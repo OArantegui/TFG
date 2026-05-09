@@ -83,7 +83,7 @@ class _MainLayoutState extends State<MainLayout> {
         bool showBottomBar = isMobile;
 
         return Scaffold(
-          extendBody: true,
+          extendBody: false,
           body: Row(
             children: [
               if (!isMobile) ...[

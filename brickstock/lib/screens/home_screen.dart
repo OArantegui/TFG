@@ -176,7 +176,7 @@ class HomeScreen extends StatelessWidget {
             ),
 
             // Espacio extra al final para que no se pegue al borde inferior
-            const SliverToBoxAdapter(child: SizedBox(height: 40)),
+            const SliverToBoxAdapter(child: SizedBox(height: 80)),
           ],
         ),
       ),

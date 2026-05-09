@@ -166,9 +166,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          appBarTitle
-        ),
+        title: Text(appBarTitle),
         leading: !_isGlobalSearch
             ? IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.orange),
@@ -320,17 +318,21 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                   builder: (context, constraints) {
                     // Parámetros de seguridad para el Grid
                     const double maxColumnWidth = 450.0;
-                    const double minItemHeight = 125.0; 
+                    const double minItemHeight = 125.0;
 
                     // Cálculo matemático dinámico
-                    int columns = (constraints.maxWidth / maxColumnWidth).ceil();
+                    int columns = (constraints.maxWidth / maxColumnWidth)
+                        .ceil();
                     if (columns < 1) columns = 1;
-                    
+
                     double itemWidth = constraints.maxWidth / columns;
                     double dynamicAspectRatio = itemWidth / minItemHeight;
 
                     return GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 4.0,
+                      ),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: columns,
                         childAspectRatio: dynamicAspectRatio,
@@ -342,16 +344,26 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                         if (index == _sets.length) {
                           return Center(
                             child: _isLoadingMore
-                                ? const CircularProgressIndicator(color: Colors.orange)
+                                ? const CircularProgressIndicator(
+                                    color: Colors.orange,
+                                  )
                                 : OutlinedButton.icon(
-                                    icon: const Icon(Icons.add_circle_outline, color: Colors.orange),
-                                    label: const Text('Cargar más', style: TextStyle(color: Colors.orange)),
+                                    icon: const Icon(
+                                      Icons.add_circle_outline,
+                                      color: Colors.orange,
+                                    ),
+                                    label: const Text(
+                                      'Cargar más',
+                                      style: TextStyle(color: Colors.orange),
+                                    ),
                                     onPressed: () {
                                       _currentPage++;
                                       _loadSets();
                                     },
                                     style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(color: Colors.orange),
+                                      side: const BorderSide(
+                                        color: Colors.orange,
+                                      ),
                                     ),
                                   ),
                           );
@@ -363,8 +375,12 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: ListTile( // Sin el Center() para usar todo el alto de la Card
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                          child: ListTile(
+                            // Sin el Center() para usar todo el alto de la Card
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12.0,
+                              vertical: 8.0,
+                            ),
                             leading: ClipRRect(
                               borderRadius: BorderRadius.circular(6.0),
                               child: Container(
@@ -381,10 +397,11 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                                       color: Colors.orange,
                                     ),
                                   ),
-                                  errorWidget: (context, url, error) => const Icon(
-                                    Icons.broken_image,
-                                    color: Colors.grey,
-                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(
+                                        Icons.broken_image,
+                                        color: Colors.grey,
+                                      ),
                                 ),
                               ),
                             ),
@@ -406,12 +423,19 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                                 children: [
                                   Text(
                                     'Set: ${legoSet.setNum} • Año: ${legoSet.year}',
-                                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                   const SizedBox(height: 2),
                                   Row(
                                     children: [
-                                      const Icon(Icons.extension, size: 12, color: Colors.orange),
+                                      const Icon(
+                                        Icons.extension,
+                                        size: 12,
+                                        color: Colors.orange,
+                                      ),
                                       const SizedBox(width: 4),
                                       Text(
                                         '${legoSet.numParts} piezas',
@@ -426,11 +450,15 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                                 ],
                               ),
                             ),
-                            trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                            trailing: const Icon(
+                              Icons.chevron_right,
+                              color: Colors.grey,
+                            ),
                             onTap: () {
                               Navigator.of(context, rootNavigator: true).push(
                                 MaterialPageRoute(
-                                  builder: (context) => SetDetailsScreen(legoSet: legoSet),
+                                  builder: (context) =>
+                                      SetDetailsScreen(legoSet: legoSet),
                                 ),
                               );
                             },
@@ -484,35 +512,51 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                     const double maxColumnWidth = 450.0;
                     const double minItemHeight = 125.0;
 
-                    int columns = (constraints.maxWidth / maxColumnWidth).ceil();
+                    int columns = (constraints.maxWidth / maxColumnWidth)
+                        .ceil();
                     if (columns < 1) columns = 1;
 
                     double itemWidth = constraints.maxWidth / columns;
                     double dynamicAspectRatio = itemWidth / minItemHeight;
 
                     return GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 4.0,
+                      ),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: columns,
                         childAspectRatio: dynamicAspectRatio,
                         crossAxisSpacing: 4.0,
                         mainAxisSpacing: 4.0,
                       ),
-                      itemCount: _minifigs.length + (_nextMinifigsPageUrl != null ? 1 : 0),
+                      itemCount:
+                          _minifigs.length +
+                          (_nextMinifigsPageUrl != null ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index == _minifigs.length) {
                           return Center(
                             child: _isLoadingMoreMinifigs
-                                ? const CircularProgressIndicator(color: Colors.orange)
+                                ? const CircularProgressIndicator(
+                                    color: Colors.orange,
+                                  )
                                 : OutlinedButton.icon(
-                                    icon: const Icon(Icons.add_circle_outline, color: Colors.orange),
-                                    label: const Text('Cargar más', style: TextStyle(color: Colors.orange)),
+                                    icon: const Icon(
+                                      Icons.add_circle_outline,
+                                      color: Colors.orange,
+                                    ),
+                                    label: const Text(
+                                      'Cargar más',
+                                      style: TextStyle(color: Colors.orange),
+                                    ),
                                     onPressed: () {
                                       _minifigsPage++;
                                       _loadMinifigs();
                                     },
                                     style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(color: Colors.orange),
+                                      side: const BorderSide(
+                                        color: Colors.orange,
+                                      ),
                                     ),
                                   ),
                           );
@@ -525,7 +569,10 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12.0,
+                              vertical: 8.0,
+                            ),
                             leading: ClipRRect(
                               borderRadius: BorderRadius.circular(6.0),
                               child: Container(
@@ -544,7 +591,10 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                                     ),
                                   ),
                                   errorWidget: (context, url, error) =>
-                                      const Icon(Icons.face, color: Colors.black),
+                                      const Icon(
+                                        Icons.face,
+                                        color: Colors.black,
+                                      ),
                                 ),
                               ),
                             ),
@@ -566,12 +616,19 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                                 children: [
                                   Text(
                                     'ID: ${fig.figNum}',
-                                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                   const SizedBox(height: 2),
                                   Row(
                                     children: [
-                                      const Icon(Icons.extension, size: 12, color: Colors.orange),
+                                      const Icon(
+                                        Icons.extension,
+                                        size: 12,
+                                        color: Colors.orange,
+                                      ),
                                       const SizedBox(width: 4),
                                       Text(
                                         '${fig.numParts} piezas',
@@ -586,11 +643,15 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                                 ],
                               ),
                             ),
-                            trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                            trailing: const Icon(
+                              Icons.chevron_right,
+                              color: Colors.grey,
+                            ),
                             onTap: () {
                               Navigator.of(context, rootNavigator: true).push(
                                 MaterialPageRoute(
-                                  builder: (context) => MinifigDetailsScreen(minifigure: fig),
+                                  builder: (context) =>
+                                      MinifigDetailsScreen(minifigure: fig),
                                 ),
                               );
                             },

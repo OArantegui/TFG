@@ -27,7 +27,7 @@ exports.validateCollectionInput = [
         .optional() // Es opcional porque nuestro modelo le pone 1 por defecto
         .isInt({ min: 1 }).withMessage('La cantidad debe ser un número entero mayor o igual a 1'),
     
-    // Verificamos el precio de compra (debe ser número y no negativo)
+    // Verificamos el precio de compra
     body('purchasePrice')
         .exists().withMessage('El precio de compra es obligatorio')
         .isFloat({ min: 0 }).withMessage('El precio de compra debe ser un número positivo o 0'),

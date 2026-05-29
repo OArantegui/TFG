@@ -85,7 +85,7 @@ exports.addSetToCollection = async (req, res) => {
             }
         } catch (figError) {
             // Capturamos el error pero NO paramos la ejecución, porque el Set ya se ha guardado
-            console.error("Error al auto-añadir minifiguras del set:", figError.message);
+            console.error("Error al añadir minifiguras del set:", figError.message);
         }
 
         // Comprobamos insignias
@@ -111,12 +111,12 @@ exports.getUserCollection = async (req, res) => {
         //Buscamos la colección del usuario en MongoDB
         const collection = await Collection.find({ userId: req.user.id });
 
-        //Enriquecemos cada item con datos de Rebrickable BFF
+        //Enriquecemos cada item con datos
         const enrichedCollection = await Promise.all(collection.map(async (item) => {
             let setDetails = {};
             let themeName = 'Desconocido';
             try {
-                //Llamamos a nuestra caché/servicio de Rebrickable.
+                //Servicio API Rebrickable
                 setDetails = await rebrickableService.getSetByNum(item.setNum); 
                 
                 //Nombre del tema
@@ -153,7 +153,7 @@ exports.getUserCollection = async (req, res) => {
 // DELETE: Borrar set de la colección
 exports.deleteCollectionItem = async (req, res) => {
     try {
-        //Buscamos y eliminamos el set de la colección principal
+        //Buscamos set de la colección principal
         const deletedItem = await Collection.findOneAndDelete({ 
             _id: req.params.id, 
             userId: req.user.id 
@@ -300,10 +300,10 @@ exports.getCollectionMarketData = async (req, res) => {
         let totalMarket = 0;
         const historyMap = {};
 
-        // Recorremos cada set de la colección usando SOLO nuestra base de datos (0 llamadas externas)
+        // Recorremos cada set de la colección usando nuestra base de datos
         collectionItems.forEach((item) => {
             try {
-                // Recuperamos la caché que guardamos el día que el usuario añadió el set
+                // Recuperamos la caché
                 const cache = item.marketDataCache || {};
 
                 // Generamos su curva de mercado individual
@@ -312,7 +312,7 @@ exports.getCollectionMarketData = async (req, res) => {
                     cache.pieces || 0,
                     cache.year || new Date().getFullYear(),
                     cache.rrp, 
-                    null, // availability (pasamos null porque con la exitDate el motor ya sabe si está descatalogado)
+                    null, // availability no hace falta con exitDate
                     cache.exitDate, 
                     cache.launchDate 
                 );
@@ -333,7 +333,7 @@ exports.getCollectionMarketData = async (req, res) => {
             } catch (error) {
                 console.error(`Error calculando mercado global para ${item.setNum}:`, error.message);
             }
-        }); // Fíjate que ya no hay await Promise.all, el bucle ahora es instantáneo
+        }); 
 
         // Convertimos el diccionario de meses en un array ordenado
         const historyArray = Object.keys(historyMap).map(month => ({

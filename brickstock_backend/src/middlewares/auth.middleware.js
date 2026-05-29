@@ -20,7 +20,7 @@ exports.verifyJWT = (req, res, next) => {
         //Verificamos que el token es real y fue firmado por nuestro servidor
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        //Guardamos los datos decodificados del usuario (su ID) dentro del objeto 'req'
+        //Guardamos los datos decodificados del usuario dentro del objeto 'req'
         req.user = decoded;
 
         next();

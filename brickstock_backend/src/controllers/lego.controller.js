@@ -40,7 +40,7 @@ const getImageProxy = async (req, res) => {
             responseType: 'arraybuffer',
             timeout: 8000, 
             headers: {
-                // Cabeceras exactas de Google Chrome actual para saltar el Firewall
+                // Cabeceras exactas de Google Chrome para saltar el Firewall
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
                 'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
                 'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
@@ -165,7 +165,7 @@ const getSetMarketData = async (req, res) => {
     try {
         const { setId } = req.params;
         
-        //Llamada en paralelo: Rebrickable (piezas/año) + Brickset (precio/estado)
+        //Llamada en paralelo a ambas apis
         const [setDetails, bricksetData] = await Promise.all([
             rebrickableService.getSetByNum(setId),
             bricksetService.getSetDetails(setId).catch(() => null)
@@ -175,11 +175,11 @@ const getSetMarketData = async (req, res) => {
             return res.status(404).json({ message: 'Set no encontrado en Rebrickable' });
         }
 
-        //Extraer precios reales y FECHAS
+        //Extraer precios reales y Fechas
         let rrp = null;
         let availability = null;
         let exitDate = null;
-        let launchDate = null; // NUEVA VARIABLE
+        let launchDate = null; 
 
         if (bricksetData) {
             availability = bricksetData.availability;
@@ -187,7 +187,6 @@ const getSetMarketData = async (req, res) => {
             launchDate = bricksetData.launchDate; // Extraemos la fecha de salida
 
             if (bricksetData.LEGOCom) {
-                // Como es un Map de Mongoose, debemos usar .get('DE') en lugar de .DE
                 const deData = bricksetData.LEGOCom.get ? bricksetData.LEGOCom.get('DE') : bricksetData.LEGOCom.DE;
                 const usData = bricksetData.LEGOCom.get ? bricksetData.LEGOCom.get('US') : bricksetData.LEGOCom.US;
 
@@ -207,7 +206,7 @@ const getSetMarketData = async (req, res) => {
             rrp,
             availability,
             exitDate,
-            launchDate // PASAMOS EL NUEVO PARÁMETRO AL MOTOR
+            launchDate
         );
 
         res.status(200).json(marketData);
@@ -242,12 +241,12 @@ const scanBarcode = async (req, res) => {
         let rrp = null;
         let availability = null;
         let exitDate = null;
-        let launchDate = null; // NUEVA VARIABLE
+        let launchDate = null; 
 
         if (bricksetData) {
             availability = bricksetData.availability;
             exitDate = bricksetData.exitDate;
-            launchDate = bricksetData.launchDate; // Extraemos la fecha de salida
+            launchDate = bricksetData.launchDate; 
 
             if (bricksetData.LEGOCom) {
                 const deData = bricksetData.LEGOCom.get ? bricksetData.LEGOCom.get('DE') : bricksetData.LEGOCom.DE;
@@ -257,7 +256,6 @@ const scanBarcode = async (req, res) => {
             }
         }
 
-        //NORMALIZACIÓN DE DATOS
         const actualSet = setDetails.data ? setDetails.data : setDetails;
         //Prevenimos fallos en nombres de campos poniendo distintas opciones
         const safeImgUrl = actualSet.set_img_url || actualSet.imageUrl || actualSet.imgUrl || actualSet.image || '';       
@@ -272,10 +270,10 @@ const scanBarcode = async (req, res) => {
             rrp,
             availability,
             exitDate,
-            launchDate // PASAMOS EL NUEVO PARÁMETRO
+            launchDate 
         );
 
-        //Json blindado, combinando los datos de ambas apis
+        //Json combinando los datos de ambas apis
         const responseData = {
             // Forzamos los nombres exactos que espera LegoSet.fromJson
             set_num: actualSet.set_num || actualSet._id || actualSet.id || setId,

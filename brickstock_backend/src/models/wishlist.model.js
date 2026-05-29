@@ -11,7 +11,6 @@ const wishlistSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  // Precio objetivo: Para mandarle un aviso push/email si el set baja de este precio (Feature pro para el TFG)
   targetPrice: {
     type: Number,
     min: 0

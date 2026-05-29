@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const bricksetCacheSchema = new mongoose.Schema({
-    setID: { type: Number, required: true, unique: true }, // ID interno numérico de Brickset
-    number: { type: String, required: true, index: true }, // Numero de set (ID de rebrickable)
+    setID: { type: Number, required: true, unique: true }, // ID de Brickset
+    number: { type: String, required: true, index: true }, // ID de rebrickable
     name: { type: String },
     year: { type: Number },
     theme: { type: String },
@@ -54,7 +54,7 @@ const bricksetCacheSchema = new mongoose.Schema({
         EU: { type: String }
     },
 
-    // Campo de control nuestro para saber cuándo caduca la info
+    // Campo de control para saber cuándo caduca la info
     lastUpdatedServer: { type: Date, default: Date.now }
 });
 

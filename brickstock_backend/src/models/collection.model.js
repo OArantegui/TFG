@@ -20,7 +20,7 @@ const colectionSchema = new mongoose.Schema({
     min: [1, 'No puedes tener menos de 1 set en tu colección'],
     default: 1
   },
-  purchasePrice: { //Revisar esto
+  purchasePrice: { //Obsoleto
     type: Number,
     required: true,
     min: 0,

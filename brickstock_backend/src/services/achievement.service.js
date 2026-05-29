@@ -4,7 +4,7 @@ const User = require('../models/user.model');
 const Collection = require('../models/collection.model');
 const MinifigCollection = require('../models/minifig_collection.model');
 
-// Semillero: Crea los logros base si no existen
+// Semillero: Crea los logros base
 const seedAchievements = async () => {
     try {
         const count = await Achievement.countDocuments();
@@ -38,7 +38,7 @@ const seedAchievements = async () => {
     }
 };
 
-// Comprobador: Evaluamos toda la cuenta del usuario
+//Evaluamos toda la cuenta del usuario
 const syncCollectionAchievements = async (userId) => {
     try {
         const user = await User.findById(userId);
@@ -46,24 +46,24 @@ const syncCollectionAchievements = async (userId) => {
 
         const userObjId = new mongoose.Types.ObjectId(userId);
 
-        // 1. Calcular Total de Sets
+        //Calcular Total de Sets
         const totalSets = await Collection.countDocuments({ userId: userObjId });
 
-        // 2. Calcular Total de Minifiguras usando Agregación
+        //Calcular Total de Minifiguras usando Agregación
         const minifigsAgg = await MinifigCollection.aggregate([
             { $match: { userId: userObjId } },
             { $group: { _id: null, total: { $sum: "$quantity" } } }
         ]);
         const totalMinifigs = minifigsAgg.length > 0 ? minifigsAgg[0].total : 0;
 
-        // 3. Calcular Inversión Total (Precio Compra * Cantidad)
+        //Calcular Inversión Total (Precio Compra * Cantidad)
         const valueAgg = await Collection.aggregate([
             { $match: { userId: userObjId } },
             { $group: { _id: null, totalValue: { $sum: { $multiply: ["$purchasePrice", "$quantity"] } } } }
         ]);
         const totalValue = valueAgg.length > 0 ? valueAgg[0].totalValue : 0;
 
-        // 4. Calcular máximo de sets en un solo tema
+        //Calcular máximo de sets en un solo tema
         const themeAgg = await Collection.aggregate([
             { $match: { userId: userObjId, "marketDataCache.rootThemeId": { $ne: null } } },
             { $group: { _id: "$marketDataCache.rootThemeId", count: { $sum: "$quantity" } } },
@@ -72,7 +72,7 @@ const syncCollectionAchievements = async (userId) => {
         ]);
         const maxThemeSets = themeAgg.length > 0 ? themeAgg[0].count : 0;
 
-        // Recuperar todos los logros de la BBDD
+        //Recuperar todos los logros de la BBDD
         const allAchievements = await Achievement.find();
         let newlyUnlocked = [];
         let changed = false;
@@ -82,7 +82,7 @@ const syncCollectionAchievements = async (userId) => {
                 ua => ua.achievement.toString() === ach._id.toString()
             );
             
-            // Decidir qué métrica mirar según el tipo de logro
+            //Decidir qué métrica mirar según el tipo de logro
             let metricToCompare = 0;
             switch(ach.conditionType) {
                 case 'COLLECTION_COUNT': metricToCompare = totalSets; break;

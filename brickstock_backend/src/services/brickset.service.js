@@ -36,10 +36,10 @@ const mapBricksetData = (rawSet) => {
     };
 };
 
-//Obtiene los detalles de un set usando su ID (ej. "42115-1")
+//Obtiene los detalles de un set usando su ID
 const getSetDetails = async (setId) => {
     try {
-        // Buscar en nuestra base de datos
+        // Buscar en bbdd
         const cachedSet = await BricksetCache.findOne({ number: setId });
         
         if (cachedSet) {
@@ -47,7 +47,7 @@ const getSetDetails = async (setId) => {
             const THIRTY_DAYS_IN_MS = 30 * 24 * 60 * 60 * 1000;
             const cacheAge = Date.now() - new Date(cachedSet.lastUpdatedServer).getTime();
 
-            // Si lleva menos de 30 días, lo servimos desde BD
+            // Si lleva menos de 30 días, lo servimos desde bbdd
             if (cacheAge < THIRTY_DAYS_IN_MS) {
                 console.log(`Sirviendo set ${setId} desde bbdd`);
                 return cachedSet;
@@ -62,31 +62,31 @@ const getSetDetails = async (setId) => {
         const response = await axios.get(BASE_URL, {
             params: {
                 apiKey: API_KEY,
-                userHash: '', // Campo de brickset, no es necesario para búsquedas públicas
-                params: JSON.stringify({ setNumber: setId }) // Brickset pide un JSON stringificado aquí
+                userHash: '',
+                params: JSON.stringify({ setNumber: setId }) //La API requiere formatearlo
             }
         });
 
-        // Verificamos si la API devolvió resultados
+        // Verificamos si la API devuelve success
         if (response.data.status === 'success' && response.data.matches > 0) {
             const rawSet = response.data.sets[0];
             
-            // Limpiamos los datos como nos interesa
+            //Mapeamos
             const cleanData = mapBricksetData(rawSet);
             
-            // Actualizamos el campo de control
+            //Actualizamos el campo de control
             cleanData.lastUpdatedServer = Date.now();
 
-            // Guardamos o actualizamos en bbdd usando patrón Upsert
+            // Guardamos en bbdd usando  Upsert
             const savedSet = await BricksetCache.findOneAndUpdate(
                 { number: setId },         // Condición de búsqueda
                 { $set: cleanData },       // Datos a actualizar
-                { new: true, upsert: true } // Opciones: 'new' devuelve el doc actualizado, 'upsert' lo crea si no existe
+                { new: true, upsert: true } //Crear o actualizar
             );
             
             return savedSet;
         } else {
-            // Si el set no existe en Brickset, devolvemos null
+            // Si el set no existe, devolvemos null
             return null;
         }
 
@@ -96,7 +96,7 @@ const getSetDetails = async (setId) => {
     }
 };
 
-//Busca un set por código de barras escaneado
+//Busca un set por código de barras
 const getSetByBarcode = async (barcode) => {
     try {
         // Buscar en base de datos (por EAN o UPC)
@@ -122,7 +122,7 @@ const getSetByBarcode = async (barcode) => {
             console.log(`El set del código ${barcode} lleva >30 días. Refrescando datos...`);
         }
 
-        // Si no está en Mongo, llamamos a la API de Brickset
+        // Si no está en Mongo, llamamos a la API
         console.log(`Buscando código de barras ${barcode} en Brickset...`);
         const response = await axios.get(BASE_URL, {
             params: {
@@ -139,14 +139,14 @@ const getSetByBarcode = async (barcode) => {
             const cleanData = mapBricksetData(rawSet);
             cleanData.lastUpdatedServer = Date.now();
 
-            // Upsert (Actualizar o Insertar)
+            // Upsert
             await BricksetCache.findOneAndUpdate(
                 { number: cleanData.number }, // Condición de búsqueda
                 { $set: cleanData },          // Nuevos datos
                 { new: true, upsert: true }   // Insertar si no existe
             );
 
-            // Devolvemos el ID del set (BFF)
+            // Devolvemos el ID del set
             return cleanData.number; 
         } else {
             return null; // Código de barras no encontrado
@@ -158,22 +158,21 @@ const getSetByBarcode = async (barcode) => {
     }
 };
 
-//Obtiene las instrucciones de montaje de un set usando su ID
+//Instrucciones de set
 const getInstructions = async (setId) => {
     try {
-        // Necesitamos el 'setID' interno de Brickset no el de Rebrickable
         let cachedSet = await BricksetCache.findOne({ number: setId });
         
-        // Si por algún motivo no lo tenemos en caché, lo descargamos primero
+        //si falla cache
         if (!cachedSet) {
             cachedSet = await getSetDetails(setId);
-            // Si después de buscarlo en la API sigue sin existir, salimos
+            // Si no existe salimos
             if (!cachedSet) return [];
         }
 
-        const internalSetID = cachedSet.setID; // Número entero que quiere Brickset
+        const internalSetID = cachedSet.setID;
 
-        // Llamada a la API de Brickset con el parámetro directo
+        // Llamada a la API
         const response = await axios.get('https://brickset.com/api/v3.asmx/getInstructions', {
             params: {
                 apiKey: API_KEY,

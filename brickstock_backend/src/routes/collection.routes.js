@@ -6,7 +6,7 @@ const collectionController = require('../controllers/collection.controller');
 const { verifyJWT } = require('../middlewares/auth.middleware');
 const { validateCollectionInput, checkValidationErrors } = require('../middlewares/validation.middleware');
 
-// POST Añadir a la Colección (Una sola vez y con todos los escudos)
+// POST Añadir a la Colección
 router.post('/', 
     verifyJWT, 
     validateCollectionInput, 

@@ -4,7 +4,7 @@ const crypto = require('crypto');
  * Genera la evolución de mercado simulada desde el lanzamiento hasta hoy.
  */
 const generateMockMarketData = (setId, numParts, year, rrp, availability, exitDate, launchDate) => {
-    // 1. Semilla determinista: El set siempre se comporta igual cada vez que lo consultas
+    //El set siempre se comporta igual cada vez que lo consultas
     const hash = crypto.createHash('md5').update(setId).digest('hex');
     const seed = parseInt(hash.substring(0, 8), 16);
 
@@ -12,15 +12,14 @@ const generateMockMarketData = (setId, numParts, year, rrp, availability, exitDa
     // Si no hay fecha exacta de lanzamiento, asumimos el 1 de enero del año de salida
     const start = launchDate ? new Date(launchDate) : new Date(year, 0, 1);
     
-    // Esto evita que sets lanzados a final de mes no computen en el mes actual
     start.setDate(1);
     start.setHours(0, 0, 0, 0);
     
-    // 2. Definición de precios iniciales
-    let basePrice = rrp ? rrp : ((numParts && numParts > 0) ? (numParts * 0.10) : 20.0);
+    //Definición de precios iniciales
+    let basePrice = rrp ? rrp : ((numParts && numParts > 0) ? (numParts * 0.10) : 20.0); //si no hay precio oficial, simulamos
     let currentMovingPrice = basePrice;
     
-    // 3. Parámetros de "personalidad" del set (basados en la semilla)
+    //Parámetros que varian precio
     const isExclusive = availability && availability.toLowerCase().includes('exclusive');
     const retailDiscount = isExclusive ? 0 : (seed % 15) / 100; // Descuento en tienda (0-15%)
     const scarcityJump = 1.15 + ((seed % 15) / 100); // Salto al retirar (15-30%)
@@ -31,9 +30,8 @@ const generateMockMarketData = (setId, numParts, year, rrp, availability, exitDa
     let tempDate = new Date(start);
     let hasRetiredInSim = false;
 
-    // 4. Bucle de simulación: Caminamos desde el pasado hasta el presente
     while (tempDate <= now) {
-        // ¿Ha llegado el momento de la retirada?
+        // Retirado
         if (!hasRetiredInSim && exitDate) {
             if (tempDate > new Date(exitDate)) {
                 hasRetiredInSim = true;
@@ -51,7 +49,7 @@ const generateMockMarketData = (setId, numParts, year, rrp, availability, exitDa
         let priceThisMonth = currentMovingPrice;
 
         if (!hasRetiredInSim) {
-            // Mientras está en tiendas, el precio fluctúa según el descuento retail
+            //solo variamos con el descuento si esta en tiendas
             priceThisMonth = basePrice * (1 - retailDiscount);
         } else {
             // Una vez retirado, el precio base del mercado sube mensualmente
@@ -63,7 +61,7 @@ const generateMockMarketData = (setId, numParts, year, rrp, availability, exitDa
         const noise = (((seed + tempDate.getMonth()) % 30) - 15) / 1000;
         
         history.push({
-            month: tempDate.toISOString().substring(0, 7), // Formato YYYY-MM
+            month: tempDate.toISOString().substring(0, 7),
             price: parseFloat((priceThisMonth * (1 + noise)).toFixed(2))
         });
 
@@ -71,7 +69,7 @@ const generateMockMarketData = (setId, numParts, year, rrp, availability, exitDa
         tempDate.setMonth(tempDate.getMonth() + 1);
     }
 
-    // 5. El valor actual es el último punto de la historia
+    //El valor actual es el último punto de la historia
     const currentMarketValue = history[history.length - 1].price;
 
     return {

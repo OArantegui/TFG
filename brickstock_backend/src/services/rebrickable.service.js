@@ -40,13 +40,13 @@ const getThemeById = async (themeId) => {
     if (themeDetailsCache[themeId]) return themeDetailsCache[themeId];
 
     try {
-        // Usamos nuestro apiClient configurado
+        // Usamos nuestro servicio
         const response = await apiClient.get(`/themes/${themeId}/`);
         themeDetailsCache[themeId] = response.data;
         return response.data;
     } catch (error) {
         console.error(`Error al obtener el tema ${themeId}:`, error.message);
-        return { name: `Tema ${themeId}` }; // Fallback de seguridad
+        return { name: `Tema ${themeId}` };
     }
 };
 
@@ -63,7 +63,7 @@ const getThemes = async (page = 1, search = '', sort = 'id_desc') => {
             lastThemesFetchTime = currentTime;
         }
 
-        // Creamos un diccionario para búsquedas ultra rápidas O(1)
+        //Diccionario O(1) para evitar colapsos por búsqueda recursiva
         const themeDict = {};
         allThemesCache.forEach(t => themeDict[t.id] = t);
 
@@ -102,7 +102,7 @@ const getThemes = async (page = 1, search = '', sort = 'id_desc') => {
             return 0;
         });
 
-        // PAGINACIÓN (Slice)
+        // PAGINACIÓN
         const startIndex = (page - 1) * pageSize;
         const endIndex = startIndex + pageSize;
         const paginatedThemes = filteredThemes.slice(startIndex, endIndex);
@@ -227,7 +227,7 @@ const getSetMinifigs = async (setNum) => {
 
   } catch (error) {
     console.error(`Error fetching minifigs for set ${setNum} from Rebrickable:`, error.message);
-    if (setMinifigsCache[setNum]) return setMinifigsCache[setNum].data; // AÑADIDO: Salvavidas
+    if (setMinifigsCache[setNum]) return setMinifigsCache[setNum].data; 
     throw error;
   }
 };
@@ -263,7 +263,7 @@ const getMinifigSets = async (figNum) => {
 
   } catch (error) {
     console.error(`Error fetching sets for minifig ${figNum}:`, error.message);
-    if (minifigSetsCache[figNum]) return minifigSetsCache[figNum].data; // Salvavidas
+    if (minifigSetsCache[figNum]) return minifigSetsCache[figNum].data;
     throw error;
   }
 };
@@ -291,7 +291,7 @@ const getAllSets = async (page = 1, search = '') => {
     }
 };
 
-// Obtener lista paginada de minifiguras (para el buscador del Frontend)
+// Obtener lista paginada de minifiguras
 const getAllMinifigs = async (page = 1, search = '') => {
     try {
         let url = `/minifigs/?page_size=20&page=${page}`;
@@ -332,7 +332,7 @@ const getMinifigDetails = async (figNum) => {
         throw error;
     }
 };
-// Sube por el árbol genealógico de temas hasta encontrar el Tema Principal (Raíz)
+// Sube por el árbol genealógico de temas hasta encontrar el Tema Principal
 const getRootThemeId = async (themeId) => {
     try {
         // Nos aseguramos de que la caché de temas está cargada
@@ -353,7 +353,7 @@ const getRootThemeId = async (themeId) => {
         return currentThemeId;
     } catch (error) {
         console.error("Error buscando el tema raíz:", error.message);
-        return themeId; // Fallback de seguridad: devolvemos el original si falla
+        return themeId;
     }
 };
 

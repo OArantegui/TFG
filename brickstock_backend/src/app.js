@@ -19,8 +19,7 @@ app.use(cors({
   origin: function (origin, callback) {
     // Permitir peticiones sin origen
     if (!origin) return callback(null, true);
-    // BORRAR EN SU MOMENTO
-    // 2. Permitir cualquier petición desde localhost, 127.0.0.1 o el emulador de Android (10.0.2.2)
+    //OBSOLETO
     if (origin.startsWith('http://localhost') || 
         origin.startsWith('http://127.0.0.1') || 
         origin.startsWith('http://10.0.2.2')) {

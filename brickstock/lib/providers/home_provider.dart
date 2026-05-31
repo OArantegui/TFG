@@ -28,7 +28,8 @@ class HomeProvider extends ChangeNotifier {
       List<String> userSetNums = [];
 
       try {
-        final List<CollectionItem> collection = await _apiService.getUserCollection();
+        final List<CollectionItem> collection = await _apiService
+            .getUserCollection();
 
         for (var item in collection) {
           userSetNums.add(item.setNum);
@@ -47,12 +48,15 @@ class HomeProvider extends ChangeNotifier {
         }
 
         final favoriteThemeId = themeCounts.entries
-            .reduce((a, b) => a.value > b.value ? a : b).key;
-            
+            .reduce((a, b) => a.value > b.value ? a : b)
+            .key;
+
         debugPrint("Tema favorito detectado ID: $favoriteThemeId");
 
-        // SOLUCIÓN: Usamos tu método getSetsByTheme en lugar de getAllSets
-        final responseSets = await _apiService.getSetsByTheme(favoriteThemeId, page: 1);
+        final responseSets = await _apiService.getSetsByTheme(
+          favoriteThemeId,
+          page: 1,
+        );
         final List<LegoSet> themeSets = responseSets['sets'] as List<LegoSet>;
 
         // Filtramos para quitar los que ya tienes
@@ -62,7 +66,6 @@ class HomeProvider extends ChangeNotifier {
             .toList();
       }
 
-      // PLAN B: Si la colección está vacía o el tema no devolvió resultados
       if (featuredSets.isEmpty) {
         final responseSets = await _apiService.getAllSets(page: 1);
         final List<LegoSet> allSets = responseSets['sets'] as List<LegoSet>;

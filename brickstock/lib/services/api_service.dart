@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart'; // Necesario para kReleaseMode
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/lego_theme.dart';
 import '../models/lego_set.dart';
@@ -11,7 +11,7 @@ import '../models/achievement.dart';
 class ApiService {
   // Definimos las URLs de los entornos
   static const String _productionUrl =
-    'https://brickstock-o9l6.onrender.com/api';
+      'https://brickstock-o9l6.onrender.com/api';
   static String get baseUrl {
     return _productionUrl;
   }
@@ -77,9 +77,7 @@ class ApiService {
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
-      return json.decode(
-        response.body,
-      ); // Devolvemos todo el mapa (results, totalPages, etc)
+      return json.decode(response.body); // Devolvemos todo el mapa
     } else {
       throw Exception('Fallo al cargar temas desde el Backend');
     }
@@ -150,11 +148,7 @@ class ApiService {
       final response = await _authRequest(
         'POST',
         '/collection',
-        body: {
-          'setNum': setNum,
-          'purchasePrice': purchasePrice,
-          'quantity': 1,
-        },
+        body: {'setNum': setNum, 'purchasePrice': purchasePrice, 'quantity': 1},
       );
 
       final data = jsonDecode(response.body);
@@ -168,7 +162,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      // Si el interceptor falla, caerá aquí
+      // Si el interceptor falla
       return {
         'success': false,
         'message': 'Error de red o sesión expirada: $e',
@@ -203,7 +197,7 @@ class ApiService {
     }
   }
 
-  // AÑADIR A WISHLIST (Devuelve Map para poder leer el 'warning')
+  //Añadir wishlist
   Future<Map<String, dynamic>> addToWishlist(
     String setNum,
     double price, {
@@ -221,7 +215,7 @@ class ApiService {
     }
   }
 
-  // OBTENER WISHLIST COMPLETA
+  //Obtener wishlist
   Future<Map<String, dynamic>> getWishlistData() async {
     final response = await _authRequest('GET', '/wishlist');
 
@@ -232,7 +226,7 @@ class ApiService {
     }
   }
 
-  // ACTUALIZAR PRESUPUESTO
+  //Actualizar presupuesto
   Future<bool> updateWishlistBudget(double newBudget) async {
     try {
       final response = await _authRequest(
@@ -246,7 +240,7 @@ class ApiService {
     }
   }
 
-  // BORRAR DE WISHLIST (Similar al de Collection)
+  //Borrar set de wishlist
   Future<bool> deleteFromWishlist(String id) async {
     try {
       final response = await _authRequest('DELETE', '/wishlist/$id');
@@ -411,7 +405,7 @@ class ApiService {
     }
   }
 
-  // Obtener la colección de minifiguras del usuario (Para la pestaña Colección)
+  // Obtener la colección de minifiguras del usuario
   Future<List<Minifigure>> getUserMinifigCollection() async {
     // Usamos el wrapper con Token JWT
     final response = await _authRequest('GET', '/collection/minifigs');
@@ -468,7 +462,7 @@ class ApiService {
     }
   }
 
-  // Obtener datos de mercado simulados (Precio Base, Actual e Histórico)
+  // Obtener datos de mercado simulados
   Future<Map<String, dynamic>?> getSetMarketData(String setNum) async {
     try {
       final uri = Uri.parse('$baseUrl/lego/sets/$setNum/market-data');
@@ -485,7 +479,9 @@ class ApiService {
 
   Future<String> getThemeName(int themeId) async {
     try {
-      final response = await http.get(Uri.parse('${ApiService.baseUrl}/lego/themes/$themeId'));
+      final response = await http.get(
+        Uri.parse('${ApiService.baseUrl}/lego/themes/$themeId'),
+      );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return data['data']['name'] ?? 'Tema $themeId';
@@ -496,7 +492,7 @@ class ApiService {
     return 'Tema $themeId';
   }
 
-  // Obtener datos de mercado globales de TODA la colección del usuario
+  // Obtener datos de mercado globales de toda la colección del usuario
   Future<Map<String, dynamic>?> getCollectionMarketData() async {
     try {
       final response = await _authRequest('GET', '/collection/market-data');
@@ -521,12 +517,14 @@ class ApiService {
 
       if (response.statusCode == 200) {
         // Devuelve el JSON con el setDetails, rrp, availability y marketData
-        return json.decode(response.body); 
+        return json.decode(response.body);
       } else if (response.statusCode == 404) {
         // Si el backend devuelve 404, significa que el código no es de LEGO o no existe
         return null;
       } else {
-        throw Exception('Error del servidor al escanear: ${response.statusCode}');
+        throw Exception(
+          'Error del servidor al escanear: ${response.statusCode}',
+        );
       }
     } catch (e) {
       debugPrint('Error en scanBarcode: $e');
@@ -534,7 +532,7 @@ class ApiService {
     }
   }
 
-  // OBTENER INSTRUCCIONES DE MONTAJE
+  //Obtener instrucciones de montaje
   Future<List<String>> getSetInstructions(String setNum) async {
     try {
       final response = await http.get(
@@ -543,7 +541,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        // Ahora esperamos la clave 'urls' que es una lista
+        //Eesperamos la clave 'urls' que es una lista
         if (data['success'] == true && data['urls'] != null) {
           return List<String>.from(data['urls']);
         }

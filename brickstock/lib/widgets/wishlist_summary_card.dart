@@ -4,9 +4,8 @@ import '../services/api_service.dart';
 class WishlistSummaryCard extends StatelessWidget {
   final double totalValue;
   final double budget;
-  final VoidCallback onBudgetUpdated; // Callback para recargar el padre
+  final VoidCallback onBudgetUpdated;
 
-  // --- PARÁMETROS ESTILO MARKET_DATA_WIDGET ---
   final bool showButton;
   final String buttonLabel;
   final VoidCallback? onButtonPressed;
@@ -16,7 +15,7 @@ class WishlistSummaryCard extends StatelessWidget {
     required this.totalValue,
     required this.budget,
     required this.onBudgetUpdated,
-    this.showButton = false, // Por defecto oculto (útil para PC)
+    this.showButton = false,
     this.buttonLabel = 'Estadística por temas',
     this.onButtonPressed,
   });
@@ -47,7 +46,7 @@ class WishlistSummaryCard extends StatelessWidget {
               if (newBudget != null) {
                 await ApiService().updateWishlistBudget(newBudget);
                 Navigator.pop(ctx);
-                onBudgetUpdated(); // Avisamos a la pantalla de que recargue
+                onBudgetUpdated(); //Avisamos a la pantalla de que recargue
               }
             },
             child: const Text(
@@ -75,7 +74,7 @@ class WishlistSummaryCard extends StatelessWidget {
       ),
       width: double.infinity,
       child: Column(
-        mainAxisSize: MainAxisSize.min, // Para que no ocupe toda la pantalla
+        mainAxisSize: MainAxisSize.min, //Para que no ocupe toda la pantalla
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -102,24 +101,27 @@ class WishlistSummaryCard extends StatelessWidget {
             color: statusColor,
             minHeight: 8,
           ),
-          
-          // --- NUEVO: BOTÓN INTEGRADO AL FINAL ---
+
+          //Boton al final
           if (showButton && onButtonPressed != null) ...[
             const SizedBox(height: 15),
-            const Divider(color: Colors.white10, height: 1), // Línea separadora
+            const Divider(color: Colors.white10, height: 1),
             const SizedBox(height: 5),
             TextButton.icon(
               onPressed: onButtonPressed,
               icon: const Icon(Icons.pie_chart, color: Colors.orange, size: 20),
               label: Text(
                 buttonLabel,
-                style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               style: TextButton.styleFrom(
-                minimumSize: const Size(double.infinity, 45), // Fácil de pulsar
+                minimumSize: const Size(double.infinity, 45),
               ),
             ),
-          ]
+          ],
         ],
       ),
     );

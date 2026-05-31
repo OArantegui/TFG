@@ -18,7 +18,8 @@ class CollectionProvider with ChangeNotifier {
   List<Minifigure> get minifigs => _minifigs;
   bool get isLoading => _isLoading;
 
-  Future<Map<String, dynamic>?>? get collectionMarketDataFuture => _collectionMarketDataFuture;
+  Future<Map<String, dynamic>?>? get collectionMarketDataFuture =>
+      _collectionMarketDataFuture;
 
   double get totalCollectionValue {
     return _collection.fold(
@@ -63,9 +64,9 @@ class CollectionProvider with ChangeNotifier {
   Future<bool> deleteFromCollection(String id) async {
     //Mandamos la orden al backend
     bool success = await _apiService.deleteFromCollection(id);
-    
+
     if (success) {
-      //Borramos el set visualmente de la lista de Flutter al instante
+      //Borramos el set visualmente de la lista de Flutter
       _collection.removeWhere((item) => item.id == id);
 
       //Pedimos la nueva lista actualizada de minifiguras y la sobreescribimos
@@ -77,8 +78,8 @@ class CollectionProvider with ChangeNotifier {
 
       //Recalculamos la gráfica de mercado global porque hay un set menos
       _collectionMarketDataFuture = _apiService.getCollectionMarketData();
-      
-      //Avisamos a la interfaz para que se repinte entera (incluyendo el contador nuevo)
+
+      //Avisamos a la interfaz para que se repinte entera
       notifyListeners();
     }
     return success;

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../services/api_service.dart';
 import '../models/lego_set.dart';
 import '../widgets/wishlist_summary_card.dart';
-import '../widgets/wishlist_theme_chart.dart'; 
+import '../widgets/wishlist_theme_chart.dart';
 import 'set_details_screen.dart';
 
 class WishlistScreen extends StatefulWidget {
@@ -35,11 +35,11 @@ class _WishlistScreenState extends State<WishlistScreen> {
         setState(() {
           _wishlistItems = data['data'] ?? [];
           _budget = (data['budget'] as num).toDouble();
-          
+
           // Calculamos el valor total sumando el targetPrice de cada set
           _totalValue = _wishlistItems.fold(
-            0.0, 
-            (sum, item) => sum + (item['targetPrice'] as num).toDouble()
+            0.0,
+            (sum, item) => sum + (item['targetPrice'] as num).toDouble(),
           );
           _isLoading = false;
         });
@@ -54,9 +54,9 @@ class _WishlistScreenState extends State<WishlistScreen> {
     Map<String, double> distribution = {};
     for (var item in _wishlistItems) {
       // Ajusta 'themeName' al nombre del campo que devuelva tu backend Node.js
-      String theme = item['themeName'] ?? 'Tema ${item['themeId'] ?? '?'}'; 
+      String theme = item['themeName'] ?? 'Tema ${item['themeId'] ?? '?'}';
       double price = (item['targetPrice'] as num).toDouble();
-      
+
       distribution[theme] = (distribution[theme] ?? 0) + price;
     }
     return distribution;
@@ -66,9 +66,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
     return kIsWeb ? _apiService.getProxyUrl(url) : url;
   }
 
-  // ===========================================================================
-  // LAYOUTS RESPONSIVOS
-  // ===========================================================================
+  //Layouts responsivos
 
   Widget _buildNarrowLayout() {
     return Column(
@@ -82,31 +80,34 @@ class _WishlistScreenState extends State<WishlistScreen> {
           buttonLabel: 'Estadística por temas',
           onButtonPressed: () => _showStatsDialog(context),
         ),
-        
+
         const SizedBox(height: 16),
-        
-        // --- TEXTO DE LA LISTA ---
+
+        //Texto
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
               'Sets deseados',
-              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
-        
+
         const SizedBox(height: 10),
-        
-        // --- LA LISTA ORIGINAL (No hace falta tocar el ListView) ---
+
+        //Lista
         Expanded(child: _buildWishlistList()),
       ],
     );
   }
 
-  
-  // --- NUEVA FUNCIÓN PARA EL MODAL CENTRADO (ESTILO COLECCIÓN) ---
+  //Modal
   void _showStatsDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -114,19 +115,19 @@ class _WishlistScreenState extends State<WishlistScreen> {
         backgroundColor: const Color(0xFF2A2A2A),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
-          'Estadística por temas', 
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
+          'Estadística por temas',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         content: SizedBox(
-          width: 400, // Misma proporción que en tu historial de mercado
+          width: 400,
           child: SingleChildScrollView(
             child: WishlistThemeChartWidget(themeData: _getThemeDistribution()),
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx), 
-            child: const Text('Cerrar', style: TextStyle(color: Colors.orange))
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cerrar', style: TextStyle(color: Colors.orange)),
           ),
         ],
       ),
@@ -139,7 +140,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // COLUMNA IZQUIERDA: RESUMEN FINANCIERO (40%)
+          //Columna izquierda
           Expanded(
             flex: 4,
             child: Column(
@@ -150,7 +151,14 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   onBudgetUpdated: _loadWishlist,
                 ),
                 const SizedBox(height: 30),
-                const Text('Estadística por Temas', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Estadística por Temas',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 20),
                 // --- NUEVO GRÁFICO AQUÍ ---
                 if (_wishlistItems.isNotEmpty)
@@ -158,10 +166,10 @@ class _WishlistScreenState extends State<WishlistScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(width: 40),
 
-          // COLUMNA DERECHA: LISTA DE DESEADOS (60%)
+          //Columna derecha
           Expanded(
             flex: 6,
             child: Column(
@@ -169,7 +177,11 @@ class _WishlistScreenState extends State<WishlistScreen> {
               children: [
                 const Text(
                   'Mi Lista de Deseos',
-                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Expanded(child: _buildWishlistList()),
@@ -181,14 +193,14 @@ class _WishlistScreenState extends State<WishlistScreen> {
     );
   }
 
-  // ===========================================================================
-  // LISTA DE ELEMENTOS (Corregida con tus datos reales)
-  // ===========================================================================
-
+  //Lista de elementos
   Widget _buildWishlistList() {
     if (_wishlistItems.isEmpty) {
       return const Center(
-        child: Text('Tu lista de deseos está vacía', style: TextStyle(color: Colors.grey)),
+        child: Text(
+          'Tu lista de deseos está vacía',
+          style: TextStyle(color: Colors.grey),
+        ),
       );
     }
 
@@ -200,9 +212,11 @@ class _WishlistScreenState extends State<WishlistScreen> {
         final double targetPrice = (item['targetPrice'] as num).toDouble();
 
         return Card(
-          color: const Color(0xFF1E1E1E), 
+          color: const Color(0xFF1E1E1E),
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: ListTile(
             contentPadding: const EdgeInsets.all(12),
             leading: ClipRRect(
@@ -214,30 +228,40 @@ class _WishlistScreenState extends State<WishlistScreen> {
                 child: CachedNetworkImage(
                   imageUrl: _getImageUrl(item['imgUrl']),
                   fit: BoxFit.contain,
-                  errorWidget: (context, url, error) => const Icon(Icons.broken_image, color: Colors.grey),
+                  errorWidget: (context, url, error) =>
+                      const Icon(Icons.broken_image, color: Colors.grey),
                 ),
               ),
             ),
             title: Text(
               item['name'],
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Set #${item['setNum']} • ${item['numParts'] ?? '?'} pz', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                Text(
+                  'Set #${item['setNum']} • ${item['numParts'] ?? '?'} pz',
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   '$targetPrice €',
-                  style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.orange,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
             trailing: IconButton(
               icon: const Icon(Icons.delete, color: Colors.redAccent),
-              // AQUÍ USAMOS TU MÉTODO Y TU ID DE MONGODB
+              //Lo eliminamos de la base de datos con nuestro metodo
               onPressed: () => _removeSet(item['id']),
             ),
             onTap: () {
@@ -263,20 +287,26 @@ class _WishlistScreenState extends State<WishlistScreen> {
     );
   }
 
-  // LLAMANDO A TU API SERVICE CORRECTAMENTE
+  //Llamada a api
   Future<void> _removeSet(String id) async {
     final success = await _apiService.deleteFromWishlist(id);
     if (success) {
       _loadWishlist();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Eliminado de deseados'), backgroundColor: Colors.orange),
+          const SnackBar(
+            content: Text('Eliminado de deseados'),
+            backgroundColor: Colors.orange,
+          ),
         );
       }
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error al eliminar'), backgroundColor: Colors.red),
+          const SnackBar(
+            content: Text('Error al eliminar'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

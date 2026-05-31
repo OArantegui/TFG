@@ -35,7 +35,7 @@ class _UserScreenState extends State<UserScreen> {
     super.initState();
     _cargarDatosUsuario();
     _achievementsFuture = _apiService.getMyAchievements();
-    _loadUserStats(); 
+    _loadUserStats();
   }
 
   void _loadUserStats() {
@@ -86,7 +86,10 @@ class _UserScreenState extends State<UserScreen> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ajustes guardados correctamente'), backgroundColor: Colors.green),
+        const SnackBar(
+          content: Text('Ajustes guardados correctamente'),
+          backgroundColor: Colors.green,
+        ),
       );
       _passwordController.clear();
       _confirmPasswordController.clear();
@@ -94,7 +97,12 @@ class _UserScreenState extends State<UserScreen> {
       Provider.of<UserProvider>(context, listen: false).loadUserData();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al guardar. Puede que el email o usuario ya existan.'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text(
+            'Error al guardar. Puede que el email o usuario ya existan.',
+          ),
+          backgroundColor: Colors.red,
+        ),
       );
     }
     _isPasswordUnlocked = false;
@@ -104,7 +112,9 @@ class _UserScreenState extends State<UserScreen> {
     await _authService.logout();
     Provider.of<UserProvider>(context, listen: false).clearUserData();
     if (!mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
   }
 
   void _solicitarPasswordActual() {
@@ -115,7 +125,7 @@ class _UserScreenState extends State<UserScreen> {
 
     showDialog(
       context: context,
-      barrierDismissible: false, 
+      barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setStateDialog) {
           return AlertDialog(
@@ -130,7 +140,10 @@ class _UserScreenState extends State<UserScreen> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Por favor, introduce tu contraseña actual para desbloquear la edición de contraseña.', style: TextStyle(color: Colors.white70)),
+                const Text(
+                  'Por favor, introduce tu contraseña actual para desbloquear la edición de contraseña.',
+                  style: TextStyle(color: Colors.white70),
+                ),
                 const SizedBox(height: 20),
                 TextField(
                   controller: currentPassController,
@@ -145,7 +158,13 @@ class _UserScreenState extends State<UserScreen> {
               ],
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: Colors.grey))),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
               ElevatedButton(
                 onPressed: isVerifying
                     ? null
@@ -153,7 +172,8 @@ class _UserScreenState extends State<UserScreen> {
                         if (currentPassController.text.isEmpty) return;
                         setStateDialog(() => isVerifying = true);
 
-                        final isValid = await _authService.verifyCurrentPassword(currentPassController.text);
+                        final isValid = await _authService
+                            .verifyCurrentPassword(currentPassController.text);
 
                         if (!mounted) return;
                         setStateDialog(() => isVerifying = false);
@@ -161,15 +181,40 @@ class _UserScreenState extends State<UserScreen> {
                         if (isValid) {
                           setState(() => _isPasswordUnlocked = true);
                           Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Campos de contraseña desbloqueados'), backgroundColor: Colors.green));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Campos de contraseña desbloqueados',
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Contraseña incorrecta'), backgroundColor: Colors.red));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Contraseña incorrecta'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
                         }
                       },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
                 child: isVerifying
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
-                    : const Text('Verificar', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.black,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Verificar',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ],
           );
@@ -178,10 +223,7 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 
-  // ===========================================================================
-  // WIDGETS EXTRAÍDOS (Componentes modulares)
-  // ===========================================================================
-
+  //Componentes
   Widget _buildAvatarAndName() {
     return Column(
       children: [
@@ -199,11 +241,20 @@ class _UserScreenState extends State<UserScreen> {
                   context: context,
                   builder: (dialogContext) => AvatarPickerDialog(
                     onAvatarSelected: (avatarPath) async {
-                      final success = await _authService.updateAvatar(avatarPath);
+                      final success = await _authService.updateAvatar(
+                        avatarPath,
+                      );
                       if (!context.mounted) return;
                       if (success) {
-                        Provider.of<UserProvider>(context, listen: false).updateAvatar(avatarPath);
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Avatar actualizado con éxito')));
+                        Provider.of<UserProvider>(
+                          context,
+                          listen: false,
+                        ).updateAvatar(avatarPath);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Avatar actualizado con éxito'),
+                          ),
+                        );
                       }
                     },
                   ),
@@ -211,7 +262,10 @@ class _UserScreenState extends State<UserScreen> {
               },
               child: Container(
                 padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: Colors.orange,
+                  shape: BoxShape.circle,
+                ),
                 child: const Icon(Icons.edit, color: Colors.black, size: 18),
               ),
             ),
@@ -220,7 +274,11 @@ class _UserScreenState extends State<UserScreen> {
         const SizedBox(height: 16),
         Text(
           context.watch<UserProvider>().username,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ],
     );
@@ -231,10 +289,15 @@ class _UserScreenState extends State<UserScreen> {
       future: _userStatsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: Colors.orange));
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.orange),
+          );
         }
         if (snapshot.hasError) {
-          return const Text('Error al cargar estadísticas', style: TextStyle(color: Colors.grey));
+          return const Text(
+            'Error al cargar estadísticas',
+            style: TextStyle(color: Colors.grey),
+          );
         }
 
         final stats = snapshot.data!;
@@ -250,10 +313,24 @@ class _UserScreenState extends State<UserScreen> {
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         children: [
-                          const Icon(Icons.shelves, color: Colors.orange, size: 30),
+                          const Icon(
+                            Icons.shelves,
+                            color: Colors.orange,
+                            size: 30,
+                          ),
                           const SizedBox(height: 8),
-                          Text('${stats['collectionCount']}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
-                          const Text('En Colección', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                          Text(
+                            '${stats['collectionCount']}',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const Text(
+                            'En Colección',
+                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                          ),
                         ],
                       ),
                     ),
@@ -266,10 +343,24 @@ class _UserScreenState extends State<UserScreen> {
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         children: [
-                          const Icon(Icons.favorite_border, color: Colors.pinkAccent, size: 30),
+                          const Icon(
+                            Icons.favorite_border,
+                            color: Colors.pinkAccent,
+                            size: 30,
+                          ),
                           const SizedBox(height: 8),
-                          Text('${stats['wishlistCount']}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
-                          const Text('En Deseados', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                          Text(
+                            '${stats['wishlistCount']}',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const Text(
+                            'En Deseados',
+                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                          ),
                         ],
                       ),
                     ),
@@ -281,7 +372,7 @@ class _UserScreenState extends State<UserScreen> {
             WishlistSummaryCard(
               totalValue: stats['wishlistTotal'],
               budget: stats['wishlistBudget'],
-              onBudgetUpdated: _loadUserStats, 
+              onBudgetUpdated: _loadUserStats,
             ),
           ],
         );
@@ -297,14 +388,24 @@ class _UserScreenState extends State<UserScreen> {
           return const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Tus Insignias (...)', style: TextStyle(fontSize: 18, color: Colors.orange, fontWeight: FontWeight.bold)),
+              Text(
+                'Tus Insignias (...)',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.orange,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               SizedBox(height: 10),
               Center(child: CircularProgressIndicator(color: Colors.orange)),
             ],
           );
         }
         if (snapshot.hasError) {
-          return const Text('Error al cargar insignias', style: TextStyle(color: Colors.grey));
+          return const Text(
+            'Error al cargar insignias',
+            style: TextStyle(color: Colors.grey),
+          );
         }
 
         final achievements = snapshot.data ?? [];
@@ -314,13 +415,18 @@ class _UserScreenState extends State<UserScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Tus Insignias ($unlockedCount/$totalCount)', style: const TextStyle(fontSize: 18, color: Colors.orange, fontWeight: FontWeight.bold)),
+            Text(
+              'Tus Insignias ($unlockedCount/$totalCount)',
+              style: const TextStyle(
+                fontSize: 18,
+                color: Colors.orange,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 15),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              // Truco Senior: MaxCrossAxisExtent adapta el grid al ancho disponible automáticamente.
-              // En móvil cabrán 3, en un panel ancho cabrán 4 o 5 sin estirarse raro.
               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                 maxCrossAxisExtent: 110,
                 childAspectRatio: 0.7,
@@ -330,8 +436,12 @@ class _UserScreenState extends State<UserScreen> {
               itemCount: achievements.length,
               itemBuilder: (context, index) {
                 final ach = achievements[index];
-                final Color iconColor = ach.isUnlocked ? Colors.amber : Colors.grey[600]!;
-                final Color backgroundColor = ach.isUnlocked ? Colors.orange.withOpacity(0.2) : const Color(0xFF2D2D2D);
+                final Color iconColor = ach.isUnlocked
+                    ? Colors.amber
+                    : Colors.grey[600]!;
+                final Color backgroundColor = ach.isUnlocked
+                    ? Colors.orange.withOpacity(0.2)
+                    : const Color(0xFF2D2D2D);
                 final double textOpacity = ach.isUnlocked ? 1.0 : 0.4;
 
                 return Tooltip(
@@ -339,25 +449,42 @@ class _UserScreenState extends State<UserScreen> {
                   child: Column(
                     children: [
                       CircleAvatar(
-                        radius: 35, 
+                        radius: 35,
                         backgroundColor: backgroundColor,
                         child: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: ach.isUnlocked ? Colors.orange.withOpacity(0.5) : Colors.white10, width: 1),
+                            border: Border.all(
+                              color: ach.isUnlocked
+                                  ? Colors.orange.withOpacity(0.5)
+                                  : Colors.white10,
+                              width: 1,
+                            ),
                           ),
-                          child: Center(child: Icon(ach.iconData, size: 35, color: iconColor)),
+                          child: Center(
+                            child: Icon(
+                              ach.iconData,
+                              size: 35,
+                              color: iconColor,
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 10), 
+                      const SizedBox(height: 10),
                       Opacity(
                         opacity: textOpacity,
                         child: Text(
                           ach.name,
                           textAlign: TextAlign.center,
-                          maxLines: 2, 
-                          overflow: TextOverflow.ellipsis, 
-                          style: TextStyle(fontSize: 11, fontWeight: ach.isUnlocked ? FontWeight.bold : FontWeight.normal, color: Colors.white),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: ach.isUnlocked
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
@@ -373,38 +500,52 @@ class _UserScreenState extends State<UserScreen> {
 
   Widget _buildSettingsSection() {
     return ExpansionTile(
-      title: const Text('Ajustes de Cuenta', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      title: const Text(
+        'Ajustes de Cuenta',
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      ),
       leading: const Icon(Icons.settings, color: Colors.grey),
       childrenPadding: const EdgeInsets.all(16.0),
       // Mantenemos el color de fondo para que parezca una tarjeta
       backgroundColor: const Color(0xFF1E1E1E),
       collapsedBackgroundColor: const Color(0xFF1E1E1E),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      collapsedShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       children: [
         Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Deja en blanco la contraseña si no quieres cambiarla.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              const Text(
+                'Deja en blanco la contraseña si no quieres cambiarla.',
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
               const SizedBox(height: 20),
               TextFormField(
                 controller: _usernameController,
-                decoration: const InputDecoration(labelText: 'Nombre de Usuario', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Nombre de Usuario',
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 15),
               TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: 'Correo Electrónico', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Correo Electrónico',
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 15),
               TextFormField(
                 controller: _passwordController,
                 obscureText: true,
-                readOnly: !_isPasswordUnlocked, 
-                onTap: _solicitarPasswordActual, 
+                readOnly: !_isPasswordUnlocked,
+                onTap: _solicitarPasswordActual,
                 decoration: InputDecoration(
                   labelText: 'Nueva Contraseña',
                   border: const OutlineInputBorder(),
@@ -418,8 +559,8 @@ class _UserScreenState extends State<UserScreen> {
               TextFormField(
                 controller: _confirmPasswordController,
                 obscureText: true,
-                readOnly: !_isPasswordUnlocked, 
-                onTap: _solicitarPasswordActual, 
+                readOnly: !_isPasswordUnlocked,
+                onTap: _solicitarPasswordActual,
                 decoration: InputDecoration(
                   labelText: 'Confirmar Nueva Contraseña',
                   border: const OutlineInputBorder(),
@@ -429,7 +570,8 @@ class _UserScreenState extends State<UserScreen> {
                   ),
                 ),
                 validator: (val) {
-                  if (_passwordController.text.isNotEmpty && val != _passwordController.text) {
+                  if (_passwordController.text.isNotEmpty &&
+                      val != _passwordController.text) {
                     return 'Las contraseñas no coinciden';
                   }
                   return null;
@@ -437,7 +579,9 @@ class _UserScreenState extends State<UserScreen> {
               ),
               const SizedBox(height: 20),
               if (_isLoading)
-                const Center(child: CircularProgressIndicator(color: Colors.orange))
+                const Center(
+                  child: CircularProgressIndicator(color: Colors.orange),
+                )
               else
                 ElevatedButton.icon(
                   onPressed: _guardarAjustes,
@@ -456,10 +600,7 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 
-  // ===========================================================================
-  // LAYOUTS (Orquestadores de Vista)
-  // ===========================================================================
-
+  //Layouts
   Widget _buildNarrowLayout() {
     return SingleChildScrollView(
       child: Column(
@@ -467,7 +608,10 @@ class _UserScreenState extends State<UserScreen> {
         children: [
           Container(
             color: const Color(0xFF1E1E1E),
-            padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(
+              vertical: 24.0,
+              horizontal: 16.0,
+            ),
             child: Column(
               children: [
                 _buildAvatarAndName(),
@@ -495,7 +639,7 @@ class _UserScreenState extends State<UserScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // COLUMNA IZQUIERDA (40%): Perfil y Estadísticas
+          //Columna izquierda
           Expanded(
             flex: 4,
             child: Container(
@@ -513,10 +657,10 @@ class _UserScreenState extends State<UserScreen> {
               ),
             ),
           ),
-          
+
           const SizedBox(width: 32),
 
-          // COLUMNA DERECHA (60%): Insignias y Ajustes
+          //Columna derecha
           Expanded(
             flex: 6,
             child: Column(
@@ -546,7 +690,7 @@ class _UserScreenState extends State<UserScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mi Perfil'),
-        
+
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.redAccent),
@@ -557,14 +701,14 @@ class _UserScreenState extends State<UserScreen> {
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => const LoginScreen()),
-                (Route<dynamic> route) => false, 
+                (Route<dynamic> route) => false,
               );
             },
           ),
         ],
       ),
-      
-      // EL CEREBRO DE LA RESPONSIVIDAD
+
+      //Constructor
       body: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth >= 900) {

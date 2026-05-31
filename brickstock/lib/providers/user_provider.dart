@@ -20,7 +20,7 @@ class UserProvider extends ChangeNotifier {
   // Actualizar solo el avatar al instante
   void updateAvatar(String newPath) {
     _avatar = newPath;
-    notifyListeners(); // Actualiza al instante Navbar e Inicio
+    notifyListeners(); // Actualiza Navbar e Inicio
   }
 
   //Eliminar los datos de la cache del dispositivo

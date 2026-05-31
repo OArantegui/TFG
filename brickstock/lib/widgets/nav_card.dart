@@ -6,16 +6,16 @@ class NavCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const NavCard({
-    super.key, 
-    required this.title, 
-    required this.icon, 
-    required this.onTap
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: const Color(0xFF2A2A2A), // Mismo color "anti-diseño" que Colección
+      color: const Color(0xFF2A2A2A),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
@@ -27,9 +27,9 @@ class NavCard extends StatelessWidget {
             Icon(icon, size: 36, color: Colors.orange),
             const SizedBox(height: 12),
             Text(
-              title, 
+              title,
               style: const TextStyle(
-                color: Colors.white, 
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),

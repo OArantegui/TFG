@@ -8,7 +8,7 @@ class AuthService {
   //Usamos Secure Storage para tokens y SharedPreferences para datos no sensibles.
   final _secureStorage = const FlutterSecureStorage();
 
-  // GESTIÓN DE TOKENS
+  //Gestion de tokens
 
   Future<void> saveTokens(String accessToken, String refreshToken) async {
     await _secureStorage.write(key: 'access_token', value: accessToken);
@@ -27,7 +27,7 @@ class AuthService {
   Future<void> logout() async {
     final refreshToken = await getRefreshToken();
     if (refreshToken != null) {
-      // Le decimos al backend que destruya este token
+      //Backend para destruir token
       try {
         await http.post(
           Uri.parse('${ApiService.baseUrl}/auth/logout'),
@@ -45,14 +45,14 @@ class AuthService {
     await prefs.clear();
   }
 
-  /// Comprueba si hay una sesión activa al abrir la app (basta con tener el refresh_token)
+  /// Comprueba si hay una sesión activa al abrir la app
   Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Comprobamos si el usuario marcó la casilla. Por defecto (si no existe) es true.
+    // Comprobamos si el usuario marcó la casilla. Por defecto es true.
     final keepSignedIn = prefs.getBool('keep_signed_in') ?? true;
 
-    // Si NO quería mantener la sesión, destruimos los tokens ahora que ha reabierto la app
+    // Si no quería mantener la sesión, destruimos los tokens cuando reabre la app
     if (!keepSignedIn) {
       await logout();
       return false;
@@ -173,7 +173,7 @@ class AuthService {
     }
   }
 
-  //REFRESCAR EL TOKEN
+  //Refresca token
 
   /// Pide un nuevo Access Token usando el Refresh Token
   Future<bool> refreshAccessToken() async {
@@ -191,12 +191,11 @@ class AuthService {
         final data = jsonDecode(response.body);
         final newAccessToken = data['accessToken'];
 
-        // Sobrescribimos SOLO el Access Token corto
+        // Sobrescribimos solo el Access Token corto
         await _secureStorage.write(key: 'access_token', value: newAccessToken);
         return true;
       } else {
-        // Si el servidor rechaza el refresh token (ha caducado el de 30 días o lo hemos revocado)
-        // Forzamos cerrar sesión
+        // Si el servidor rechaza el refresh token, forzamos cerrar sesión
         await logout();
         return false;
       }
@@ -210,7 +209,6 @@ class AuthService {
     String? email,
     String? password,
   ) async {
-    // Aquí podrías usar el nuevo método de ApiService luego, pero de momento:
     try {
       final token = await getAccessToken();
       final Map<String, dynamic> body = {};
@@ -232,14 +230,15 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['user'] != null) {
-          // Recuperamos los datos actuales por si el backend no manda el avatar
+          //Recuperamos los datos actuales por si el backend no manda el avatar
           final currentUserData = await getUserData();
-          final currentAvatar = currentUserData['avatar'] ?? 'assets/avatars/lego-default.jpg';
+          final currentAvatar =
+              currentUserData['avatar'] ?? 'assets/avatars/lego-default.jpg';
 
           await saveUserData(
-            data['user']['username'], 
-            data['user']['email'], 
-            data['user']['avatar'] ?? currentAvatar
+            data['user']['username'],
+            data['user']['email'],
+            data['user']['avatar'] ?? currentAvatar,
           );
         }
         return true;
@@ -266,7 +265,7 @@ class AuthService {
         final data = jsonDecode(response.body);
         return data['success'] == true;
       }
-      return false; // Si devuelve 400 (incorrecta)
+      return false; //Si devuelve 400
     } catch (e) {
       return false;
     }
@@ -277,7 +276,7 @@ class AuthService {
       String? token = await getAccessToken();
       final uri = Uri.parse('${ApiService.baseUrl}/auth/avatar');
 
-      // Función auxiliar para no repetir código de los headers
+      //Función auxiliar para no repetir código de los headers
       Future<http.Response> makeRequest(String currentToken) {
         return http.put(
           uri,
@@ -289,24 +288,24 @@ class AuthService {
         );
       }
 
-      // Primer intento
+      //Primer intento
       var response = await makeRequest(token ?? '');
 
-      // Si el token está caducado, forzamos refresco automático
+      //Si el token está caducado, forzamos refresco automático
       if (response.statusCode == 401 || response.statusCode == 403) {
         print("Token caducado cambiando avatar. Refrescando...");
         bool refreshed = await refreshAccessToken();
         if (refreshed) {
           token = await getAccessToken();
-          // Reintentamos la petición de actualizar avatar con el token nuevo
+          //Reintentamos la petición de actualizar avatar con el token nuevo
           response = await makeRequest(token!);
         }
       }
 
-      // Evaluamos el resultado final
+      //Evaluamos el resultado final
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        // Actualiza los datos locales
+        //Actualiza los datos locales
         await saveUserData(
           data['user']['username'],
           data['user']['email'],

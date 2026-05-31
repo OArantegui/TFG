@@ -23,7 +23,7 @@ class ElementsListScreen extends StatefulWidget {
 class _ElementsListScreenState extends State<ElementsListScreen> {
   final ApiService apiService = ApiService();
 
-  // ESTADO DE SETS
+  //Estado de sets
   List<LegoSet> _sets = [];
   bool _isLoading = true;
   bool _isLoadingMore = false;
@@ -31,7 +31,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
   int _totalCount = 0;
   String? _nextPageUrl;
 
-  // ESTADO DE MINIFIGURAS
+  //Estado de minifiguras
   SearchMode _searchMode = SearchMode.sets;
   List<Minifigure> _minifigs = [];
   bool _isLoadingMinifigs = false;
@@ -273,14 +273,14 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
           ),
         ),
       ),
-      //Si estamos dentro de un tema, FORZAMOS a que renderice la lista de Sets
+      //Si estamos dentro de un tema, forzamos a que renderice la lista de Sets
       body: (!_isGlobalSearch || _searchMode == SearchMode.sets)
           ? _buildSetsList()
           : _buildMinifigsList(),
     );
   }
 
-  // VISTA LISTA DE SETS
+  //Vista lista de sets
   Widget _buildSetsList() {
     if (_isLoading) {
       return const Center(
@@ -320,7 +320,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
                     const double maxColumnWidth = 450.0;
                     const double minItemHeight = 125.0;
 
-                    // Cálculo matemático dinámico
+                    // Cálculo matemático
                     int columns = (constraints.maxWidth / maxColumnWidth)
                         .ceil();
                     if (columns < 1) columns = 1;
@@ -473,7 +473,7 @@ class _ElementsListScreenState extends State<ElementsListScreen> {
     );
   }
 
-  // VISTA LISTA DE MINIFIGURAS
+  //Vista lista de minifiguras
   Widget _buildMinifigsList() {
     if (_isLoadingMinifigs) {
       return const Center(

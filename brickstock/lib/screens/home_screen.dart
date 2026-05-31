@@ -29,7 +29,6 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.transparent, // Mantiene el fondo oscuro
-      // BOTÓN FLOTANTE
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -59,7 +58,6 @@ class HomeScreen extends StatelessWidget {
         color: Colors.orange,
         child: CustomScrollView(
           slivers: [
-            // CABECERA DINÁMICA: Desaparece al bajar, aparece al subir
             SliverAppBar(
               floating: true,
               snap: true,
@@ -93,7 +91,7 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
 
-            // CONTENIDO PRINCIPAL
+            //Contenido principal
             SliverPadding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
@@ -112,7 +110,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
 
-                  // BOTONES DE NAVEGACIÓN
+                  //Botones navegación
                   GridView.count(
                     shrinkWrap: true,
                     physics:
@@ -145,7 +143,7 @@ class HomeScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 40),
-                  // CABECERA DE NOVEDADES
+                  //Cabecera novedades
                   Row(
                     children: [
                       const Expanded(
@@ -167,7 +165,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
-            // CARRUSEL DE DESTACADOS INTEGRADO EN SLIVER
+            //Carrusel de destacados silver
             SliverToBoxAdapter(
               child: SizedBox(
                 height: 250, // Altura fija para el carrusel horizontal
@@ -225,7 +223,7 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// TARJETA DE SET DESTACADO
+//Tarjeta set destacado
 class _FeaturedSetCard extends StatelessWidget {
   final LegoSet legoSet;
 

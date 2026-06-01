@@ -35418,7 +35418,7 @@ $S:2}
 A.aS3.prototype={
 $1(a){var s=A.dT().b
 s=s==null?null:s.canvasKitBaseUrl
-return(s==null?"https://www.gstatic.com/flutter-canvaskit/4c525dac5ebe5971c5708ef73558ed8edcf4a362/":s)+a},
+return(s==null?"https://www.gstatic.com/flutter-canvaskit/c416acfeb8126e097f758c664aaa3da929e27da0/":s)+a},
 $S:109}
 A.Vj.prototype={
 gv(a){var s=this.a
@@ -52523,7 +52523,7 @@ A.aJs.prototype={
 $1(a){return new A.tv(new A.eH(),A.b([],t.xg),A.b([],t.o9),$.ax())},
 $S:783}
 A.aJo.prototype={
-$2(a,b){var s,r,q,p,o,n=this,m="assets/brickstock_logo.png",l=null,k=b.b<640,j=t.p,i=A.b([],j)
+$2(a,b){var s,r,q,p,o,n=this,m="assets/BrickStockLogoV3.png",l=null,k=b.b<640,j=t.p,i=A.b([],j)
 if(!k){s=n.a
 r=s.d
 q=A.b1r(A.akU(m,24,24),B.aaR,A.akU(m,24,24))

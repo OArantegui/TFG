@@ -1,6 +1,6 @@
 {
-    "name": "brickstock",
-    "short_name": "brickstock",
+    "name": "BrickStock",
+    "short_name": "BrickStock",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#1E1E1E",

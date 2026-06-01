@@ -63,15 +63,10 @@ class _WishlistThemeChartWidgetState extends State<WishlistThemeChartWidget> {
                               .touchedSection!
                               .touchedSectionIndex;
 
-                          // El índice -1 significa que tocó el hueco central o fuera del pastel.
-                          // Si toca fuera, hacemos 'return' para que no cambie el estado actual (no se cierra).
                           if (currentTouch == -1) {
                             return;
                           }
 
-                          // Lógica de INTERRUPTOR PURO:
-                          // Si tocas el que ya está seleccionado, lo cierra (-1).
-                          // Si tocas otro diferente, lo abre (currentTouch).
                           if (touchedIndex == currentTouch) {
                             touchedIndex = -1;
                           } else {

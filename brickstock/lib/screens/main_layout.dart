@@ -99,12 +99,12 @@ class _MainLayoutState extends State<MainLayout> {
                   destinations: [
                     NavigationRailDestination(
                       icon: Image.asset(
-                        'assets/brickstock_logo.png',
+                        'assets/BrickStockLogoV3.png',
                         width: 24,
                         height: 24,
                       ),
                       selectedIcon: Image.asset(
-                        'assets/brickstock_logo.png',
+                        'assets/BrickStockLogoV3.png',
                         width: 24,
                         height: 24,
                       ),
@@ -177,12 +177,12 @@ class _MainLayoutState extends State<MainLayout> {
                   destinations: [
                     NavigationDestination(
                       icon: Image.asset(
-                        'assets/brickstock_logo.png',
+                        'assets/BrickStockLogoV3.png',
                         width: 24,
                         height: 24,
                       ),
                       selectedIcon: Image.asset(
-                        'assets/brickstock_logo.png',
+                        'assets/BrickStockLogoV3.png',
                         width: 24,
                         height: 24,
                       ),
